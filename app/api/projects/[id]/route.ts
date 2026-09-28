@@ -13,7 +13,8 @@ async function checkAccess(projectId: string, userId: string, role: string) {
   return { project, allowed };
 }
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await getServerSession(authOptions);
   if (!session || session.user.role === "STUDENT") {
     return NextResponse.json({ error: "Nicht autorisiert" }, { status: 401 });
@@ -25,7 +26,8 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
   return NextResponse.json(project);
 }
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await getServerSession(authOptions);
   if (!session || session.user.role === "STUDENT") {
     return NextResponse.json({ error: "Nicht autorisiert" }, { status: 401 });
@@ -88,7 +90,8 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   return NextResponse.json(updated);
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await getServerSession(authOptions);
   if (!session || session.user.role === "STUDENT") {
     return NextResponse.json({ error: "Nicht autorisiert" }, { status: 401 });
