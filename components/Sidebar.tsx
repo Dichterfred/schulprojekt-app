@@ -8,8 +8,8 @@ import { signOut } from "next-auth/react";
 type Project = { id: string; name: string; studentCount: number; groups: { maxStudents: number }[] };
 
 const NAV_ITEMS = [
-  { href: "/projects", label: "Projekte", icon: "📋" },
-  { href: "/groups",   label: "Gruppen",  icon: "👥" },
+  { href: "/projects", label: "Projekte" },
+  { href: "/groups",   label: "Gruppen" },
 ];
 
 export default function Sidebar({ username, isSuperuser }: { username: string; isSuperuser: boolean }) {
@@ -71,7 +71,7 @@ export default function Sidebar({ username, isSuperuser }: { username: string; i
         <div style={{ fontSize: "0.68rem", fontWeight: 700, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "0.08em", padding: "0 0.75rem", marginBottom: "0.4rem" }}>
           Navigation
         </div>
-        {NAV_ITEMS.map(({ href, label, icon }) => {
+        {NAV_ITEMS.map(({ href, label }) => {
           const active = pathname?.startsWith(href);
           return (
             <Link key={href} href={href} style={{
@@ -88,7 +88,6 @@ export default function Sidebar({ username, isSuperuser }: { username: string; i
               fontWeight: active ? 600 : 400,
               transition: "background 0.15s, color 0.15s",
             }}>
-              <span style={{ fontSize: "1rem", width: 20, textAlign: "center" }}>{icon}</span>
               {label}
             </Link>
           );
@@ -108,7 +107,6 @@ export default function Sidebar({ username, isSuperuser }: { username: string; i
             fontWeight: pathname?.startsWith("/settings") ? 600 : 400,
             transition: "background 0.15s, color 0.15s",
           }}>
-            <span style={{ fontSize: "1rem", width: 20, textAlign: "center" }}>⚙️</span>
             Einstellungen
           </Link>
         )}
@@ -141,7 +139,6 @@ export default function Sidebar({ username, isSuperuser }: { username: string; i
               transition: "background 0.15s",
             }}>
               <div style={{ fontWeight: 500, marginBottom: "0.3rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.name}</div>
-              {/* Mini progress bar */}
               <div style={{ height: 3, background: "rgba(255,255,255,0.1)", borderRadius: 99 }}>
                 <div style={{ height: "100%", width: `${pct}%`, background: "linear-gradient(90deg,#007AFF,#34AADC)", borderRadius: 99, transition: "width 0.4s" }} />
               </div>

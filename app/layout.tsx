@@ -47,12 +47,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           {showSidebar ? (
             <div style={{ display: "flex", minHeight: "100vh" }}>
               <Sidebar username={session!.user.name || ""} isSuperuser={session!.user.role === "SUPERUSER"} />
-              <main style={{
-                flex: 1,
-                padding: "2rem 2.5rem",
-                maxWidth: 900,
-                marginLeft: 0,
-              }}>{children}</main>
+              <main style={{ flex: 1, padding: "2rem 2.5rem", minWidth: 0 }}>{children}</main>
             </div>
           ) : (
             <main>{children}</main>

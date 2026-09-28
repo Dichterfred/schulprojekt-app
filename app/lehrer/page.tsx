@@ -33,21 +33,21 @@ export default function LehrerLoginPage() {
       padding: "1.5rem",
     }}>
       <div style={{ width: "100%", maxWidth: 380 }}>
-
-        {/* Logo / App Icon */}
         <div style={{ textAlign: "center", marginBottom: "2rem" }}>
           <div style={{
-            width: 64, height: 64,
-            borderRadius: 18,
+            width: 56, height: 56,
+            borderRadius: 16,
             background: "linear-gradient(145deg, #007AFF, #0055D4)",
-            boxShadow: "0 8px 24px rgba(0,122,255,0.35)",
+            boxShadow: "0 6px 20px rgba(0,122,255,0.35)",
             display: "inline-flex",
             alignItems: "center",
             justifyContent: "center",
-            fontSize: "2rem",
             marginBottom: "1rem",
           }}>
-            🏫
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
           </div>
           <h1 style={{ fontSize: "1.5rem", fontWeight: 700, letterSpacing: "-0.03em", marginBottom: "0.2rem" }}>Anmeldung</h1>
           <p style={{ color: "#6C6C70", fontSize: "0.9rem", margin: 0 }}>Schulprojekt Verwaltung &middot; Lehrer</p>
@@ -65,33 +65,14 @@ export default function LehrerLoginPage() {
           <form onSubmit={handleSubmit}>
             <div style={{ marginBottom: "1rem" }}>
               <label style={{ marginTop: 0 }}>Benutzername</label>
-              <input
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                autoComplete="username"
-                required
-              />
+              <input value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="username" required />
             </div>
             <div style={{ marginBottom: "1.25rem" }}>
               <label>Passwort</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete="current-password"
-                required
-              />
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" required />
             </div>
             {error && (
-              <div style={{
-                background: "rgba(255,59,48,0.08)",
-                border: "1px solid rgba(255,59,48,0.2)",
-                borderRadius: 8,
-                padding: "0.6rem 0.85rem",
-                marginBottom: "1rem",
-                color: "#FF3B30",
-                fontSize: "0.85rem",
-              }}>
+              <div style={{ background: "rgba(255,59,48,0.08)", border: "1px solid rgba(255,59,48,0.2)", borderRadius: 8, padding: "0.6rem 0.85rem", marginBottom: "1rem", color: "#FF3B30", fontSize: "0.85rem" }}>
                 {error}
               </div>
             )}
@@ -102,7 +83,7 @@ export default function LehrerLoginPage() {
         </div>
 
         <p style={{ textAlign: "center", marginTop: "1.25rem", fontSize: "0.85rem", color: "#6C6C70" }}>
-          Ich bin Schüler &mdash;{" "}
+          Ich bin Schüler —{" "}
           <Link href="/schueler" style={{ color: "#007AFF", textDecoration: "none", fontWeight: 500 }}>Hier anmelden &rarr;</Link>
         </p>
       </div>

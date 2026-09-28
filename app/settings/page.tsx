@@ -9,10 +9,9 @@ type Student = {
   enrolledProject: { id: string; name: string; code: string } | null;
 };
 
-function SectionHeader({ icon, title }: { icon: string; title: string }) {
+function SectionHeader({ title }: { title: string }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", margin: "2rem 0 1rem" }}>
-      <span style={{ fontSize: "1.3rem" }}>{icon}</span>
+    <div style={{ margin: "2rem 0 1rem" }}>
       <h2 style={{ margin: 0 }}>{title}</h2>
     </div>
   );
@@ -90,25 +89,27 @@ export default function SettingsPage() {
   }
 
   return (
-    <div style={{ maxWidth: 560 }}>
+    <div style={{ maxWidth: 680 }}>
       <div style={{ marginBottom: "0.5rem" }}>
         <h1>Einstellungen</h1>
-        <p style={{ color: "#6C6C70", marginTop: "0.25rem", fontSize: "0.9rem" }}>Lehrer und Schüler verwalten</p>
+        <p style={{ color: "#6C6C70", marginTop: "0.4rem", fontSize: "0.9rem" }}>Lehrer und Schüler verwalten</p>
       </div>
 
       {/* ===== Lehrer ===== */}
-      <SectionHeader icon="👨‍🏫" title="Lehrer verwalten" />
+      <SectionHeader title="Lehrer verwalten" />
 
       <div className="card">
         <h4 style={{ marginBottom: "1rem", color: "#6C6C70", fontSize: "0.78rem", textTransform: "uppercase", letterSpacing: "0.04em", fontWeight: 700 }}>Neuen Lehrer anlegen</h4>
         <form onSubmit={handleTeacherSubmit}>
-          <div style={{ marginBottom: "0.75rem" }}>
-            <label style={{ marginTop: 0 }}>Benutzername</label>
-            <input value={tUsername} onChange={(e) => setTUsername(e.target.value)} autoComplete="off" required />
-          </div>
-          <div style={{ marginBottom: "1rem" }}>
-            <label>Passwort</label>
-            <input type="password" value={tPassword} onChange={(e) => setTPassword(e.target.value)} autoComplete="new-password" required />
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem", marginBottom: "1rem" }}>
+            <div>
+              <label style={{ marginTop: 0 }}>Benutzername</label>
+              <input value={tUsername} onChange={(e) => setTUsername(e.target.value)} autoComplete="off" required />
+            </div>
+            <div>
+              <label style={{ marginTop: 0 }}>Passwort</label>
+              <input type="password" value={tPassword} onChange={(e) => setTPassword(e.target.value)} autoComplete="new-password" required />
+            </div>
           </div>
           {tError && <p className="error-text">{tError}</p>}
           <button type="submit">Lehrer anlegen</button>
@@ -148,7 +149,7 @@ export default function SettingsPage() {
       )}
 
       {/* ===== Schüler ===== */}
-      <SectionHeader icon="👨‍🎓" title="Schüler verwalten" />
+      <SectionHeader title="Schüler verwalten" />
 
       <div className="card">
         <h4 style={{ marginBottom: "1rem", color: "#6C6C70", fontSize: "0.78rem", textTransform: "uppercase", letterSpacing: "0.04em", fontWeight: 700 }}>Neuen Schüler anlegen</h4>
