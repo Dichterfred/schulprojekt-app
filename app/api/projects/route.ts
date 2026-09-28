@@ -28,7 +28,7 @@ export async function POST(req: Request) {
   }
 
   const body = await req.json();
-  const { name, description, studentCount, schoolClassIds, startDate, endDate, enrollmentDeadline } = body;
+  const { name, description, studentCount, schoolClassIds, startDate, endDate, enrollmentDeadline, bannerImage } = body;
 
   if (!name || !description || !studentCount || studentCount <= 0) {
     return NextResponse.json({ error: "Ungültige Eingabedaten." }, { status: 400 });
@@ -66,6 +66,7 @@ export async function POST(req: Request) {
       startDate: start,
       endDate: end,
       enrollmentDeadline: deadline,
+      bannerImage: bannerImage ?? null,
       schoolClasses: { connect: schoolClassIds.map((id: string) => ({ id })) },
     },
     include: { groups: true, schoolClasses: true },

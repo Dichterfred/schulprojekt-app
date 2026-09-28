@@ -3,6 +3,7 @@
 import { useEffect, useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import BannerUpload from "@/components/BannerUpload";
 
 type SchoolClass = { id: string; name: string; sortOrder: number };
 
@@ -12,6 +13,7 @@ export default function NewProjectPage() {
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [bannerImage, setBannerImage] = useState<string | null>(null);
   const [studentCount, setStudentCount] = useState("");
   const [selectedClassIds, setSelectedClassIds] = useState<string[]>([]);
   const [startDate, setStartDate] = useState("");
@@ -32,18 +34,17 @@ export default function NewProjectPage() {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError("");
-
     if (selectedClassIds.length === 0) {
       setError("Bitte mindestens eine Schulklasse auswählen.");
       return;
     }
-
     const res = await fetch("/api/projects", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name,
         description,
+        bannerImage,
         studentCount: Number(studentCount),
         schoolClassIds: selectedClassIds,
         startDate: `${startDate}T00:00:00.000Z`,
@@ -51,13 +52,11 @@ export default function NewProjectPage() {
         enrollmentDeadline: new Date(enrollmentDeadline).toISOString(),
       }),
     });
-
     if (!res.ok) {
       const data = await res.json();
       setError(data.error || "Fehler beim Anlegen des Projekts.");
       return;
     }
-
     router.push("/projects");
     router.refresh();
   }
@@ -68,16 +67,20 @@ export default function NewProjectPage() {
         <h1 style={{ margin: 0 }}>Neues Projekt erstellen</h1>
         <Link href="/projects"><button className="secondary">&larr; Zur Projektliste</button></Link>
       </div>
-
       <div className="card" style={{ maxWidth: 480 }}>
         <form onSubmit={handleSubmit}>
+          <BannerUpload
+            folder="projects"
+            currentUrl={bannerImage}
+            onUploaded={(url) => setBannerImage(url)}
+            onRemove={() => setBannerImage(null)}
+          />
           <label>Name</label>
           <input value={name} onChange={(e) => setName(e.target.value)} required />
-          <label>Beschreibung</label>
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} required />
+          <label>Beschreibung (Links: [Text](https://...))</label>
+          <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} required />
           <label>Schüler Anzahl</label>
           <input type="number" min={1} value={studentCount} onChange={(e) => setStudentCount(e.target.value)} required />
-
           <label>Schulklassen (mind. eine auswählen)</label>
           <div className="checkbox-grid">
             {schoolClasses.map((c) => (
@@ -87,14 +90,12 @@ export default function NewProjectPage() {
               </label>
             ))}
           </div>
-
-          <label>Start (Datum, ohne Uhrzeit — gilt als Tagesanfang)</label>
+          <label>Start (Datum, ohne Uhrzeit)</label>
           <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} required />
-          <label>Ende (Datum, ohne Uhrzeit — gilt als Tagesende)</label>
+          <label>Ende (Datum, ohne Uhrzeit)</label>
           <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} required />
-          <label>Einschreibefrist (Datum &amp; Uhrzeit, bis wann Gruppenanmeldung möglich ist)</label>
+          <label>Einschreibefrist (Datum &amp; Uhrzeit)</label>
           <input type="datetime-local" value={enrollmentDeadline} onChange={(e) => setEnrollmentDeadline(e.target.value)} required />
-
           {error && <p className="error-text">{error}</p>}
           <button type="submit">Projekt erstellen</button>
         </form>
