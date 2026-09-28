@@ -3,16 +3,24 @@
 import { useEffect, useState } from "react";
 import LogoutButton from "@/components/LogoutButton";
 import { formatDateTime } from "@/lib/dateHelpers";
+import DescriptionRenderer from "@/components/DescriptionRenderer";
 
 type Group = {
   id: string;
   name: string;
   description: string;
+  bannerImage: string | null;
   maxStudents: number;
   priority: number | null;
 };
 
-type ProjectInfo = { id: string; name: string; description: string; enrollmentDeadline: string };
+type ProjectInfo = {
+  id: string;
+  name: string;
+  description: string;
+  bannerImage: string | null;
+  enrollmentDeadline: string;
+};
 
 export default function StudentPage() {
   const [loading, setLoading] = useState(true);
@@ -95,60 +103,84 @@ export default function StudentPage() {
   const usedPriorities = groups.filter((g) => g.priority !== null).map((g) => g.priority);
 
   return (
-    <div style={{ maxWidth: 640, margin: "0 auto", padding: "2rem 1.5rem 6rem" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-        <div>
-          <h1 style={{ marginBottom: "0.2rem" }}>{project.name}</h1>
-          <p style={{ color: "#555", marginTop: 0 }}>{project.description}</p>
+    <div style={{ maxWidth: 640, margin: "0 auto", padding: "0 0 6rem" }}>
+
+      {/* Projekt-Banner */}
+      {project.bannerImage && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={project.bannerImage}
+          alt="Projektbanner"
+          style={{ width: "100%", maxHeight: 200, objectFit: "cover", display: "block" }}
+        />
+      )}
+
+      <div style={{ padding: "1.5rem 1.5rem 0" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+          <div style={{ flex: 1, marginRight: "1rem" }}>
+            <h1 style={{ marginBottom: "0.2rem" }}>{project.name}</h1>
+            <DescriptionRenderer text={project.description} />
+          </div>
+          <LogoutButton callbackUrl="/schueler" />
         </div>
-        <LogoutButton callbackUrl="/schueler" />
-      </div>
 
-      <div className="card">
-        <p style={{ margin: 0 }}>
-          Einschreibefrist: <strong>{formatDateTime(project.enrollmentDeadline)}</strong>
-        </p>
-        {deadlinePassed && (
-          <p className="error-text" style={{ marginTop: "0.5rem" }}>
-            Die Einschreibefrist ist bereits abgelaufen. Es können keine Prioritäten mehr
-            vergeben oder geändert werden.
+        <div className="card">
+          <p style={{ margin: 0 }}>
+            Einschreibefrist: <strong>{formatDateTime(project.enrollmentDeadline)}</strong>
           </p>
-        )}
-      </div>
+          {deadlinePassed && (
+            <p className="error-text" style={{ marginTop: "0.5rem" }}>
+              Die Einschreibefrist ist bereits abgelaufen. Es können keine Prioritäten mehr
+              vergeben oder geändert werden.
+            </p>
+          )}
+        </div>
 
-      <h3>Gruppen bewerten (Priorität 1 = höchste Priorität)</h3>
-      {error && <p className="error-text">{error}</p>}
+        <h3>Gruppen bewerten (Priorität 1 = höchste Priorität)</h3>
+        {error && <p className="error-text">{error}</p>}
 
-      {groups.length === 0 && <p>Für dieses Projekt wurden noch keine Gruppen angelegt.</p>}
+        {groups.length === 0 && <p>Für dieses Projekt wurden noch keine Gruppen angelegt.</p>}
 
-      {groups.map((g) => (
-        <div key={g.id} className="card">
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem" }}>
-            <div>
-              <h4 style={{ margin: 0 }}>{g.name}</h4>
-              <p style={{ color: "#555", margin: "0.3rem 0" }}>{g.description}</p>
-              <p style={{ fontSize: "0.8rem", color: "#555", margin: 0 }}>Max. {g.maxStudents} Schüler</p>
-            </div>
-            <div style={{ textAlign: "right", minWidth: 130 }}>
-              <select
-                className="priority-select"
-                value={g.priority ?? ""}
-                disabled={deadlinePassed || savingId === g.id}
-                onChange={(e) => handlePriorityChange(g.id, e.target.value)}
-              >
-                <option value="">- keine -</option>
-                {Array.from({ length: groupCount }, (_, i) => i + 1).map((n) => (
-                  <option key={n} value={n} disabled={usedPriorities.includes(n) && g.priority !== n}>
-                    Priorität {n}
-                  </option>
-                ))}
-              </select>
-              {savingId === g.id && <div style={{ fontSize: "0.75rem", color: "#555", marginTop: "0.3rem" }}>Speichert...</div>}
-              {savedId === g.id && <div className="saved-badge" style={{ marginTop: "0.3rem", display: "inline-block" }}>Gespeichert ✓</div>}
+        {groups.map((g) => (
+          <div key={g.id} className="card" style={{ padding: 0, overflow: "hidden" }}>
+
+            {/* Gruppen-Banner */}
+            {g.bannerImage && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={g.bannerImage}
+                alt="Gruppenbanner"
+                style={{ width: "100%", height: 110, objectFit: "cover", display: "block" }}
+              />
+            )}
+
+            <div style={{ padding: "0.9rem", display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem" }}>
+              <div style={{ flex: 1 }}>
+                <h4 style={{ margin: 0 }}>{g.name}</h4>
+                <DescriptionRenderer text={g.description} />
+                <p style={{ fontSize: "0.8rem", color: "#555", margin: 0 }}>Max. {g.maxStudents} Schüler</p>
+              </div>
+              <div style={{ textAlign: "right", minWidth: 130 }}>
+                <select
+                  className="priority-select"
+                  value={g.priority ?? ""}
+                  disabled={deadlinePassed || savingId === g.id}
+                  onChange={(e) => handlePriorityChange(g.id, e.target.value)}
+                >
+                  <option value="">- keine -</option>
+                  {Array.from({ length: groupCount }, (_, i) => i + 1).map((n) => (
+                    <option key={n} value={n} disabled={usedPriorities.includes(n) && g.priority !== n}>
+                      Priorität {n}
+                    </option>
+                  ))}
+                </select>
+                {savingId === g.id && <div style={{ fontSize: "0.75rem", color: "#555", marginTop: "0.3rem" }}>Speichert...</div>}
+                {savedId === g.id && <div className="saved-badge" style={{ marginTop: "0.3rem", display: "inline-block" }}>Gespeichert ✓</div>}
+              </div>
             </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }

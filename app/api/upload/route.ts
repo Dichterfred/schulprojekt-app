@@ -1,13 +1,15 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { writeFile, mkdir } from "fs/promises";
-import { join, extname } from "path";
-import { randomUUID } from "crypto";
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 const MAX_SIZE_MB = 5;
 
+/**
+ * Nimmt eine Bilddatei entgegen, prüft Typ & Größe und gibt
+ * direkt einen Base64-Data-URL zurück, der in der Datenbank
+ * gespeichert wird. Kein Dateisystem, keine /public/uploads.
+ */
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session || session.user.role === "STUDENT") {
@@ -16,7 +18,6 @@ export async function POST(req: Request) {
 
   const formData = await req.formData();
   const file = formData.get("file") as File | null;
-  const folder = (formData.get("folder") as string) || "misc";
 
   if (!file) {
     return NextResponse.json({ error: "Keine Datei übermittelt." }, { status: 400 });
@@ -30,12 +31,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: `Maximale Dateigröße: ${MAX_SIZE_MB} MB.` }, { status: 400 });
   }
 
-  const ext = extname(file.name) || ".jpg";
-  const filename = `${randomUUID()}${ext}`;
-  const uploadDir = join(process.cwd(), "public", "uploads", folder);
-  await mkdir(uploadDir, { recursive: true });
   const buffer = Buffer.from(await file.arrayBuffer());
-  await writeFile(join(uploadDir, filename), buffer);
+  const base64 = buffer.toString("base64");
+  const dataUrl = `data:${file.type};base64,${base64}`;
 
-  return NextResponse.json({ url: `/uploads/${folder}/${filename}` }, { status: 201 });
+  return NextResponse.json({ url: dataUrl }, { status: 201 });
 }

@@ -1,16 +1,15 @@
 "use client";
 
 import { useRef, useState } from "react";
-import Image from "next/image";
 
 interface Props {
-  folder: "projects" | "groups";
+  folder: "projects" | "groups"; // wird für die Upload-API nicht mehr gebraucht, bleibt für Abwärtskompatibilität
   currentUrl?: string | null;
   onUploaded: (url: string) => void;
   onRemove: () => void;
 }
 
-export default function BannerUpload({ folder, currentUrl, onUploaded, onRemove }: Props) {
+export default function BannerUpload({ currentUrl, onUploaded, onRemove }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
@@ -23,7 +22,6 @@ export default function BannerUpload({ folder, currentUrl, onUploaded, onRemove 
     try {
       const fd = new FormData();
       fd.append("file", file);
-      fd.append("folder", folder);
       const res = await fetch("/api/upload", { method: "POST", body: fd });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Upload fehlgeschlagen.");
@@ -41,8 +39,13 @@ export default function BannerUpload({ folder, currentUrl, onUploaded, onRemove 
       <label style={{ display: "block", marginBottom: "0.25rem", fontWeight: 500 }}>Banner-Bild (optional)</label>
 
       {currentUrl ? (
-        <div style={{ position: "relative", width: "100%", height: 140, borderRadius: 8, overflow: "hidden", marginBottom: "0.5rem" }}>
-          <Image src={currentUrl} alt="Banner" fill style={{ objectFit: "cover" }} unoptimized />
+        <div style={{ position: "relative", width: "100%", marginBottom: "0.5rem" }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={currentUrl}
+            alt="Banner"
+            style={{ width: "100%", height: 140, objectFit: "cover", borderRadius: 8, display: "block" }}
+          />
           <button
             type="button"
             onClick={onRemove}
@@ -70,7 +73,13 @@ export default function BannerUpload({ folder, currentUrl, onUploaded, onRemove 
         </div>
       )}
 
-      <input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" style={{ display: "none" }} onChange={handleFile} />
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/gif"
+        style={{ display: "none" }}
+        onChange={handleFile}
+      />
 
       {!currentUrl && !uploading && (
         <button type="button" className="secondary" style={{ fontSize: "0.8rem" }} onClick={() => inputRef.current?.click()}>

@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { toDateOnly, toLocalDateTimeInputValue, formatDateOnly, formatDateTime } from "@/lib/dateHelpers";
 import BannerUpload from "@/components/BannerUpload";
 import DescriptionRenderer from "@/components/DescriptionRenderer";
@@ -153,10 +152,10 @@ export default function ProjectsPage() {
               {isEditing ? "✕" : "✎"}
             </button>
 
-            {/* Banner */}
             {!isEditing && p.bannerImage && (
               <div style={{ position: "relative", width: "100%", height: 140 }}>
-                <Image src={p.bannerImage} alt="Banner" fill style={{ objectFit: "cover" }} unoptimized />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={p.bannerImage} alt="Banner" style={{ width: "100%", height: 140, objectFit: "cover", display: "block" }} />
               </div>
             )}
 
