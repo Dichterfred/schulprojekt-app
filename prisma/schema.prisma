@@ -1,0 +1,102 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Hinweis: SQLite unterstützt in Prisma keine "enum"-Typen,
+// daher wird die Rolle eines Nutzers als einfacher String gespeichert.
+// Gültige Werte: "SUPERUSER", "TEACHER", "STUDENT"
+model User {
+  id           String  @id @default(cuid())
+  username     String? @unique
+  passwordHash String?
+  role         String
+
+  firstName String?
+  lastName  String?
+
+  createdAt DateTime @default(now())
+
+  ownedProjects Project[] @relation("OwnedProjects")
+
+  // Vom Super User zugewiesenes Projekt (= Anmeldung mit Projekt-Code + Vorname.Nachname)
+  enrolledProjectId String?
+  enrolledProject    Project? @relation("Enrollment", fields: [enrolledProjectId], references: [id], onDelete: Cascade)
+
+  // Einzelne Gruppen-Prioritäten, die dieser Schüler vergeben hat
+  groupPriorities GroupPriority[]
+}
+
+model SchoolClass {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  sortOrder Int       @unique
+  projects  Project[] @relation("ProjectSchoolClasses")
+}
+
+model Project {
+  id           String   @id @default(cuid())
+  name         String
+  description  String
+  studentCount Int
+  code         String   @unique
+
+  // Start/Ende: nur Datum relevant, technisch als UTC-Tagesanfang bzw. Tagesende gespeichert
+  startDate DateTime
+  endDate   DateTime
+
+  // Einschreibefrist: Datum UND Uhrzeit relevant, wird serverseitig für die
+  // Gruppen-Einschreibung der Schüler geprüft
+  enrollmentDeadline DateTime
+
+  ownerId String?
+  owner   User?   @relation("OwnedProjects", fields: [ownerId], references: [id], onDelete: SetNull)
+
+  schoolClasses SchoolClass[] @relation("ProjectSchoolClasses")
+
+  groups          Group[]
+  students        User[]          @relation("Enrollment")
+  groupPriorities GroupPriority[]
+
+  createdAt DateTime @default(now())
+}
+
+model Group {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  maxStudents Int
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  groupPriorities GroupPriority[]
+}
+
+// Speichert die Priorität, die ein Schüler einer Gruppe innerhalb seines
+// zugewiesenen Projekts gegeben hat. Jede Priorität (1..n) darf pro Schüler
+// nur einmal vergeben werden, ebenso darf jede Gruppe nur einmal bewertet werden.
+model GroupPriority {
+  id        String @id @default(cuid())
+
+  studentId String
+  student   User   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  groupId String
+  group   Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  priority Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([studentId, groupId])
+  @@unique([studentId, priority])
+}
