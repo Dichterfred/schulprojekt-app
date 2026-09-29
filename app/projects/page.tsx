@@ -45,13 +45,11 @@ export default function ProjectsPage() {
   function toggleEditClass(id: string) {
     setEditClassIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   }
-
   async function handleDelete(id: string) {
     if (!confirm("Dieses Projekt inkl. aller Gruppen wirklich löschen?")) return;
     await fetch(`/api/projects/${id}`, { method: "DELETE" });
     loadProjects();
   }
-
   function startEdit(p: Project) {
     setEditingId(p.id); setEditName(p.name); setEditDescription(p.description);
     setEditBanner(p.bannerImage); setEditStudentCount(String(p.studentCount));
@@ -61,7 +59,6 @@ export default function ProjectsPage() {
     setEditError("");
   }
   function cancelEdit() { setEditingId(null); setEditError(""); }
-
   async function saveEdit(id: string) {
     setEditError("");
     if (editClassIds.length === 0) { setEditError("Bitte mindestens eine Schulklasse auswählen."); return; }
@@ -94,29 +91,35 @@ export default function ProjectsPage() {
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
 
-      {/* Top Bar */}
+      {/* ─── Top Bar ─── */}
       <div className="top-bar">
-        <h1 className="" style={{ margin: 0, fontSize: "1.15rem", fontWeight: 700, letterSpacing: "-0.025em" }}>Projekte</h1>
-        <div className="top-bar-divider" />
-        <span style={{ fontSize: "0.8rem", color: "#6C6C70", fontWeight: 500, whiteSpace: "nowrap" }}>Sortieren:</span>
-        <select
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value as "name" | "class")}
-          style={{ width: "auto", marginBottom: 0, fontSize: "0.82rem", padding: "0.38rem 2rem 0.38rem 0.65rem" }}
-        >
-          <option value="name">Projektname</option>
-          <option value="class">Schulklasse</option>
-        </select>
-        <div style={{ flex: 1 }} />
-        <Link href="/projects/new">
-          <button style={{ padding: "0.42rem 1rem", fontSize: "0.85rem", borderRadius: 8 }}>+ Projekt erstellen</button>
-        </Link>
+        <h1>Projekte</h1>
+        <span className="top-bar-divider" />
+
+        {/* Sort — label hidden on mobile via CSS */}
+        <div className="top-bar-sort">
+          <span className="sort-label" style={{ fontSize: "0.8rem", color: "#6C6C70", fontWeight: 500, whiteSpace: "nowrap" }}>Sortieren:</span>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as "name" | "class")}
+            style={{ width: "auto", marginBottom: 0 }}
+          >
+            <option value="name">Projektname</option>
+            <option value="class">Schulklasse</option>
+          </select>
+        </div>
+
+        {/* Action */}
+        <div className="top-bar-actions">
+          <Link href="/projects/new">
+            <button style={{ borderRadius: 8 }}>+ Neu</button>
+          </Link>
+        </div>
       </div>
 
-      {/* Content */}
-      <div style={{ flex: 1, overflowY: "auto", padding: "1.75rem 2rem 2rem" }}>
+      {/* ─── Content ─── */}
+      <div className="page-content" style={{ flex: 1, overflowY: "auto", padding: "1.5rem 1.75rem 2rem" }}>
 
-        {/* Empty state */}
         {sortedProjects.length === 0 && (
           <div className="empty-state">
             <div className="empty-state-icon">📁</div>
@@ -138,8 +141,6 @@ export default function ProjectsPage() {
                 position: "relative", display: "flex", flexDirection: "column",
                 transition: "box-shadow 0.2s",
               }}>
-
-                {/* Edit toggle */}
                 <button
                   className="edit-icon-btn"
                   style={{ top: "0.6rem", right: "0.6rem", zIndex: 3, background: isEditing ? "#F2F2F7" : "rgba(255,255,255,0.92)", backdropFilter: "blur(8px)" }}
@@ -148,7 +149,6 @@ export default function ProjectsPage() {
                   {isEditing ? "✕" : "✎"}
                 </button>
 
-                {/* Banner / accent line */}
                 {!isEditing && p.bannerImage && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={p.bannerImage} alt="Banner" style={{ width: "100%", height: 140, objectFit: "cover", display: "block" }} />
@@ -194,19 +194,13 @@ export default function ProjectsPage() {
                       <div style={{ fontSize: "0.85rem", color: "#6C6C70", marginBottom: "0.5rem", flex: 1, lineHeight: 1.55 }}>
                         <DescriptionRenderer text={p.description} />
                       </div>
-
-                      {/* Date row */}
                       <div style={{ display: "flex", gap: "0.75rem", fontSize: "0.76rem", color: "#AEAEB2", marginBottom: "0.25rem", flexWrap: "wrap" }}>
                         <span>📅 {formatDateOnly(p.startDate)} – {formatDateOnly(p.endDate)}</span>
                         <span>⏰ {formatDateTime(p.enrollmentDeadline)}</span>
                       </div>
-
-                      {/* Progress bar */}
                       <div className="progress-bar" style={{ marginTop: "0.6rem" }}>
                         <div className="progress-fill" style={{ width: `${pct}%` }} />
                       </div>
-
-                      {/* Footer */}
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "0.5rem" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", fontSize: "0.8rem", color: "#6C6C70" }}>
                           <span>{used}<span style={{ color: "#AEAEB2" }}>/{p.studentCount} Sch.</span></span>
