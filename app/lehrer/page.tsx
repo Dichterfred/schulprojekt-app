@@ -29,62 +29,106 @@ export default function LehrerLoginPage() {
       alignItems: "center",
       justifyContent: "center",
       minHeight: "100vh",
-      background: "linear-gradient(160deg, #F2F2F7 0%, #E8EEF8 100%)",
+      background: "linear-gradient(160deg, #EEF2FF 0%, #E8F0FE 50%, #F0F4FF 100%)",
       padding: "1.5rem",
     }}>
       <div style={{ width: "100%", maxWidth: 380 }}>
-        <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+
+        {/* App Icon + Title */}
+        <div style={{ textAlign: "center", marginBottom: "2.25rem" }}>
           <div style={{
-            width: 56, height: 56,
-            borderRadius: 16,
-            background: "linear-gradient(145deg, #007AFF, #0055D4)",
-            boxShadow: "0 6px 20px rgba(0,122,255,0.35)",
+            width: 72, height: 72,
+            borderRadius: 20,
+            background: "linear-gradient(145deg, #0A84FF, #0055D4)",
+            boxShadow: "0 8px 28px rgba(0,122,255,0.38), 0 2px 8px rgba(0,0,0,0.12)",
             display: "inline-flex",
             alignItems: "center",
             justifyContent: "center",
             marginBottom: "1rem",
           }}>
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
               <circle cx="12" cy="7" r="4"/>
             </svg>
           </div>
-          <h1 style={{ fontSize: "1.5rem", fontWeight: 700, letterSpacing: "-0.03em", marginBottom: "0.2rem" }}>Anmeldung</h1>
-          <p style={{ color: "#6C6C70", fontSize: "0.9rem", margin: 0 }}>Schulprojekt Verwaltung &middot; Lehrer</p>
+          <h1 style={{ fontSize: "1.6rem", fontWeight: 700, letterSpacing: "-0.035em", marginBottom: "0.25rem" }}>Willkommen</h1>
+          <p style={{ color: "#6C6C70", fontSize: "0.88rem", margin: 0, fontWeight: 500 }}>
+            Schulprojekt&nbsp;&middot;&nbsp;Lehrer-Bereich
+          </p>
         </div>
 
+        {/* Form Card */}
         <div style={{
-          background: "rgba(255,255,255,0.85)",
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
-          borderRadius: 20,
-          padding: "1.75rem",
-          boxShadow: "0 8px 32px rgba(0,0,0,0.10), 0 1px 4px rgba(0,0,0,0.06)",
-          border: "1px solid rgba(0,0,0,0.06)",
+          background: "rgba(255,255,255,0.88)",
+          backdropFilter: "blur(24px)",
+          WebkitBackdropFilter: "blur(24px)",
+          borderRadius: 22,
+          padding: "1.85rem 1.75rem",
+          boxShadow: "0 12px 40px rgba(0,0,0,0.09), 0 1px 4px rgba(0,0,0,0.05)",
+          border: "1px solid rgba(255,255,255,0.7)",
         }}>
           <form onSubmit={handleSubmit}>
-            <div style={{ marginBottom: "1rem" }}>
+            <div style={{ marginBottom: "0.85rem" }}>
               <label style={{ marginTop: 0 }}>Benutzername</label>
-              <input value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="username" required />
+              <input
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                autoComplete="username"
+                placeholder="Dein Benutzername"
+                required
+              />
             </div>
-            <div style={{ marginBottom: "1.25rem" }}>
+            <div style={{ marginBottom: "1.35rem" }}>
               <label>Passwort</label>
-              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" required />
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+                placeholder="••••••••"
+                required
+              />
             </div>
+
             {error && (
-              <div style={{ background: "rgba(255,59,48,0.08)", border: "1px solid rgba(255,59,48,0.2)", borderRadius: 8, padding: "0.6rem 0.85rem", marginBottom: "1rem", color: "#FF3B30", fontSize: "0.85rem" }}>
+              <div style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.5rem",
+                background: "rgba(255,59,48,0.07)",
+                border: "1px solid rgba(255,59,48,0.18)",
+                borderRadius: 10,
+                padding: "0.65rem 0.9rem",
+                marginBottom: "1rem",
+                color: "#FF3B30",
+                fontSize: "0.85rem",
+                fontWeight: 500,
+              }}>
+                <span style={{ fontSize: "1rem", flexShrink: 0 }}>⚠️</span>
                 {error}
               </div>
             )}
-            <button type="submit" disabled={loading} style={{ width: "100%", padding: "0.7rem", borderRadius: 12, fontSize: "0.95rem" }}>
-              {loading ? "Anmelden…" : "Anmelden"}
+
+            <button
+              type="submit"
+              disabled={loading}
+              style={{ width: "100%", padding: "0.75rem", borderRadius: 12, fontSize: "0.95rem", fontWeight: 600 }}
+            >
+              {loading ? (
+                <span style={{ display: "flex", alignItems: "center", gap: "0.5rem", justifyContent: "center" }}>
+                  <span style={{ width: 16, height: 16, border: "2px solid rgba(255,255,255,0.4)", borderTopColor: "white", borderRadius: "50%", animation: "spin 0.65s linear infinite", display: "inline-block" }} />
+                  Anmelden…
+                </span>
+              ) : "Anmelden"}
             </button>
           </form>
         </div>
 
-        <p style={{ textAlign: "center", marginTop: "1.25rem", fontSize: "0.85rem", color: "#6C6C70" }}>
-          Ich bin Schüler —{" "}
-          <Link href="/schueler" style={{ color: "#007AFF", textDecoration: "none", fontWeight: 500 }}>Hier anmelden &rarr;</Link>
+        <p style={{ textAlign: "center", marginTop: "1.35rem", fontSize: "0.85rem", color: "#6C6C70" }}>
+          Du bist Schüler?{" "}
+          <Link href="/schueler" style={{ color: "#007AFF", textDecoration: "none", fontWeight: 600 }}>
+            Hier anmelden →
+          </Link>
         </p>
       </div>
     </div>
