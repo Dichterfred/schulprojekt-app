@@ -379,6 +379,7 @@ button.success:hover {
   align-items: center;
   gap: var(--space-3);
   margin-bottom: var(--space-5);
+  flex-wrap: wrap;
 }
 .sort-bar select { width: auto; margin-bottom: 0; font-size: var(--text-xs); }
 
@@ -387,6 +388,8 @@ button.success:hover {
   justify-content: space-between;
   align-items: center;
   margin-bottom: var(--space-6);
+  flex-wrap: wrap;
+  gap: var(--space-3);
 }
 
 /* ── Priority Select ── */
@@ -441,6 +444,8 @@ button.success:hover {
   position: sticky;
   top: 0;
   z-index: 10;
+  flex-wrap: wrap;
+  min-height: 52px;
 }
 .top-bar h1 {
   margin: 0;
@@ -497,4 +502,76 @@ button.success:hover {
   color: var(--color-error);
   font-size: var(--text-sm);
   font-weight: 500;
+}
+
+/* ══════════════════════════════════════════
+   MOBILE RESPONSIVE OVERRIDES  (≤ 767px)
+   ══════════════════════════════════════════ */
+@media (max-width: 767px) {
+
+  /* Body: allow scrolling, remove fixed overflow */
+  body { overflow: auto; }
+
+  /* Top-bar: leave space for hamburger (48px) on mobile */
+  .top-bar {
+    padding: var(--space-3) var(--space-4) var(--space-3) 60px;
+    gap: var(--space-2);
+  }
+  .top-bar h1 { font-size: 1rem; }
+  .top-bar-divider { display: none; }
+
+  /* Card grid → single column */
+  .card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Page header → stack vertically */
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  /* Sort bar → wrap */
+  .sort-bar { flex-wrap: wrap; }
+
+  /* Card: tighter padding */
+  .card {
+    padding: var(--space-4);
+  }
+
+  /* Inputs + selects: larger tap targets */
+  input, textarea, select {
+    font-size: 16px; /* prevent iOS zoom */
+    padding: var(--space-3);
+  }
+
+  /* Buttons: full-width in forms */
+  .form-actions button {
+    width: 100%;
+  }
+
+  /* Empty state: less padding */
+  .empty-state {
+    padding: var(--space-10) var(--space-4);
+  }
+
+  /* LegalFooter: smaller on mobile */
+  .legal-footer {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.6rem;
+    bottom: 0.5rem;
+    right: 0.5rem;
+  }
+}
+
+/* ══════════════════════════════════════════
+   SMALL TABLET  (768px – 1023px)
+   ══════════════════════════════════════════ */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .top-bar {
+    padding: var(--space-3) var(--space-5);
+  }
+  .card-grid {
+    grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr));
+  }
 }
