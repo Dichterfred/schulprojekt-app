@@ -13,23 +13,26 @@ export const metadata = {
 
 function LegalFooter() {
   return (
-      <div
-          style={{
-            position: "fixed",
-            bottom: "1rem",
-            right: "1rem",
-            display: "flex",
-            gap: "1rem",
-            fontSize: "0.8rem",
-            zIndex: 1000,
-            background: "rgba(255, 255, 255, 0.85)",
-            padding: "0.25rem 0.75rem",
-            borderRadius: "0.5rem",
-          }}
-      >
-          <Link href="/impressum">Impressum</Link>
-        <Link href="/datenschutz">Datenschutz</Link>
-      </div>
+    <div style={{
+      position: "fixed",
+      bottom: "1rem",
+      right: "1rem",
+      display: "flex",
+      gap: "1rem",
+      fontSize: "0.75rem",
+      zIndex: 1000,
+      background: "rgba(255,255,255,0.75)",
+      backdropFilter: "blur(12px)",
+      WebkitBackdropFilter: "blur(12px)",
+      padding: "0.3rem 0.85rem",
+      borderRadius: "20px",
+      border: "1px solid rgba(0,0,0,0.08)",
+      boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+      color: "#6C6C70",
+    }}>
+      <Link href="/impressum" style={{ color: "#6C6C70", textDecoration: "none" }}>Impressum</Link>
+      <Link href="/datenschutz" style={{ color: "#6C6C70", textDecoration: "none" }}>Datenschutz</Link>
+    </div>
   );
 }
 
@@ -39,17 +42,27 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
 
   return (
     <html lang="de">
-      <body>
+      <body style={{ overflow: "hidden" }}>
         <Providers>
           {showSidebar ? (
-            <div style={{ display: "flex", minHeight: "100vh" }}>
+            <div style={{ display: "flex", height: "100vh", overflow: "hidden" }}>
+              {/* Sidebar — never scrolls */}
               <Sidebar username={session!.user.name || ""} isSuperuser={session!.user.role === "SUPERUSER"} />
-              <main style={{ flex: 1, padding: "2rem" }}>{children}</main>
+              {/* Main — only this scrolls */}
+              <main style={{
+                flex: 1,
+                overflowY: "auto",
+                minWidth: 0,
+                display: "flex",
+                flexDirection: "column",
+              }}>
+                {children}
+              </main>
             </div>
           ) : (
             <main>{children}</main>
           )}
-          <LegalFooter/>
+          <LegalFooter />
         </Providers>
       </body>
     </html>
