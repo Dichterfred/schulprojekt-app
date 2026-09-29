@@ -4,7 +4,10 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 async function checkProjectAccess(projectId: string, userId: string, role: string) {
-  const project = await prisma.project.findUnique({ where: { id: projectId }, include: { groups: true } });
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+    include: { groups: true },
+  });
   if (!project) return { project: null, allowed: false };
   const allowed = role === "SUPERUSER" || project.ownerId === userId;
   return { project, allowed };
@@ -25,7 +28,23 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Nicht gefunden oder keine Berechtigung." }, { status: 404 });
   }
 
-  return NextResponse.json(project.groups);
+  // Include enrolled students (via GroupPriority) with their priority for this group
+  const groups = await prisma.group.findMany({
+    where: { projectId },
+    include: {
+      priorities: {
+        orderBy: { priority: "asc" },
+        include: {
+          student: {
+            select: { id: true, firstName: true, lastName: true },
+          },
+        },
+      },
+    },
+    orderBy: { name: "asc" },
+  });
+
+  return NextResponse.json(groups);
 }
 
 export async function POST(req: Request) {
@@ -51,7 +70,10 @@ export async function POST(req: Request) {
 
   if (newSum > project.studentCount) {
     const remaining = project.studentCount - currentSum;
-    return NextResponse.json({ error: `Die maximale Schüleranzahl würde überschritten. Noch verfügbare Plätze: ${remaining}.` }, { status: 400 });
+    return NextResponse.json(
+      { error: `Die maximale Schüleranzahl würde überschritten. Noch verfügbare Plätze: ${remaining}.` },
+      { status: 400 }
+    );
   }
 
   const group = await prisma.group.create({
