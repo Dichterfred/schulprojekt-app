@@ -2,26 +2,20 @@
 
 import { useEffect, useState, FormEvent, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
 import Link from "next/link";
 import BannerUpload from "@/components/BannerUpload";
 
 type Project = { id: string; name: string; studentCount: number };
 type Group = { id: string; maxStudents: number };
-type Teacher = { id: string; username: string };
 
 function NewGroupContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { data: session } = useSession();
-  const isSuperUser = session?.user?.role === "SUPERUSER";
   const initialProjectId = searchParams.get("projectId") || "";
 
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState(initialProjectId);
   const [existingGroups, setExistingGroups] = useState<Group[]>([]);
-  const [teachers, setTeachers] = useState<Teacher[]>([]);
-  const [assignedOwnerId, setAssignedOwnerId] = useState("");
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -44,12 +38,7 @@ function NewGroupContent() {
     if (res.ok) setExistingGroups(await res.json());
   }
 
-  async function loadTeachers() {
-    const res = await fetch("/api/teachers");
-    if (res.ok) setTeachers(await res.json());
-  }
-
-  useEffect(() => { loadProjects(); if (isSuperUser) loadTeachers(); }, [isSuperUser]);
+  useEffect(() => { loadProjects(); }, []);
   useEffect(() => { if (selectedProjectId) loadExistingGroups(selectedProjectId); }, [selectedProjectId]);
 
   const selectedProject = projects.find((p) => p.id === selectedProjectId);
@@ -59,15 +48,20 @@ function NewGroupContent() {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError("");
-    if (!selectedProjectId) { setError("Bitte ein Projekt auswählen."); return; }
-    const body: Record<string, unknown> = { name, description, bannerImage, maxStudents: Number(maxStudents), projectId: selectedProjectId };
-    if (isSuperUser && assignedOwnerId) body.assignedOwnerId = assignedOwnerId;
+    if (!selectedProjectId) {
+      setError("Bitte ein Projekt auswählen.");
+      return;
+    }
     const res = await fetch("/api/groups", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+      body: JSON.stringify({ name, description, bannerImage, maxStudents: Number(maxStudents), projectId: selectedProjectId }),
     });
-    if (!res.ok) { const data = await res.json(); setError(data.error || "Fehler beim Anlegen der Gruppe."); return; }
+    if (!res.ok) {
+      const data = await res.json();
+      setError(data.error || "Fehler beim Anlegen der Gruppe.");
+      return;
+    }
     router.push(`/groups?projectId=${selectedProjectId}`);
     router.refresh();
   }
@@ -108,30 +102,8 @@ function NewGroupContent() {
             onChange={(e) => setMaxStudents(e.target.value)}
             required
           />
-
-          {/* Superuser-only: assign to a teacher */}
-          {isSuperUser && (
-            <>
-              <label style={{ marginTop: "0.75rem" }}>
-                Lehrer zuordnen
-                <span style={{ fontWeight: 400, color: "#AEAEB2", marginLeft: "0.4rem", fontSize: "0.8rem" }}>(optional)</span>
-              </label>
-              <select value={assignedOwnerId} onChange={(e) => setAssignedOwnerId(e.target.value)}>
-                <option value="">-- Keinem Lehrer zuordnen --</option>
-                {teachers.map((t) => (
-                  <option key={t.id} value={t.id}>{t.username}</option>
-                ))}
-              </select>
-              {!assignedOwnerId && (
-                <p style={{ fontSize: "0.78rem", color: "#AEAEB2", marginTop: "0.2rem", marginBottom: 0 }}>
-                  Wenn kein Lehrer gewählt wird, erscheint die Gruppe unter deinem Super-User-Konto.
-                </p>
-              )}
-            </>
-          )}
-
           {error && <p className="error-text">{error}</p>}
-          <button type="submit" style={{ marginTop: "1rem" }} disabled={!!selectedProject && remaining <= 0}>Gruppe erstellen</button>
+          <button type="submit" disabled={!!selectedProject && remaining <= 0}>Gruppe erstellen</button>
         </form>
       </div>
     </div>
