@@ -29,51 +29,49 @@ export default function SchuelerLoginPage() {
       alignItems: "center",
       justifyContent: "center",
       minHeight: "100vh",
-      background: "linear-gradient(160deg, #EDFFF3 0%, #E4F9ED 50%, #F0FFF6 100%)",
-      padding: "1.5rem",
+      background: "var(--color-bg)",
+      padding: "var(--space-6)",
     }}>
       <div style={{ width: "100%", maxWidth: 380 }}>
 
         {/* App Icon + Title */}
-        <div style={{ textAlign: "center", marginBottom: "2.25rem" }}>
+        <div style={{ textAlign: "center", marginBottom: "var(--space-10)" }}>
           <div style={{
-            width: 72, height: 72,
-            borderRadius: 20,
-            background: "linear-gradient(145deg, #30D158, #1E8A3C)",
-            boxShadow: "0 8px 28px rgba(52,199,89,0.38), 0 2px 8px rgba(0,0,0,0.10)",
+            width: 64, height: 64,
+            borderRadius: 18,
+            background: "var(--color-success)",
+            boxShadow: "var(--shadow-lg)",
             display: "inline-flex",
             alignItems: "center",
             justifyContent: "center",
-            marginBottom: "1rem",
+            marginBottom: "var(--space-4)",
           }}>
-            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-inverse)" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
               <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
               <path d="M6 12v5c3 3 9 3 12 0v-5"/>
             </svg>
           </div>
-          <h1 style={{ fontSize: "1.6rem", fontWeight: 700, letterSpacing: "-0.035em", marginBottom: "0.25rem" }}>Willkommen</h1>
-          <p style={{ color: "#6C6C70", fontSize: "0.88rem", margin: 0, fontWeight: 500 }}>
-            Schulprojekt&nbsp;&middot;&nbsp;Schüler-Bereich
+          <h1 style={{ fontSize: "var(--text-xl)", fontWeight: 700, letterSpacing: "-0.035em", marginBottom: "var(--space-1)" }}>Willkommen</h1>
+          <p style={{ color: "var(--color-text-muted)", fontSize: "var(--text-sm)", margin: 0 }}>
+            Schulprojekt &middot; Schüler-Bereich
           </p>
         </div>
 
         {/* Form Card */}
         <div style={{
-          background: "rgba(255,255,255,0.88)",
-          backdropFilter: "blur(24px)",
-          WebkitBackdropFilter: "blur(24px)",
-          borderRadius: 22,
-          padding: "1.85rem 1.75rem",
-          boxShadow: "0 12px 40px rgba(0,0,0,0.09), 0 1px 4px rgba(0,0,0,0.05)",
-          border: "1px solid rgba(255,255,255,0.7)",
+          background: "var(--color-surface)",
+          borderRadius: "var(--radius-2xl)",
+          padding: "var(--space-8) var(--space-6)",
+          boxShadow: "var(--shadow-lg)",
+          border: "1px solid oklch(from var(--color-text) l c h / 0.07)",
         }}>
           <form onSubmit={handleSubmit}>
-            <div style={{ marginBottom: "0.85rem" }}>
+            <div style={{ marginBottom: "var(--space-4)" }}>
               <label style={{ marginTop: 0 }}>Projekt-Code</label>
               <input
                 value={code}
                 onChange={(e) => setCode(e.target.value.toUpperCase())}
-                placeholder="z. B. AB12CD"
+                placeholder="z. B. AB12CD"
                 autoCapitalize="characters"
                 autoCorrect="off"
                 autoComplete="off"
@@ -81,7 +79,7 @@ export default function SchuelerLoginPage() {
                 required
               />
             </div>
-            <div style={{ marginBottom: "1.35rem" }}>
+            <div style={{ marginBottom: "var(--space-6)" }}>
               <label>Vorname.Nachname</label>
               <input
                 value={fullname}
@@ -95,40 +93,23 @@ export default function SchuelerLoginPage() {
             </div>
 
             {error && (
-              <div style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "0.5rem",
-                background: "rgba(255,59,48,0.07)",
-                border: "1px solid rgba(255,59,48,0.18)",
-                borderRadius: 10,
-                padding: "0.65rem 0.9rem",
-                marginBottom: "1rem",
-                color: "#FF3B30",
-                fontSize: "0.85rem",
-                fontWeight: 500,
-              }}>
-                <span style={{ fontSize: "1rem", flexShrink: 0 }}>⚠️</span>
+              <div className="error-banner">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}>
+                  <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
                 {error}
               </div>
             )}
 
             <button
               type="submit"
+              className="success"
               disabled={loading}
-              style={{
-                width: "100%",
-                padding: "0.75rem",
-                borderRadius: 12,
-                fontSize: "0.95rem",
-                fontWeight: 600,
-                background: "#34C759",
-                boxShadow: "0 2px 8px rgba(52,199,89,0.28)",
-              }}
+              style={{ width: "100%", padding: "var(--space-3)", borderRadius: "var(--radius-lg)", fontSize: "var(--text-base)", fontWeight: 600 }}
             >
               {loading ? (
-                <span style={{ display: "flex", alignItems: "center", gap: "0.5rem", justifyContent: "center" }}>
-                  <span style={{ width: 16, height: 16, border: "2px solid rgba(255,255,255,0.4)", borderTopColor: "white", borderRadius: "50%", animation: "spin 0.65s linear infinite", display: "inline-block" }} />
+                <span style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", justifyContent: "center" }}>
+                  <span style={{ width: 16, height: 16, border: "2px solid oklch(from var(--color-text-inverse) l c h / 0.4)", borderTopColor: "var(--color-text-inverse)", borderRadius: "50%", animation: "spin 0.65s linear infinite", display: "inline-block" }} />
                   Anmelden…
                 </span>
               ) : "Anmelden"}
@@ -136,9 +117,9 @@ export default function SchuelerLoginPage() {
           </form>
         </div>
 
-        <p style={{ textAlign: "center", marginTop: "1.35rem", fontSize: "0.85rem", color: "#6C6C70" }}>
+        <p style={{ textAlign: "center", marginTop: "var(--space-5)", fontSize: "var(--text-sm)", color: "var(--color-text-muted)" }}>
           Du bist Lehrer?{" "}
-          <Link href="/lehrer" style={{ color: "#007AFF", textDecoration: "none", fontWeight: 600 }}>
+          <Link href="/lehrer" style={{ color: "var(--color-primary)", textDecoration: "none", fontWeight: 600 }}>
             Hier anmelden →
           </Link>
         </p>
