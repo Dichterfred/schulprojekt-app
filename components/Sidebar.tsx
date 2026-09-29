@@ -26,6 +26,9 @@ export default function Sidebar({ username, isSuperuser }: { username: string; i
   return (
     <aside style={{
       width: 260,
+      flexShrink: 0,
+      height: "100vh",
+      overflowY: "auto",
       background: "rgba(28,28,30,0.97)",
       backdropFilter: "blur(20px)",
       WebkitBackdropFilter: "blur(20px)",
@@ -35,10 +38,6 @@ export default function Sidebar({ username, isSuperuser }: { username: string; i
       flexDirection: "column",
       gap: "0.25rem",
       borderRight: "1px solid rgba(255,255,255,0.06)",
-      position: "sticky",
-      top: 0,
-      height: "100vh",
-      flexShrink: 0,
     }}>
 
       {/* User Badge */}
@@ -66,7 +65,7 @@ export default function Sidebar({ username, isSuperuser }: { username: string; i
         </div>
       </div>
 
-      {/* Main Navigation */}
+      {/* Navigation */}
       <nav style={{ marginBottom: "0.5rem" }}>
         <div style={{ fontSize: "0.68rem", fontWeight: 700, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "0.08em", padding: "0 0.75rem", marginBottom: "0.4rem" }}>
           Navigation
@@ -77,7 +76,6 @@ export default function Sidebar({ username, isSuperuser }: { username: string; i
             <Link key={href} href={href} style={{
               display: "flex",
               alignItems: "center",
-              gap: "0.6rem",
               padding: "0.55rem 0.75rem",
               borderRadius: 10,
               marginBottom: "0.15rem",
@@ -96,7 +94,6 @@ export default function Sidebar({ username, isSuperuser }: { username: string; i
           <Link href="/settings" style={{
             display: "flex",
             alignItems: "center",
-            gap: "0.6rem",
             padding: "0.55rem 0.75rem",
             borderRadius: 10,
             marginBottom: "0.15rem",
@@ -112,7 +109,6 @@ export default function Sidebar({ username, isSuperuser }: { username: string; i
         )}
       </nav>
 
-      {/* Divider */}
       <div style={{ height: 1, background: "rgba(255,255,255,0.07)", margin: "0.25rem 0.5rem" }} />
 
       {/* Projects List */}
@@ -148,7 +144,6 @@ export default function Sidebar({ username, isSuperuser }: { username: string; i
         })}
       </div>
 
-      {/* Logout */}
       <button
         className="danger"
         style={{ marginTop: "0.75rem", width: "100%", borderRadius: 10 }}

@@ -42,12 +42,22 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
 
   return (
     <html lang="de">
-      <body>
+      <body style={{ overflow: "hidden" }}>
         <Providers>
           {showSidebar ? (
-            <div style={{ display: "flex", minHeight: "100vh" }}>
+            <div style={{ display: "flex", height: "100vh", overflow: "hidden" }}>
+              {/* Sidebar — never scrolls */}
               <Sidebar username={session!.user.name || ""} isSuperuser={session!.user.role === "SUPERUSER"} />
-              <main style={{ flex: 1, padding: "2rem 2.5rem", minWidth: 0 }}>{children}</main>
+              {/* Main — only this scrolls */}
+              <main style={{
+                flex: 1,
+                overflowY: "auto",
+                minWidth: 0,
+                display: "flex",
+                flexDirection: "column",
+              }}>
+                {children}
+              </main>
             </div>
           ) : (
             <main>{children}</main>
