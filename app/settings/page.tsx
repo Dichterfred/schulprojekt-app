@@ -15,6 +15,12 @@ export default function SettingsPage() {
   const [tPassword, setTPassword] = useState("");
   const [tError, setTError] = useState("");
 
+  // Password-reset state per teacher
+  const [pwEditId, setPwEditId] = useState<string | null>(null);
+  const [pwValue, setPwValue] = useState("");
+  const [pwError, setPwError] = useState("");
+  const [pwSuccess, setPwSuccess] = useState("");
+
   const [projects, setProjects] = useState<Project[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [sFirstName, setSFirstName] = useState("");
@@ -60,6 +66,23 @@ export default function SettingsPage() {
     loadTeachers();
   }
 
+  function openPwEdit(id: string) {
+    setPwEditId(id); setPwValue(""); setPwError(""); setPwSuccess("");
+  }
+  function closePwEdit() { setPwEditId(null); }
+
+  async function handlePasswordReset(id: string) {
+    setPwError(""); setPwSuccess("");
+    const res = await fetch(`/api/teachers/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: pwValue }),
+    });
+    if (!res.ok) { const data = await res.json(); setPwError(data.error || "Fehler."); return; }
+    setPwSuccess("Passwort geändert.");
+    setTimeout(() => { closePwEdit(); }, 1200);
+  }
+
   async function handleStudentSubmit(e: FormEvent) {
     e.preventDefault();
     setSError("");
@@ -85,18 +108,12 @@ export default function SettingsPage() {
 
       {/* ===== Top Bar ===== */}
       <div style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "0.75rem",
+        display: "flex", alignItems: "center", gap: "0.75rem",
         padding: "0.85rem 2rem",
         background: "rgba(255,255,255,0.8)",
-        backdropFilter: "blur(16px)",
-        WebkitBackdropFilter: "blur(16px)",
+        backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
         borderBottom: "1px solid rgba(0,0,0,0.07)",
-        flexShrink: 0,
-        position: "sticky",
-        top: 0,
-        zIndex: 10,
+        flexShrink: 0, position: "sticky", top: 0, zIndex: 10,
       }}>
         <h1 style={{ margin: 0, fontSize: "1.2rem", fontWeight: 700, letterSpacing: "-0.02em" }}>Einstellungen</h1>
         <div style={{ width: 1, height: 22, background: "#E5E5EA", flexShrink: 0 }} />
@@ -107,14 +124,11 @@ export default function SettingsPage() {
       <div style={{ flex: 1, overflowY: "auto", padding: "1.75rem 2rem 4rem" }}>
 
         {/* ── Lehrer ── */}
-        <div style={{ marginBottom: "0.75rem" }}>
-          <h2 style={{ margin: 0 }}>Lehrer</h2>
-        </div>
+        <div style={{ marginBottom: "0.75rem" }}><h2 style={{ margin: 0 }}>Lehrer</h2></div>
 
-        {/* Lehrer Form + Liste nebeneinander auf breiten Screens */}
         <div style={{ display: "grid", gridTemplateColumns: "minmax(280px, 420px) 1fr", gap: "1.25rem", alignItems: "start", marginBottom: "2rem" }}>
 
-          {/* Formular */}
+          {/* Anlegen-Formular */}
           <div className="card" style={{ margin: 0 }}>
             <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "#6C6C70", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: "1rem" }}>
               Neuen Lehrer anlegen
@@ -140,30 +154,69 @@ export default function SettingsPage() {
             {teachers.length === 0 ? (
               <p style={{ color: "#AEAEB2", fontSize: "0.9rem", paddingTop: "0.5rem" }}>Noch keine Lehrer angelegt.</p>
             ) : (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "0.6rem" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: "0.6rem" }}>
                 {teachers.map((t) => (
                   <div key={t.id} style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    background: "white",
-                    borderRadius: 12,
-                    padding: "0.85rem 1rem",
+                    background: "white", borderRadius: 12,
                     boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
                     border: "1px solid rgba(0,0,0,0.04)",
+                    overflow: "hidden",
                   }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", minWidth: 0 }}>
-                      <div style={{
-                        width: 34, height: 34, borderRadius: "50%", flexShrink: 0,
-                        background: "linear-gradient(135deg,#007AFF,#34AADC)",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        color: "white", fontWeight: 700, fontSize: "0.85rem",
-                      }}>
-                        {t.username.charAt(0).toUpperCase()}
+                    {/* Row */}
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.75rem 1rem" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", minWidth: 0 }}>
+                        <div style={{
+                          width: 34, height: 34, borderRadius: "50%", flexShrink: 0,
+                          background: "linear-gradient(135deg,#007AFF,#34AADC)",
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          color: "white", fontWeight: 700, fontSize: "0.85rem",
+                        }}>
+                          {t.username.charAt(0).toUpperCase()}
+                        </div>
+                        <span style={{ fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.username}</span>
                       </div>
-                      <span style={{ fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.username}</span>
+                      <div style={{ display: "flex", gap: "0.4rem", flexShrink: 0, marginLeft: "0.5rem" }}>
+                        <button
+                          className="secondary"
+                          style={{ padding: "0.3rem 0.65rem", fontSize: "0.78rem" }}
+                          onClick={() => pwEditId === t.id ? closePwEdit() : openPwEdit(t.id)}
+                        >
+                          {pwEditId === t.id ? "✕" : "🔑 PW"}
+                        </button>
+                        <button className="danger" style={{ padding: "0.3rem 0.65rem", fontSize: "0.78rem" }} onClick={() => handleTeacherDelete(t.id)}>Löschen</button>
+                      </div>
                     </div>
-                    <button className="danger" style={{ padding: "0.35rem 0.75rem", fontSize: "0.8rem", flexShrink: 0, marginLeft: "0.5rem" }} onClick={() => handleTeacherDelete(t.id)}>Löschen</button>
+
+                    {/* Inline password-reset panel */}
+                    {pwEditId === t.id && (
+                      <div style={{
+                        padding: "0.75rem 1rem",
+                        background: "#F9FAFB",
+                        borderTop: "1px solid #F2F2F7",
+                      }}>
+                        <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "#6C6C70", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: "0.5rem" }}>
+                          Neues Passwort
+                        </div>
+                        <div style={{ display: "flex", gap: "0.5rem" }}>
+                          <input
+                            type="password"
+                            placeholder="Neues Passwort"
+                            value={pwValue}
+                            onChange={(e) => setPwValue(e.target.value)}
+                            autoComplete="new-password"
+                            style={{ flex: 1, marginBottom: 0 }}
+                          />
+                          <button
+                            onClick={() => handlePasswordReset(t.id)}
+                            style={{ padding: "0 0.9rem", flexShrink: 0 }}
+                          >
+                            Speichern
+                          </button>
+                        </div>
+                        {pwError && <p className="error-text" style={{ marginTop: "0.4rem" }}>{pwError}</p>}
+                        {pwSuccess && <p style={{ color: "#34C759", fontSize: "0.82rem", marginTop: "0.4rem" }}>{pwSuccess}</p>}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -175,13 +228,9 @@ export default function SettingsPage() {
         <div style={{ height: 1, background: "#E5E5EA", marginBottom: "1.75rem" }} />
 
         {/* ── Schüler ── */}
-        <div style={{ marginBottom: "0.75rem" }}>
-          <h2 style={{ margin: 0 }}>Schüler</h2>
-        </div>
+        <div style={{ marginBottom: "0.75rem" }}><h2 style={{ margin: 0 }}>Schüler</h2></div>
 
         <div style={{ display: "grid", gridTemplateColumns: "minmax(280px, 420px) 1fr", gap: "1.25rem", alignItems: "start" }}>
-
-          {/* Formular */}
           <div className="card" style={{ margin: 0 }}>
             <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "#6C6C70", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: "1rem" }}>
               Neuen Schüler anlegen
@@ -211,7 +260,6 @@ export default function SettingsPage() {
             </form>
           </div>
 
-          {/* Schülerliste */}
           <div>
             {students.length === 0 ? (
               <p style={{ color: "#AEAEB2", fontSize: "0.9rem", paddingTop: "0.5rem" }}>Noch keine Schüler angelegt.</p>
@@ -219,15 +267,9 @@ export default function SettingsPage() {
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "0.6rem" }}>
                 {students.map((s) => (
                   <div key={s.id} style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    background: "white",
-                    borderRadius: 12,
-                    padding: "0.85rem 1rem",
-                    boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
-                    border: "1px solid rgba(0,0,0,0.04)",
-                    gap: "0.75rem",
+                    display: "flex", justifyContent: "space-between", alignItems: "center",
+                    background: "white", borderRadius: 12, padding: "0.85rem 1rem",
+                    boxShadow: "0 1px 4px rgba(0,0,0,0.06)", border: "1px solid rgba(0,0,0,0.04)", gap: "0.75rem",
                   }}>
                     <div style={{ minWidth: 0 }}>
                       <div style={{ fontWeight: 600, marginBottom: "0.15rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>

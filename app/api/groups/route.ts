@@ -35,7 +35,7 @@ export async function POST(req: Request) {
   }
 
   const body = await req.json();
-  const { name, description, maxStudents, projectId, bannerImage } = body;
+  const { name, description, maxStudents, projectId, bannerImage, assignedOwnerId } = body;
 
   if (!name || !description || !maxStudents || maxStudents <= 0 || !projectId) {
     return NextResponse.json({ error: "Ungültige Eingabedaten." }, { status: 400 });
@@ -46,16 +46,27 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Nicht gefunden oder keine Berechtigung." }, { status: 404 });
   }
 
+  // SUPERUSER can optionally assign group to a specific teacher; others always own it themselves
+  let ownerId: string;
+  if (session.user.role === "SUPERUSER" && assignedOwnerId) {
+    ownerId = assignedOwnerId;
+  } else {
+    ownerId = session.user.id;
+  }
+
   const currentSum = project.groups.reduce((sum, g) => sum + g.maxStudents, 0);
   const newSum = currentSum + Number(maxStudents);
 
   if (newSum > project.studentCount) {
     const remaining = project.studentCount - currentSum;
-    return NextResponse.json({ error: `Die maximale Schüleranzahl würde überschritten. Noch verfügbare Plätze: ${remaining}.` }, { status: 400 });
+    return NextResponse.json(
+      { error: `Die maximale Schüleranzahl würde überschritten. Noch verfügbare Plätze: ${remaining}.` },
+      { status: 400 }
+    );
   }
 
   const group = await prisma.group.create({
-    data: { name, description, maxStudents: Number(maxStudents), projectId, bannerImage: bannerImage ?? null },
+    data: { name, description, maxStudents: Number(maxStudents), projectId, bannerImage: bannerImage ?? null, ownerId },
   });
   return NextResponse.json(group, { status: 201 });
 }

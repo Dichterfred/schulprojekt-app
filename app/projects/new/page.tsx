@@ -2,14 +2,21 @@
 
 import { useEffect, useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import BannerUpload from "@/components/BannerUpload";
 
 type SchoolClass = { id: string; name: string; sortOrder: number };
+type Teacher = { id: string; username: string };
 
 export default function NewProjectPage() {
   const router = useRouter();
+  const { data: session } = useSession();
+  const isSuperUser = session?.user?.role === "SUPERUSER";
+
   const [schoolClasses, setSchoolClasses] = useState<SchoolClass[]>([]);
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [assignedOwnerId, setAssignedOwnerId] = useState("");
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -25,7 +32,12 @@ export default function NewProjectPage() {
     fetch("/api/school-classes")
       .then((res) => (res.ok ? res.json() : []))
       .then(setSchoolClasses);
-  }, []);
+    if (isSuperUser) {
+      fetch("/api/teachers")
+        .then((res) => (res.ok ? res.json() : []))
+        .then(setTeachers);
+    }
+  }, [isSuperUser]);
 
   function toggleClass(id: string) {
     setSelectedClassIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
@@ -38,19 +50,21 @@ export default function NewProjectPage() {
       setError("Bitte mindestens eine Schulklasse auswählen.");
       return;
     }
+    const body: Record<string, unknown> = {
+      name,
+      description,
+      bannerImage,
+      studentCount: Number(studentCount),
+      schoolClassIds: selectedClassIds,
+      startDate: `${startDate}T00:00:00.000Z`,
+      endDate: `${endDate}T23:59:59.999Z`,
+      enrollmentDeadline: new Date(enrollmentDeadline).toISOString(),
+    };
+    if (isSuperUser && assignedOwnerId) body.assignedOwnerId = assignedOwnerId;
     const res = await fetch("/api/projects", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name,
-        description,
-        bannerImage,
-        studentCount: Number(studentCount),
-        schoolClassIds: selectedClassIds,
-        startDate: `${startDate}T00:00:00.000Z`,
-        endDate: `${endDate}T23:59:59.999Z`,
-        enrollmentDeadline: new Date(enrollmentDeadline).toISOString(),
-      }),
+      body: JSON.stringify(body),
     });
     if (!res.ok) {
       const data = await res.json();
@@ -96,8 +110,30 @@ export default function NewProjectPage() {
           <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} required />
           <label>Einschreibefrist (Datum &amp; Uhrzeit)</label>
           <input type="datetime-local" value={enrollmentDeadline} onChange={(e) => setEnrollmentDeadline(e.target.value)} required />
+
+          {/* Superuser-only: assign project to a teacher */}
+          {isSuperUser && (
+            <>
+              <label style={{ marginTop: "1rem" }}>
+                Lehrer zuordnen
+                <span style={{ fontWeight: 400, color: "#AEAEB2", marginLeft: "0.4rem", fontSize: "0.8rem" }}>(optional)</span>
+              </label>
+              <select value={assignedOwnerId} onChange={(e) => setAssignedOwnerId(e.target.value)}>
+                <option value="">-- Keinem Lehrer zuordnen --</option>
+                {teachers.map((t) => (
+                  <option key={t.id} value={t.id}>{t.username}</option>
+                ))}
+              </select>
+              {!assignedOwnerId && (
+                <p style={{ fontSize: "0.78rem", color: "#AEAEB2", marginTop: "0.2rem", marginBottom: 0 }}>
+                  Wenn kein Lehrer gewählt wird, erscheint das Projekt unter deinem Super-User-Konto.
+                </p>
+              )}
+            </>
+          )}
+
           {error && <p className="error-text">{error}</p>}
-          <button type="submit">Projekt erstellen</button>
+          <button type="submit" style={{ marginTop: "1rem" }}>Projekt erstellen</button>
         </form>
       </div>
     </div>

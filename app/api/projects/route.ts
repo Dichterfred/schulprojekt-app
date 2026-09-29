@@ -28,7 +28,7 @@ export async function POST(req: Request) {
   }
 
   const body = await req.json();
-  const { name, description, studentCount, schoolClassIds, startDate, endDate, enrollmentDeadline, bannerImage } = body;
+  const { name, description, studentCount, schoolClassIds, startDate, endDate, enrollmentDeadline, bannerImage, assignedOwnerId } = body;
 
   if (!name || !description || !studentCount || studentCount <= 0) {
     return NextResponse.json({ error: "Ungültige Eingabedaten." }, { status: 400 });
@@ -54,6 +54,19 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Das Ende darf nicht vor dem Start liegen." }, { status: 400 });
   }
 
+  // SUPERUSER can optionally assign the project to a specific teacher
+  let ownerId: string;
+  if (session.user.role === "SUPERUSER" && assignedOwnerId) {
+    // Verify the target user exists and is a TEACHER
+    const teacher = await prisma.user.findFirst({ where: { id: assignedOwnerId, role: "TEACHER" } });
+    if (!teacher) {
+      return NextResponse.json({ error: "Gewählter Lehrer nicht gefunden." }, { status: 400 });
+    }
+    ownerId = assignedOwnerId;
+  } else {
+    ownerId = session.user.id;
+  }
+
   const code = await generateUniqueProjectCode();
 
   const project = await prisma.project.create({
@@ -61,7 +74,7 @@ export async function POST(req: Request) {
       name,
       description,
       studentCount: Number(studentCount),
-      ownerId: session.user.id,
+      ownerId,
       code,
       startDate: start,
       endDate: end,
