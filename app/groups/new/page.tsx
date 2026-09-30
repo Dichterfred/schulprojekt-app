@@ -67,44 +67,54 @@ function NewGroupContent() {
   }
 
   return (
-    <div>
-      <div className="page-header">
-        <h1 style={{ margin: 0 }}>Neue Gruppe erstellen</h1>
-        <Link href="/groups"><button className="secondary">&larr; Zur Gruppenliste</button></Link>
+    <div className="new-page-wrapper">
+
+      {/* ── Top Bar ── */}
+      <div className="top-bar">
+        <h1>Neue Gruppe erstellen</h1>
+        <div className="top-bar-actions">
+          <Link href="/groups">
+            <button className="secondary btn-sm">&larr; Zurück</button>
+          </Link>
+        </div>
       </div>
-      <div className="card" style={{ maxWidth: 480 }}>
-        <label>Projekt</label>
-        <select value={selectedProjectId} onChange={(e) => setSelectedProjectId(e.target.value)} required>
-          <option value="">-- Projekt wählen --</option>
-          {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-        </select>
-        {selectedProject && (
-          <p style={{ fontSize: "0.85rem", color: "#555" }}>
-            Noch verfügbare Plätze: {remaining} von {selectedProject.studentCount}
-          </p>
-        )}
-        <form onSubmit={handleSubmit}>
-          <BannerUpload
-            folder="groups"
-            currentUrl={bannerImage}
-            onUploaded={(url) => setBannerImage(url)}
-            onRemove={() => setBannerImage(null)}
-          />
-          <label>Gruppenname</label>
-          <input value={name} onChange={(e) => setName(e.target.value)} required />
-          <label>Beschreibung (Links: [Text](https://...))</label>
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} required />
-          <label>Maximale Schüler Anzahl</label>
-          <input
-            type="number" min={1}
-            max={selectedProject && remaining > 0 ? remaining : undefined}
-            value={maxStudents}
-            onChange={(e) => setMaxStudents(e.target.value)}
-            required
-          />
-          {error && <p className="error-text">{error}</p>}
-          <button type="submit" disabled={!!selectedProject && remaining <= 0}>Gruppe erstellen</button>
-        </form>
+
+      {/* ── Scrollable Content ── */}
+      <div className="new-page-content">
+        <div className="card" style={{ maxWidth: 480, margin: "0 auto" }}>
+          <label>Projekt</label>
+          <select value={selectedProjectId} onChange={(e) => setSelectedProjectId(e.target.value)} required>
+            <option value="">-- Projekt wählen --</option>
+            {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+          </select>
+          {selectedProject && (
+            <p style={{ fontSize: "0.85rem", color: "#555" }}>
+              Noch verfügbare Plätze: {remaining} von {selectedProject.studentCount}
+            </p>
+          )}
+          <form onSubmit={handleSubmit}>
+            <BannerUpload
+              folder="groups"
+              currentUrl={bannerImage}
+              onUploaded={(url) => setBannerImage(url)}
+              onRemove={() => setBannerImage(null)}
+            />
+            <label>Gruppenname</label>
+            <input value={name} onChange={(e) => setName(e.target.value)} required />
+            <label>Beschreibung (Links: [Text](https://...))</label>
+            <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} required />
+            <label>Maximale Schüler Anzahl</label>
+            <input
+              type="number" min={1}
+              max={selectedProject && remaining > 0 ? remaining : undefined}
+              value={maxStudents}
+              onChange={(e) => setMaxStudents(e.target.value)}
+              required
+            />
+            {error && <p className="error-text">{error}</p>}
+            <button type="submit" style={{ marginTop: "var(--space-4)", width: "100%" }} disabled={!!selectedProject && remaining <= 0}>Gruppe erstellen</button>
+          </form>
+        </div>
       </div>
     </div>
   );
