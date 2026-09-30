@@ -31,7 +31,6 @@ export async function GET() {
   const priorityByGroupId: Record<string, number> = {};
   for (const p of priorities) priorityByGroupId[p.groupId] = p.priority;
 
-  // Serverseitige Prüfung: Ist die Einschreibefrist bereits abgelaufen?
   const now = new Date();
   const deadlinePassed = now > student.enrolledProject.enrollmentDeadline;
 
@@ -40,6 +39,7 @@ export async function GET() {
       id: student.enrolledProject.id,
       name: student.enrolledProject.name,
       description: student.enrolledProject.description,
+      bannerImage: student.enrolledProject.bannerImage,
       enrollmentDeadline: student.enrolledProject.enrollmentDeadline,
     },
     deadlinePassed,
@@ -47,6 +47,7 @@ export async function GET() {
       id: g.id,
       name: g.name,
       description: g.description,
+      bannerImage: g.bannerImage,
       maxStudents: g.maxStudents,
       priority: priorityByGroupId[g.id] ?? null,
     })),

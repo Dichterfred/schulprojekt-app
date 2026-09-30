@@ -1,0 +1,168 @@
+/*
+  BASE — Tokens, Reset, Apple Design Guidelines
+  Enthält: Farben, Typografie, Spacing, Schatten, Animation
+  Keine Layout- oder Komponenten-Regeln hier.
+*/
+
+/* ══════════════════════════════════════════════
+   RESET
+   ══════════════════════════════════════════════ */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+img, picture, video, canvas { display: block; max-width: 100%; height: auto; }
+ul[role="list"], ol[role="list"] { list-style: none; }
+input, button, textarea, select { font: inherit; color: inherit; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ══════════════════════════════════════════════
+   DESIGN TOKENS  (Apple HIG-inspiriert)
+   ══════════════════════════════════════════════ */
+:root {
+
+  /* ── Typografie (fluid, Apple SF Pro Skala) ── */
+  --text-xs:   clamp(0.72rem,  0.68rem + 0.2vw,  0.82rem);  /* ~11-13px  */
+  --text-sm:   clamp(0.83rem,  0.78rem + 0.26vw, 0.94rem);  /* ~13-15px  */
+  --text-base: clamp(0.94rem,  0.90rem + 0.2vw,  1.05rem);  /* ~15-17px  */
+  --text-lg:   clamp(1.05rem,  0.95rem + 0.5vw,  1.25rem);  /* ~17-20px  */
+  --text-xl:   clamp(1.25rem,  1.05rem + 1vw,    1.6rem);   /* ~20-26px  */
+
+  /* ── Spacing (8pt-Grid, Apple HIG) ── */
+  --space-1:  0.25rem;   /*  4px */
+  --space-2:  0.5rem;    /*  8px */
+  --space-3:  0.75rem;   /* 12px */
+  --space-4:  1rem;      /* 16px */
+  --space-5:  1.25rem;   /* 20px */
+  --space-6:  1.5rem;    /* 24px */
+  --space-7:  1.75rem;   /* 28px */
+  --space-8:  2rem;      /* 32px */
+  --space-10: 2.5rem;    /* 40px */
+  --space-12: 3rem;      /* 48px */
+  --space-16: 4rem;      /* 64px */
+
+  /* ── Farben (Apple System Colors, Light Mode) ── */
+  /* Hintergründe */
+  --color-bg:              #f7f6f2;
+  --color-surface:         #f9f8f5;
+  --color-surface-2:       #fbfbf9;
+  --color-surface-offset:  #f3f0ec;
+  --color-surface-dynamic: #e6e4df;
+
+  /* Linien & Rahmen */
+  --color-divider: #dcd9d5;
+  --color-border:  #d4d1ca;
+
+  /* Text (Apple HIG: 4 Ebenen) */
+  --color-text:         #28251d;   /* Primary   */
+  --color-text-muted:   #7a7974;   /* Secondary */
+  --color-text-faint:   #bab9b4;   /* Tertiary  */
+  --color-text-inverse: #f9f8f4;   /* On dark   */
+
+  /* Akzentfarben */
+  --color-primary:           #01696f;
+  --color-primary-hover:     #0c4e54;
+  --color-primary-active:    #0f3638;
+  --color-primary-highlight: #cedcd8;
+
+  /* Semantische Farben */
+  --color-error:             #a12c7b;
+  --color-error-hover:       #7d1e5e;
+  --color-error-highlight:   #e0ced7;
+  --color-success:           #437a22;
+  --color-success-hover:     #2e5c10;
+  --color-success-highlight: #d4dfcc;
+  --color-warning:           #964219;
+  --color-warning-highlight: #ddcfc6;
+
+  /* ── Border Radius (Apple HIG: konsistente Kurven) ── */
+  --radius-sm:   0.375rem;  /*  6px — kleine Elemente     */
+  --radius-md:   0.5rem;    /*  8px — Inputs, Badges      */
+  --radius-lg:   0.75rem;   /* 12px — Cards               */
+  --radius-xl:   1rem;      /* 16px — große Cards         */
+  --radius-2xl:  1.25rem;   /* 20px — Modals              */
+  --radius-full: 9999px;    /* Kreise / Pills             */
+
+  /* ── Shadows (Apple Material-Tiefe) ── */
+  --shadow-sm: 0 1px 2px  oklch(0.2 0.01 80 / 0.06), 0 1px 3px  oklch(0.2 0.01 80 / 0.04);
+  --shadow-md: 0 4px 12px oklch(0.2 0.01 80 / 0.08), 0 1px 4px  oklch(0.2 0.01 80 / 0.04);
+  --shadow-lg: 0 12px 32px oklch(0.2 0.01 80 / 0.12), 0 2px 8px oklch(0.2 0.01 80 / 0.06);
+
+  /* ── Transition ── */
+  --transition: 180ms cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* ── Button Tokens ── */
+  --btn-padding-y:    var(--space-2);
+  --btn-padding-x:    var(--space-5);
+  --btn-padding-y-sm: 0.35rem;
+  --btn-padding-x-sm: var(--space-3);
+  --btn-font-size:    var(--text-sm);
+  --btn-font-size-sm: var(--text-xs);
+
+  /* ── Card Tokens ── */
+  --card-padding:    var(--space-4) var(--space-5);
+  --card-padding-sm: var(--space-3) var(--space-4);
+
+  /* ── Seitenbreiten ── */
+  --content-default: 960px;
+  --content-wide:    1200px;
+
+  /* ── Font Stack (Apple HIG) ── */
+  --font-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+}
+
+/* ══════════════════════════════════════════════
+   BASE STYLES
+   ══════════════════════════════════════════════ */
+body {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: 1.6;
+  color: var(--color-text);
+  background: var(--color-bg);
+  min-height: 100dvh;
+}
+
+h1, h2, h3, h4, h5, h6 { text-wrap: balance; line-height: 1.2; color: var(--color-text); }
+p, li { text-wrap: pretty; max-width: 72ch; }
+
+h1 { font-size: var(--text-xl);   font-weight: 700; letter-spacing: -0.03em; }
+h2 { font-size: var(--text-lg);   font-weight: 700; letter-spacing: -0.02em; }
+h3 { font-size: var(--text-base); font-weight: 600; letter-spacing: -0.01em; margin-bottom: var(--space-3); }
+h4 { font-size: var(--text-sm);   font-weight: 600; }
+
+::selection {
+  background: oklch(from var(--color-primary) l c h / 0.2);
+  color: var(--color-text);
+}
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+a, button, [role="button"], input, textarea, select {
+  transition:
+    color var(--transition),
+    background var(--transition),
+    border-color var(--transition),
+    box-shadow var(--transition),
+    opacity var(--transition);
+}

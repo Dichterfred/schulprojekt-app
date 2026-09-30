@@ -35,7 +35,7 @@ export async function POST(req: Request) {
   }
 
   const body = await req.json();
-  const { name, description, maxStudents, projectId } = body;
+  const { name, description, maxStudents, projectId, bannerImage } = body;
 
   if (!name || !description || !maxStudents || maxStudents <= 0 || !projectId) {
     return NextResponse.json({ error: "Ungültige Eingabedaten." }, { status: 400 });
@@ -51,9 +51,14 @@ export async function POST(req: Request) {
 
   if (newSum > project.studentCount) {
     const remaining = project.studentCount - currentSum;
-    return NextResponse.json({ error: `Die maximale Schüleranzahl würde überschritten. Noch verfügbare Plätze: ${remaining}.` }, { status: 400 });
+    return NextResponse.json(
+      { error: `Die maximale Schüleranzahl würde überschritten. Noch verfügbare Plätze: ${remaining}.` },
+      { status: 400 }
+    );
   }
 
-  const group = await prisma.group.create({ data: { name, description, maxStudents: Number(maxStudents), projectId } });
+  const group = await prisma.group.create({
+    data: { name, description, maxStudents: Number(maxStudents), projectId, bannerImage: bannerImage ?? null },
+  });
   return NextResponse.json(group, { status: 201 });
 }
