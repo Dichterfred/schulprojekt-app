@@ -15,7 +15,6 @@ export default function SettingsPage() {
   const [tPassword, setTPassword] = useState("");
   const [tError, setTError] = useState("");
 
-  // Password-reset state per teacher
   const [pwEditId, setPwEditId] = useState<string | null>(null);
   const [pwValue, setPwValue] = useState("");
   const [pwError, setPwError] = useState("");
@@ -107,34 +106,27 @@ export default function SettingsPage() {
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
 
       {/* ===== Top Bar ===== */}
-      <div style={{
-        display: "flex", alignItems: "center", gap: "0.75rem",
-        padding: "0.85rem 2rem",
-        background: "rgba(255,255,255,0.8)",
-        backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
-        borderBottom: "1px solid rgba(0,0,0,0.07)",
-        flexShrink: 0, position: "sticky", top: 0, zIndex: 10,
-      }}>
-        <h1 style={{ margin: 0, fontSize: "1.2rem", fontWeight: 700, letterSpacing: "-0.02em" }}>Einstellungen</h1>
-        <div style={{ width: 1, height: 22, background: "#E5E5EA", flexShrink: 0 }} />
-        <span style={{ fontSize: "0.82rem", color: "#6C6C70" }}>Lehrer &amp; Schüler verwalten</span>
+      <div className="top-bar">
+        <h1>Einstellungen</h1>
+        <span className="top-bar-divider" />
+        <span className="top-bar-subtitle">Lehrer &amp; Schüler verwalten</span>
       </div>
 
       {/* ===== Scrollable Content ===== */}
-      <div style={{ flex: 1, overflowY: "auto", padding: "1.75rem 2rem 4rem" }}>
+      <div className="page-content">
 
         {/* ── Lehrer ── */}
-        <div style={{ marginBottom: "0.75rem" }}><h2 style={{ margin: 0 }}>Lehrer</h2></div>
+        <h2 style={{ marginBottom: "var(--space-3)" }}>Lehrer</h2>
 
-        <div style={{ display: "grid", gridTemplateColumns: "minmax(280px, 420px) 1fr", gap: "1.25rem", alignItems: "start", marginBottom: "2rem" }}>
+        <div className="settings-grid">
 
           {/* Anlegen-Formular */}
           <div className="card" style={{ margin: 0 }}>
-            <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "#6C6C70", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: "1rem" }}>
+            <div style={{ fontSize: "var(--text-xs)", fontWeight: 700, color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: "var(--space-4)" }}>
               Neuen Lehrer anlegen
             </div>
             <form onSubmit={handleTeacherSubmit}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem", marginBottom: "1rem" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-3)", marginBottom: "var(--space-4)" }}>
                 <div>
                   <label style={{ marginTop: 0 }}>Benutzername</label>
                   <input value={tUsername} onChange={(e) => setTUsername(e.target.value)} autoComplete="off" required />
@@ -152,52 +144,40 @@ export default function SettingsPage() {
           {/* Lehrerliste */}
           <div>
             {teachers.length === 0 ? (
-              <p style={{ color: "#AEAEB2", fontSize: "0.9rem", paddingTop: "0.5rem" }}>Noch keine Lehrer angelegt.</p>
+              <p style={{ color: "var(--color-text-faint)", fontSize: "var(--text-sm)", paddingTop: "var(--space-2)" }}>Noch keine Lehrer angelegt.</p>
             ) : (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: "0.6rem" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: "var(--space-2)" }}>
                 {teachers.map((t) => (
-                  <div key={t.id} style={{
-                    background: "white", borderRadius: 12,
-                    boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
-                    border: "1px solid rgba(0,0,0,0.04)",
-                    overflow: "hidden",
-                  }}>
-                    {/* Row */}
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.75rem 1rem" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", minWidth: 0 }}>
+                  <div key={t.id} className="item-card">
+                    <div className="item-card-row">
+                      <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", minWidth: 0 }}>
                         <div style={{
                           width: 34, height: 34, borderRadius: "50%", flexShrink: 0,
                           background: "linear-gradient(135deg,#007AFF,#34AADC)",
                           display: "flex", alignItems: "center", justifyContent: "center",
-                          color: "white", fontWeight: 700, fontSize: "0.85rem",
+                          color: "white", fontWeight: 700, fontSize: "var(--text-sm)",
                         }}>
                           {t.username.charAt(0).toUpperCase()}
                         </div>
                         <span style={{ fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.username}</span>
                       </div>
-                      <div style={{ display: "flex", gap: "0.4rem", flexShrink: 0, marginLeft: "0.5rem" }}>
+                      <div className="btn-group" style={{ flexShrink: 0 }}>
                         <button
-                          className="secondary"
-                          style={{ padding: "0.3rem 0.65rem", fontSize: "0.78rem" }}
+                          className="secondary btn-sm"
                           onClick={() => pwEditId === t.id ? closePwEdit() : openPwEdit(t.id)}
                         >
                           {pwEditId === t.id ? "✕" : "🔑 PW"}
                         </button>
-                        <button className="danger" style={{ padding: "0.3rem 0.65rem", fontSize: "0.78rem" }} onClick={() => handleTeacherDelete(t.id)}>Löschen</button>
+                        <button className="danger btn-sm" onClick={() => handleTeacherDelete(t.id)}>Löschen</button>
                       </div>
                     </div>
 
-                    {/* Inline password-reset panel */}
                     {pwEditId === t.id && (
-                      <div style={{
-                        padding: "0.75rem 1rem",
-                        background: "#F9FAFB",
-                        borderTop: "1px solid #F2F2F7",
-                      }}>
-                        <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "#6C6C70", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: "0.5rem" }}>
+                      <div className="item-card-panel">
+                        <div style={{ fontSize: "var(--text-xs)", fontWeight: 700, color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: "var(--space-2)" }}>
                           Neues Passwort
                         </div>
-                        <div style={{ display: "flex", gap: "0.5rem" }}>
+                        <div className="btn-group">
                           <input
                             type="password"
                             placeholder="Neues Passwort"
@@ -206,15 +186,12 @@ export default function SettingsPage() {
                             autoComplete="new-password"
                             style={{ flex: 1, marginBottom: 0 }}
                           />
-                          <button
-                            onClick={() => handlePasswordReset(t.id)}
-                            style={{ padding: "0 0.9rem", flexShrink: 0 }}
-                          >
+                          <button onClick={() => handlePasswordReset(t.id)} style={{ flexShrink: 0 }}>
                             Speichern
                           </button>
                         </div>
-                        {pwError && <p className="error-text" style={{ marginTop: "0.4rem" }}>{pwError}</p>}
-                        {pwSuccess && <p style={{ color: "#34C759", fontSize: "0.82rem", marginTop: "0.4rem" }}>{pwSuccess}</p>}
+                        {pwError && <p className="error-text" style={{ marginTop: "var(--space-1)" }}>{pwError}</p>}
+                        {pwSuccess && <p className="success-text" style={{ marginTop: "var(--space-1)" }}>{pwSuccess}</p>}
                       </div>
                     )}
                   </div>
@@ -224,19 +201,18 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* Divider */}
-        <div style={{ height: 1, background: "#E5E5EA", marginBottom: "1.75rem" }} />
+        <div className="section-divider" />
 
         {/* ── Schüler ── */}
-        <div style={{ marginBottom: "0.75rem" }}><h2 style={{ margin: 0 }}>Schüler</h2></div>
+        <h2 style={{ marginBottom: "var(--space-3)" }}>Schüler</h2>
 
-        <div style={{ display: "grid", gridTemplateColumns: "minmax(280px, 420px) 1fr", gap: "1.25rem", alignItems: "start" }}>
+        <div className="settings-grid">
           <div className="card" style={{ margin: 0 }}>
-            <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "#6C6C70", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: "1rem" }}>
+            <div style={{ fontSize: "var(--text-xs)", fontWeight: 700, color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: "var(--space-4)" }}>
               Neuen Schüler anlegen
             </div>
             <form onSubmit={handleStudentSubmit}>
-              <div style={{ marginBottom: "0.75rem" }}>
+              <div style={{ marginBottom: "var(--space-3)" }}>
                 <label style={{ marginTop: 0 }}>Projekt</label>
                 <select value={sProjectId} onChange={(e) => setSProjectId(e.target.value)}>
                   <option value="">-- Projekt wählen --</option>
@@ -245,7 +221,7 @@ export default function SettingsPage() {
                   ))}
                 </select>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem", marginBottom: "1rem" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-3)", marginBottom: "var(--space-4)" }}>
                 <div>
                   <label>Vorname</label>
                   <input value={sFirstName} onChange={(e) => setSFirstName(e.target.value)} required />
@@ -262,28 +238,26 @@ export default function SettingsPage() {
 
           <div>
             {students.length === 0 ? (
-              <p style={{ color: "#AEAEB2", fontSize: "0.9rem", paddingTop: "0.5rem" }}>Noch keine Schüler angelegt.</p>
+              <p style={{ color: "var(--color-text-faint)", fontSize: "var(--text-sm)", paddingTop: "var(--space-2)" }}>Noch keine Schüler angelegt.</p>
             ) : (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "0.6rem" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "var(--space-2)" }}>
                 {students.map((s) => (
-                  <div key={s.id} style={{
-                    display: "flex", justifyContent: "space-between", alignItems: "center",
-                    background: "white", borderRadius: 12, padding: "0.85rem 1rem",
-                    boxShadow: "0 1px 4px rgba(0,0,0,0.06)", border: "1px solid rgba(0,0,0,0.04)", gap: "0.75rem",
-                  }}>
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ fontWeight: 600, marginBottom: "0.15rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                        {s.firstName} {s.lastName}
+                  <div key={s.id} className="item-card">
+                    <div className="item-card-row">
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ fontWeight: 600, marginBottom: "var(--space-1)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                          {s.firstName} {s.lastName}
+                        </div>
+                        <div style={{ fontSize: "var(--text-xs)", color: "var(--color-text-muted)", display: "flex", gap: "var(--space-2)", alignItems: "center" }}>
+                          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.enrolledProject?.name || "—"}</span>
+                          {s.enrolledProject && <span className="code-badge">{s.enrolledProject.code}</span>}
+                        </div>
+                        <div style={{ fontSize: "var(--text-xs)", color: "var(--color-text-faint)", marginTop: "var(--space-1)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                          {s.enrolledProject?.code} / {s.firstName?.toLowerCase()}.{s.lastName?.toLowerCase()}
+                        </div>
                       </div>
-                      <div style={{ fontSize: "0.8rem", color: "#6C6C70", display: "flex", gap: "0.4rem", alignItems: "center" }}>
-                        <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.enrolledProject?.name || "—"}</span>
-                        {s.enrolledProject && <span className="code-badge">{s.enrolledProject.code}</span>}
-                      </div>
-                      <div style={{ fontSize: "0.72rem", color: "#AEAEB2", marginTop: "0.15rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                        {s.enrolledProject?.code} / {s.firstName?.toLowerCase()}.{s.lastName?.toLowerCase()}
-                      </div>
+                      <button className="danger btn-sm" style={{ flexShrink: 0 }} onClick={() => handleStudentDelete(s.id)}>Löschen</button>
                     </div>
-                    <button className="danger" style={{ padding: "0.35rem 0.75rem", fontSize: "0.8rem", flexShrink: 0 }} onClick={() => handleStudentDelete(s.id)}>Löschen</button>
                   </div>
                 ))}
               </div>

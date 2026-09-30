@@ -73,66 +73,31 @@ function GroupsContent() {
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
 
-      {/* ===== Top Bar ===== */}
-      <div style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "0.75rem",
-        padding: "0.85rem 2rem",
-        background: "rgba(255,255,255,0.8)",
-        backdropFilter: "blur(16px)",
-        WebkitBackdropFilter: "blur(16px)",
-        borderBottom: "1px solid rgba(0,0,0,0.07)",
-        flexShrink: 0,
-        position: "sticky",
-        top: 0,
-        zIndex: 10,
-      }}>
-        <h1 style={{ margin: 0, fontSize: "1.2rem", fontWeight: 700, letterSpacing: "-0.02em", marginRight: "0.5rem" }}>Gruppen</h1>
-
-        <div style={{ width: 1, height: 22, background: "#E5E5EA", flexShrink: 0 }} />
-
-        {/* Filter: Projekt */}
-        <span style={{ fontSize: "0.82rem", color: "#6C6C70", fontWeight: 500, whiteSpace: "nowrap" }}>Projekt:</span>
-        <select
-          value={selectedProjectId}
-          onChange={(e) => setSelectedProjectId(e.target.value)}
-          style={{ width: "auto", marginBottom: 0, fontSize: "0.85rem", padding: "0.4rem 2rem 0.4rem 0.65rem", maxWidth: 220 }}
-        >
-          <option value="">-- wählen --</option>
-          {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-        </select>
-
-        {/* Zugeteilt-Info */}
+      <div className="top-bar">
+        <h1>Gruppen</h1>
+        <span className="top-bar-divider" />
+        <div className="top-bar-sort">
+          <span className="sort-label" style={{ fontSize: "var(--text-xs)", color: "var(--color-text-muted)", fontWeight: 500, whiteSpace: "nowrap" }}>Projekt:</span>
+          <select value={selectedProjectId} onChange={(e) => setSelectedProjectId(e.target.value)} style={{ width: "auto", marginBottom: 0, maxWidth: 180 }}>
+            <option value="">-- wählen --</option>
+            {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+          </select>
+        </div>
         {selectedProject && (
-          <span style={{
-            fontSize: "0.78rem",
-            color: "#AEAEB2",
-            background: "#F2F2F7",
-            borderRadius: 6,
-            padding: "0.25rem 0.6rem",
-            whiteSpace: "nowrap",
-          }}>
-            {used} / {selectedProject.studentCount} Schüler
-          </span>
+          <span className="top-bar-stat">{used} / {selectedProject.studentCount} Schüler</span>
         )}
-
-        {/* Spacer */}
-        <div style={{ flex: 1 }} />
-
-        {/* Action */}
-        <Link href={`/groups/new${selectedProjectId ? `?projectId=${selectedProjectId}` : ""}`}>
-          <button style={{ padding: "0.45rem 1rem", fontSize: "0.875rem", borderRadius: 8 }}>
-            + Gruppe erstellen
-          </button>
-        </Link>
+        <div className="top-bar-actions">
+          <Link href={`/groups/new${selectedProjectId ? `?projectId=${selectedProjectId}` : ""}`}>
+            <button>+ Neu</button>
+          </Link>
+        </div>
       </div>
 
-      {/* ===== Scrollable Content ===== */}
-      <div style={{ flex: 1, overflowY: "auto", padding: "1.75rem 2rem 2rem" }}>
+      <div className="page-content">
         {selectedProject && groups.length === 0 && (
-          <div style={{ textAlign: "center", padding: "4rem 2rem", color: "#AEAEB2" }}>
-            <p style={{ fontSize: "1rem", marginBottom: "1rem" }}>Noch keine Gruppen vorhanden.</p>
+          <div className="empty-state">
+            <div className="empty-state-icon">👥</div>
+            <p>Noch keine Gruppen vorhanden.</p>
             <Link href={`/groups/new?projectId=${selectedProjectId}`}><button>Erste Gruppe erstellen</button></Link>
           </div>
         )}
@@ -141,19 +106,10 @@ function GroupsContent() {
           {groups.map((g) => {
             const isEditing = editingId === g.id;
             return (
-              <div key={g.id} style={{
-                background: "white",
-                borderRadius: 16,
-                overflow: "hidden",
-                boxShadow: "0 4px 16px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)",
-                border: "1px solid rgba(0,0,0,0.04)",
-                position: "relative",
-                display: "flex",
-                flexDirection: "column",
-              }}>
+              <div key={g.id} className="content-card">
                 <button
                   className="edit-icon-btn"
-                  style={{ top: "0.6rem", right: "0.6rem", zIndex: 3, background: isEditing ? "#F2F2F7" : "rgba(255,255,255,0.9)", backdropFilter: "blur(8px)" }}
+                  style={{ background: isEditing ? "var(--color-surface-offset)" : "rgba(255,255,255,0.9)", backdropFilter: "blur(8px)" }}
                   onClick={() => (isEditing ? cancelEdit() : startEdit(g))}
                 >
                   {isEditing ? "✕" : "✎"}
@@ -167,31 +123,31 @@ function GroupsContent() {
                   <div style={{ height: 6, background: "linear-gradient(90deg, #007AFF, #34AADC)" }} />
                 )}
 
-                <div style={{ padding: "1.1rem 1.25rem", flex: 1, display: "flex", flexDirection: "column" }}>
+                <div className="content-card-body">
                   {isEditing ? (
                     <>
                       <BannerUpload folder="groups" currentUrl={editBanner} onUploaded={(url) => setEditBanner(url)} onRemove={() => setEditBanner(null)} />
                       <label>Gruppenname</label>
-                      <input value={editName} onChange={(e) => setEditName(e.target.value)} required style={{ marginBottom: "0.75rem" }} />
+                      <input value={editName} onChange={(e) => setEditName(e.target.value)} required style={{ marginBottom: "var(--space-3)" }} />
                       <label>Beschreibung (Links: [Text](https://...))</label>
-                      <textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} rows={3} required style={{ marginBottom: "0.75rem" }} />
+                      <textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} rows={3} required style={{ marginBottom: "var(--space-3)" }} />
                       <label>Max. Schüler</label>
-                      <input type="number" min={1} value={editMaxStudents} onChange={(e) => setEditMaxStudents(e.target.value)} required style={{ marginBottom: "0.75rem" }} />
+                      <input type="number" min={1} value={editMaxStudents} onChange={(e) => setEditMaxStudents(e.target.value)} required style={{ marginBottom: "var(--space-3)" }} />
                       {editError && <p className="error-text">{editError}</p>}
-                      <div style={{ display: "flex", gap: "0.5rem", marginTop: "auto" }}>
+                      <div className="btn-group" style={{ marginTop: "auto" }}>
                         <button onClick={() => saveEdit(g.id)}>Speichern</button>
                         <button className="secondary" onClick={cancelEdit}>Abbrechen</button>
                       </div>
                     </>
                   ) : (
                     <>
-                      <h4 style={{ margin: "0 0 0.4rem", fontSize: "1rem" }}>{g.name}</h4>
-                      <div style={{ fontSize: "0.85rem", color: "#6C6C70", flex: 1, marginBottom: "0.75rem" }}>
+                      <h4 style={{ margin: "0 0 var(--space-2)" }}>{g.name}</h4>
+                      <div style={{ fontSize: "var(--text-sm)", color: "var(--color-text-muted)", flex: 1, marginBottom: "var(--space-3)" }}>
                         <DescriptionRenderer text={g.description} />
                       </div>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <span style={{ fontSize: "0.82rem", color: "#AEAEB2" }}>Max. {g.maxStudents} Schüler</span>
-                        <button className="danger" style={{ fontSize: "0.82rem", padding: "0.35rem 0.75rem" }} onClick={() => handleDelete(g.id)}>Löschen</button>
+                        <span style={{ fontSize: "var(--text-xs)", color: "var(--color-text-faint)" }}>Max. {g.maxStudents} Schüler</span>
+                        <button className="danger btn-sm" onClick={() => handleDelete(g.id)}>Löschen</button>
                       </div>
                     </>
                   )}
@@ -207,7 +163,7 @@ function GroupsContent() {
 
 export default function GroupsPage() {
   return (
-    <Suspense fallback={<p style={{ padding: "2rem", color: "#AEAEB2" }}>Lädt…</p>}>
+    <Suspense fallback={<p style={{ padding: "2rem", color: "var(--color-text-faint)" }}>Lädt…</p>}>
       <GroupsContent />
     </Suspense>
   );

@@ -45,13 +45,11 @@ export default function ProjectsPage() {
   function toggleEditClass(id: string) {
     setEditClassIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   }
-
   async function handleDelete(id: string) {
     if (!confirm("Dieses Projekt inkl. aller Gruppen wirklich löschen?")) return;
     await fetch(`/api/projects/${id}`, { method: "DELETE" });
     loadProjects();
   }
-
   function startEdit(p: Project) {
     setEditingId(p.id); setEditName(p.name); setEditDescription(p.description);
     setEditBanner(p.bannerImage); setEditStudentCount(String(p.studentCount));
@@ -61,7 +59,6 @@ export default function ProjectsPage() {
     setEditError("");
   }
   function cancelEdit() { setEditingId(null); setEditError(""); }
-
   async function saveEdit(id: string) {
     setEditError("");
     if (editClassIds.length === 0) { setEditError("Bitte mindestens eine Schulklasse auswählen."); return; }
@@ -94,29 +91,25 @@ export default function ProjectsPage() {
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
 
-      {/* Top Bar */}
+      {/* ─── Top Bar ─── */}
       <div className="top-bar">
-        <h1 className="" style={{ margin: 0, fontSize: "1.15rem", fontWeight: 700, letterSpacing: "-0.025em" }}>Projekte</h1>
-        <div className="top-bar-divider" />
-        <span style={{ fontSize: "0.8rem", color: "#6C6C70", fontWeight: 500, whiteSpace: "nowrap" }}>Sortieren:</span>
-        <select
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value as "name" | "class")}
-          style={{ width: "auto", marginBottom: 0, fontSize: "0.82rem", padding: "0.38rem 2rem 0.38rem 0.65rem" }}
-        >
-          <option value="name">Projektname</option>
-          <option value="class">Schulklasse</option>
-        </select>
-        <div style={{ flex: 1 }} />
-        <Link href="/projects/new">
-          <button style={{ padding: "0.42rem 1rem", fontSize: "0.85rem", borderRadius: 8 }}>+ Projekt erstellen</button>
-        </Link>
+        <h1>Projekte</h1>
+        <span className="top-bar-divider" />
+        <div className="top-bar-sort">
+          <span className="sort-label" style={{ fontSize: "var(--text-xs)", color: "var(--color-text-muted)", fontWeight: 500, whiteSpace: "nowrap" }}>Sortieren:</span>
+          <select value={sortBy} onChange={(e) => setSortBy(e.target.value as "name" | "class")} style={{ width: "auto", marginBottom: 0 }}>
+            <option value="name">Projektname</option>
+            <option value="class">Schulklasse</option>
+          </select>
+        </div>
+        <div className="top-bar-actions">
+          <Link href="/projects/new"><button>+ Neu</button></Link>
+        </div>
       </div>
 
-      {/* Content */}
-      <div style={{ flex: 1, overflowY: "auto", padding: "1.75rem 2rem 2rem" }}>
+      {/* ─── Content ─── */}
+      <div className="page-content">
 
-        {/* Empty state */}
         {sortedProjects.length === 0 && (
           <div className="empty-state">
             <div className="empty-state-icon">📁</div>
@@ -131,24 +124,15 @@ export default function ProjectsPage() {
             const pct  = p.studentCount > 0 ? Math.min(100, (used / p.studentCount) * 100) : 0;
             const isEditing = editingId === p.id;
             return (
-              <div key={p.id} style={{
-                background: "white", borderRadius: 16, overflow: "hidden",
-                boxShadow: "0 4px 16px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)",
-                border: "1px solid rgba(0,0,0,0.045)",
-                position: "relative", display: "flex", flexDirection: "column",
-                transition: "box-shadow 0.2s",
-              }}>
-
-                {/* Edit toggle */}
+              <div key={p.id} className="content-card">
                 <button
                   className="edit-icon-btn"
-                  style={{ top: "0.6rem", right: "0.6rem", zIndex: 3, background: isEditing ? "#F2F2F7" : "rgba(255,255,255,0.92)", backdropFilter: "blur(8px)" }}
+                  style={{ background: isEditing ? "var(--color-surface-offset)" : "rgba(255,255,255,0.92)", backdropFilter: "blur(8px)" }}
                   onClick={() => (isEditing ? cancelEdit() : startEdit(p))}
                 >
                   {isEditing ? "✕" : "✎"}
                 </button>
 
-                {/* Banner / accent line */}
                 {!isEditing && p.bannerImage && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={p.bannerImage} alt="Banner" style={{ width: "100%", height: 140, objectFit: "cover", display: "block" }} />
@@ -157,66 +141,67 @@ export default function ProjectsPage() {
                   <div style={{ height: 5, background: "linear-gradient(90deg,#007AFF,#5AC8FA)" }} />
                 )}
 
-                <div style={{ padding: "1.1rem 1.25rem", flex: 1, display: "flex", flexDirection: "column" }}>
+                <div className="content-card-body">
                   {isEditing ? (
                     <>
                       <BannerUpload folder="projects" currentUrl={editBanner} onUploaded={(url) => setEditBanner(url)} onRemove={() => setEditBanner(null)} />
                       <label>Name</label>
-                      <input value={editName} onChange={(e) => setEditName(e.target.value)} required style={{ marginBottom: "0.75rem" }} />
+                      <input value={editName} onChange={(e) => setEditName(e.target.value)} required style={{ marginBottom: "var(--space-3)" }} />
                       <label>Beschreibung</label>
-                      <textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} rows={3} required style={{ marginBottom: "0.75rem" }} />
+                      <textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} rows={3} required style={{ marginBottom: "var(--space-3)" }} />
                       <label>Schüler Anzahl</label>
-                      <input type="number" min={1} value={editStudentCount} onChange={(e) => setEditStudentCount(e.target.value)} required style={{ marginBottom: "0.75rem" }} />
+                      <input type="number" min={1} value={editStudentCount} onChange={(e) => setEditStudentCount(e.target.value)} required style={{ marginBottom: "var(--space-3)" }} />
                       <label>Schulklassen</label>
-                      <div className="checkbox-grid" style={{ marginBottom: "0.75rem" }}>
+                      <div className="checkbox-grid" style={{ marginBottom: "var(--space-3)" }}>
                         {schoolClasses.map((c) => (
                           <label key={c.id}><input type="checkbox" checked={editClassIds.includes(c.id)} onChange={() => toggleEditClass(c.id)} />{c.name}</label>
                         ))}
                       </div>
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5rem" }}>
-                        <div><label>Start</label><input type="date" value={editStartDate} onChange={(e) => setEditStartDate(e.target.value)} required /></div>
-                        <div><label>Ende</label><input type="date" value={editEndDate} onChange={(e) => setEditEndDate(e.target.value)} required /></div>
+                      {/* Start / Ende: .date-row stapelt auf Mobile */}
+                      <div className="date-row">
+                        <div>
+                          <label>Start</label>
+                          <input type="date" value={editStartDate} onChange={(e) => setEditStartDate(e.target.value)} required />
+                        </div>
+                        <div>
+                          <label>Ende</label>
+                          <input type="date" value={editEndDate} onChange={(e) => setEditEndDate(e.target.value)} required />
+                        </div>
                       </div>
-                      <label style={{ marginTop: "0.75rem" }}>Einschreibefrist</label>
-                      <input type="datetime-local" value={editEnrollmentDeadline} onChange={(e) => setEditEnrollmentDeadline(e.target.value)} required style={{ marginBottom: "0.75rem" }} />
+                      <label style={{ marginTop: "var(--space-3)" }}>Einschreibefrist</label>
+                      <input type="datetime-local" value={editEnrollmentDeadline} onChange={(e) => setEditEnrollmentDeadline(e.target.value)} required style={{ marginBottom: "var(--space-3)" }} />
                       {editError && <p className="error-text">{editError}</p>}
-                      <div style={{ display: "flex", gap: "0.5rem", marginTop: "auto", paddingTop: "0.5rem" }}>
+                      <div className="btn-group" style={{ marginTop: "auto", paddingTop: "var(--space-2)" }}>
                         <button onClick={() => saveEdit(p.id)}>Speichern</button>
                         <button className="secondary" onClick={cancelEdit}>Abbrechen</button>
                       </div>
                     </>
                   ) : (
                     <>
-                      <h4 style={{ margin: "0 0 0.35rem", fontSize: "1rem", paddingRight: "2rem" }}>{p.name}</h4>
-                      <div style={{ marginBottom: "0.5rem" }}>
+                      <h4 style={{ margin: "0 0 var(--space-1)", paddingRight: "2rem" }}>{p.name}</h4>
+                      <div style={{ marginBottom: "var(--space-2)" }}>
                         {p.schoolClasses.map((c) => <span key={c.id} className="class-badge">{c.name}</span>)}
                       </div>
-                      <div style={{ fontSize: "0.85rem", color: "#6C6C70", marginBottom: "0.5rem", flex: 1, lineHeight: 1.55 }}>
+                      <div style={{ fontSize: "var(--text-sm)", color: "var(--color-text-muted)", marginBottom: "var(--space-2)", flex: 1, lineHeight: 1.55 }}>
                         <DescriptionRenderer text={p.description} />
                       </div>
-
-                      {/* Date row */}
-                      <div style={{ display: "flex", gap: "0.75rem", fontSize: "0.76rem", color: "#AEAEB2", marginBottom: "0.25rem", flexWrap: "wrap" }}>
+                      <div style={{ display: "flex", gap: "var(--space-3)", fontSize: "var(--text-xs)", color: "var(--color-text-faint)", marginBottom: "var(--space-1)", flexWrap: "wrap" }}>
                         <span>📅 {formatDateOnly(p.startDate)} – {formatDateOnly(p.endDate)}</span>
                         <span>⏰ {formatDateTime(p.enrollmentDeadline)}</span>
                       </div>
-
-                      {/* Progress bar */}
-                      <div className="progress-bar" style={{ marginTop: "0.6rem" }}>
+                      <div className="progress-bar">
                         <div className="progress-fill" style={{ width: `${pct}%` }} />
                       </div>
-
-                      {/* Footer */}
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "0.5rem" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", fontSize: "0.8rem", color: "#6C6C70" }}>
-                          <span>{used}<span style={{ color: "#AEAEB2" }}>/{p.studentCount} Sch.</span></span>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "var(--space-2)" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", fontSize: "var(--text-xs)", color: "var(--color-text-muted)" }}>
+                          <span>{used}<span style={{ color: "var(--color-text-faint)" }}>/{p.studentCount} Sch.</span></span>
                           <span className="code-badge">{p.code}</span>
                         </div>
-                        <div style={{ display: "flex", gap: "0.4rem" }}>
+                        <div className="btn-group">
                           <Link href={`/groups?projectId=${p.id}`}>
-                            <button className="secondary" style={{ fontSize: "0.8rem", padding: "0.32rem 0.7rem" }}>Gruppen</button>
+                            <button className="secondary btn-sm">Gruppen</button>
                           </Link>
-                          <button className="danger" style={{ fontSize: "0.8rem", padding: "0.32rem 0.7rem" }} onClick={() => handleDelete(p.id)}>Löschen</button>
+                          <button className="danger btn-sm" onClick={() => handleDelete(p.id)}>Löschen</button>
                         </div>
                       </div>
                     </>
