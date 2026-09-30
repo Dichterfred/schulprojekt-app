@@ -76,7 +76,8 @@ html {
   --card-padding-sm: var(--space-3) var(--space-4);
 
   /* ── Page content padding ── */
-  --page-padding: var(--space-6) var(--space-7);
+  --page-padding-x:      var(--space-7);
+  --page-padding-y:      var(--space-6);
   --page-padding-mobile: var(--space-4);
 }
 
@@ -268,6 +269,14 @@ button.btn-sm {
   margin-bottom: var(--space-8);
 }
 
+/* ── New-Project Layout: Formular links (max 520px), rechts offen ── */
+.new-project-layout {
+  display: grid;
+  grid-template-columns: minmax(320px, 520px) 1fr;
+  gap: var(--space-8);
+  align-items: start;
+}
+
 /* ── Date Row (Start / Ende nebeneinander, stapelt auf Mobile) ── */
 .date-row {
   display: grid;
@@ -370,10 +379,10 @@ button.btn-sm {
 .page-content {
   flex: 1;
   overflow-y: auto;
-  padding: var(--space-6) var(--space-7) var(--space-8);
+  padding: var(--page-padding-y) var(--page-padding-x) var(--space-8);
 }
 
-/* ── New-Page Wrapper (Seiten ohne Top-Bar, z.B. /projects/new) ── */
+/* ── New-Page Wrapper (Seiten mit Top-Bar aber ohne Sidebar-Content, z.B. /projects/new) ── */
 .new-page-wrapper {
   display: flex;
   flex-direction: column;
@@ -384,7 +393,7 @@ button.btn-sm {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: var(--space-6) var(--space-7) var(--space-8);
+  padding: var(--page-padding-y) var(--page-padding-x) var(--space-8);
 }
 
 /* ── Spinner ── */
@@ -414,7 +423,6 @@ button.btn-sm {
   top: 0;
   z-index: 10;
   min-height: 52px;
-  /* Verhindert, dass die Top Bar breiter als der Viewport wird */
   max-width: 100%;
   overflow: hidden;
 }
@@ -529,12 +537,16 @@ button.btn-sm {
   /* Settings grid → einspaltig */
   .settings-grid { grid-template-columns: 1fr; }
 
+  /* New-project layout → einspaltig, Card volle Breite */
+  .new-project-layout { grid-template-columns: 1fr; gap: var(--space-4); }
+  .new-project-layout > div:last-child { display: none; }
+
   /* Date row → einspaltig stapeln */
   .date-row { grid-template-columns: 1fr; gap: var(--space-2); }
 
   /* Content padding */
-  .page-content { padding: var(--page-padding-mobile) !important; }
-  .new-page-content { padding: var(--page-padding-mobile) !important; }
+  .page-content        { padding: var(--page-padding-mobile) !important; }
+  .new-page-content    { padding: var(--page-padding-mobile) !important; }
 
   /* Card: etwas enger */
   .card { padding: var(--card-padding-sm); }
@@ -563,4 +575,7 @@ button.btn-sm {
   .top-bar { padding: var(--space-3) var(--space-4); }
   .card-grid { grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr)); }
   .settings-grid { grid-template-columns: minmax(260px, 380px) 1fr; }
+  /* Tablet: neues Projekt einspaltig, volle Breite */
+  .new-project-layout { grid-template-columns: 1fr; }
+  .new-project-layout > div:last-child { display: none; }
 }

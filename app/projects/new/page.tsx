@@ -40,7 +40,9 @@ export default function NewProjectPage() {
   }, [isSuperUser]);
 
   function toggleClass(id: string) {
-    setSelectedClassIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+    setSelectedClassIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
   }
 
   async function handleSubmit(e: FormEvent) {
@@ -80,7 +82,7 @@ export default function NewProjectPage() {
 
       {/* ── Top Bar ── */}
       <div className="top-bar">
-        <h1>Neues Projekt</h1>
+        <h1>Neues Projekt erstellen</h1>
         <div className="top-bar-actions">
           <Link href="/projects">
             <button className="secondary btn-sm">&larr; Zurück</button>
@@ -90,68 +92,122 @@ export default function NewProjectPage() {
 
       {/* ── Scrollable Content ── */}
       <div className="new-page-content">
-        <div className="card" style={{ maxWidth: 480, margin: "0 auto" }}>
-          <form onSubmit={handleSubmit}>
-            <BannerUpload
-              folder="projects"
-              currentUrl={bannerImage}
-              onUploaded={(url) => setBannerImage(url)}
-              onRemove={() => setBannerImage(null)}
-            />
-            <label>Name</label>
-            <input value={name} onChange={(e) => setName(e.target.value)} required />
-            <label>Beschreibung (Links: [Text](https://...))</label>
-            <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} required />
-            <label>Schüler Anzahl</label>
-            <input type="number" min={1} value={studentCount} onChange={(e) => setStudentCount(e.target.value)} required />
-            <label>Schulklassen (mind. eine auswählen)</label>
-            <div className="checkbox-grid">
-              {schoolClasses.map((c) => (
-                <label key={c.id}>
-                  <input type="checkbox" checked={selectedClassIds.includes(c.id)} onChange={() => toggleClass(c.id)} />
-                  {c.name}
-                </label>
-              ))}
-            </div>
 
-            {/* Start / Ende: .date-row stapelt auf Mobile */}
-            <div className="date-row">
-              <div>
-                <label>Start (Datum)</label>
-                <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} required />
+        {/*
+          Desktop: 2 Spalten — Formular links (max 520px), rechts freier Bereich
+          Mobile:  1 Spalte  — Formular volle Breite
+        */}
+        <div className="new-project-layout">
+
+          {/* Linke Spalte: Formular-Card */}
+          <div className="card" style={{ margin: 0 }}>
+            <form onSubmit={handleSubmit}>
+              <BannerUpload
+                folder="projects"
+                currentUrl={bannerImage}
+                onUploaded={(url) => setBannerImage(url)}
+                onRemove={() => setBannerImage(null)}
+              />
+              <label>Name</label>
+              <input value={name} onChange={(e) => setName(e.target.value)} required />
+
+              <label>Beschreibung (Links: [Text](https://...))</label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={4}
+                required
+              />
+
+              <label>Schüler Anzahl</label>
+              <input
+                type="number"
+                min={1}
+                value={studentCount}
+                onChange={(e) => setStudentCount(e.target.value)}
+                required
+              />
+
+              <label>Schulklassen (mind. eine auswählen)</label>
+              <div className="checkbox-grid">
+                {schoolClasses.map((c) => (
+                  <label key={c.id}>
+                    <input
+                      type="checkbox"
+                      checked={selectedClassIds.includes(c.id)}
+                      onChange={() => toggleClass(c.id)}
+                    />
+                    {c.name}
+                  </label>
+                ))}
               </div>
-              <div>
-                <label>Ende (Datum)</label>
-                <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} required />
+
+              {/* Start / Ende nebeneinander, stapelt auf Mobile */}
+              <div className="date-row">
+                <div>
+                  <label>Start (Datum)</label>
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    required
+                  />
+                </div>
+                <div>
+                  <label>Ende (Datum)</label>
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    required
+                  />
+                </div>
               </div>
-            </div>
 
-            <label>Einschreibefrist (Datum &amp; Uhrzeit)</label>
-            <input type="datetime-local" value={enrollmentDeadline} onChange={(e) => setEnrollmentDeadline(e.target.value)} required />
+              <label>Einschreibefrist (Datum &amp; Uhrzeit)</label>
+              <input
+                type="datetime-local"
+                value={enrollmentDeadline}
+                onChange={(e) => setEnrollmentDeadline(e.target.value)}
+                required
+              />
 
-            {isSuperUser && (
-              <>
-                <label style={{ marginTop: "var(--space-4)" }}>
-                  Lehrer zuordnen
-                  <span style={{ fontWeight: 400, color: "var(--color-text-faint)", marginLeft: "var(--space-2)", fontSize: "var(--text-xs)", textTransform: "none", letterSpacing: 0 }}>(optional)</span>
-                </label>
-                <select value={assignedOwnerId} onChange={(e) => setAssignedOwnerId(e.target.value)}>
-                  <option value="">-- Keinem Lehrer zuordnen --</option>
-                  {teachers.map((t) => (
-                    <option key={t.id} value={t.id}>{t.username}</option>
-                  ))}
-                </select>
-                {!assignedOwnerId && (
-                  <p style={{ fontSize: "var(--text-xs)", color: "var(--color-text-faint)", marginTop: "var(--space-1)", marginBottom: 0 }}>
-                    Wenn kein Lehrer gewählt wird, erscheint das Projekt unter deinem Super-User-Konto.
-                  </p>
-                )}
-              </>
-            )}
+              {isSuperUser && (
+                <>
+                  <label style={{ marginTop: "var(--space-4)" }}>
+                    Lehrer zuordnen
+                    <span style={{
+                      fontWeight: 400, color: "var(--color-text-faint)",
+                      marginLeft: "var(--space-2)", fontSize: "var(--text-xs)",
+                      textTransform: "none", letterSpacing: 0,
+                    }}>(optional)</span>
+                  </label>
+                  <select value={assignedOwnerId} onChange={(e) => setAssignedOwnerId(e.target.value)}>
+                    <option value="">-- Keinem Lehrer zuordnen --</option>
+                    {teachers.map((t) => (
+                      <option key={t.id} value={t.id}>{t.username}</option>
+                    ))}
+                  </select>
+                  {!assignedOwnerId && (
+                    <p style={{
+                      fontSize: "var(--text-xs)", color: "var(--color-text-faint)",
+                      marginTop: "var(--space-1)", marginBottom: 0,
+                    }}>
+                      Wenn kein Lehrer gewählt wird, erscheint das Projekt unter deinem Super-User-Konto.
+                    </p>
+                  )}
+                </>
+              )}
 
-            {error && <p className="error-text">{error}</p>}
-            <button type="submit" style={{ marginTop: "var(--space-4)", width: "100%" }}>Projekt erstellen</button>
-          </form>
+              {error && <p className="error-text">{error}</p>}
+              <button type="submit" style={{ marginTop: "var(--space-4)", width: "100%" }}>
+                Projekt erstellen
+              </button>
+            </form>
+          </div>
+
+          {/* Rechte Spalte: leer (Platz für zukünftige Inhalte / visuelles Gleichgewicht) */}
+          <div />
         </div>
       </div>
     </div>
