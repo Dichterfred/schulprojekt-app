@@ -62,6 +62,22 @@ html {
   --content-default: 960px;
   --content-wide:    1200px;
   --font-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+
+  /* ── Button size tokens ── */
+  --btn-padding-y:    var(--space-2);
+  --btn-padding-x:    var(--space-5);
+  --btn-padding-y-sm: 0.35rem;
+  --btn-padding-x-sm: var(--space-3);
+  --btn-font-size:    var(--text-sm);
+  --btn-font-size-sm: var(--text-xs);
+
+  /* ── Card tokens ── */
+  --card-padding:    var(--space-4) var(--space-5);
+  --card-padding-sm: var(--space-3) var(--space-4);
+
+  /* ── Page content padding ── */
+  --page-padding: var(--space-6) var(--space-7);
+  --page-padding-mobile: var(--space-4);
 }
 
 /* ── Base ── */
@@ -141,9 +157,9 @@ button {
   display: inline-flex; align-items: center; justify-content: center;
   gap: var(--space-2); cursor: pointer; border: none;
   border-radius: var(--radius-md);
-  padding: var(--space-2) var(--space-5);
+  padding: var(--btn-padding-y) var(--btn-padding-x);
   background: var(--color-primary); color: var(--color-text-inverse);
-  font-weight: 600; font-size: var(--text-sm); letter-spacing: -0.01em;
+  font-weight: 600; font-size: var(--btn-font-size); letter-spacing: -0.01em;
   box-shadow: var(--shadow-sm); -webkit-tap-highlight-color: transparent;
 }
 button:hover  { background: var(--color-primary-hover); box-shadow: var(--shadow-md); }
@@ -171,6 +187,19 @@ button.success {
 }
 button.success:hover { background: var(--color-success-hover); }
 
+/* ── Button size variant ── */
+button.btn-sm {
+  padding: var(--btn-padding-y-sm) var(--btn-padding-x-sm);
+  font-size: var(--btn-font-size-sm);
+}
+
+/* ── Button group ── */
+.btn-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
 /* ── Card ── */
 .card {
   position: relative;
@@ -182,12 +211,61 @@ button.success:hover { background: var(--color-success-hover); }
   border: 1px solid oklch(from var(--color-text) l c h / 0.07);
 }
 
+/* ── Item Card (Lehrer/Schüler-Listeneinträge) ── */
+.item-card {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid oklch(from var(--color-text) l c h / 0.06);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+.item-card-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-3) var(--space-4);
+  gap: var(--space-3);
+}
+.item-card-panel {
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-offset);
+  border-top: 1px solid var(--color-divider);
+}
+
+/* ── Content Card (Projekt/Gruppen-Karten) ── */
+.content-card {
+  background: white;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  border: 1px solid oklch(from var(--color-text) l c h / 0.045);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow var(--transition);
+}
+.content-card-body {
+  padding: var(--card-padding);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
 /* ── Card Grid ── */
 .card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
   gap: var(--space-4);
   align-items: start;
+}
+
+/* ── Settings Grid (Formular + Liste nebeneinander) ── */
+.settings-grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 420px) 1fr;
+  gap: var(--space-5);
+  align-items: start;
+  margin-bottom: var(--space-8);
 }
 
 /* ── Edit Icon Button ── */
@@ -281,6 +359,13 @@ button.success:hover { background: var(--color-success-hover); }
   margin: var(--space-5) 0 var(--space-2);
 }
 
+/* ── Page Content ── */
+.page-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-6) var(--space-7) var(--space-8);
+}
+
 /* ── Spinner ── */
 @keyframes spin { to { transform: rotate(360deg); } }
 .spinner {
@@ -321,6 +406,14 @@ button.success:hover { background: var(--color-success-hover); }
   background: var(--color-divider);
   flex-shrink: 0;
 }
+.top-bar-subtitle {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
 .top-bar-actions {
   display: flex;
   align-items: center;
@@ -334,7 +427,6 @@ button.success:hover { background: var(--color-success-hover); }
   gap: var(--space-2);
   flex-shrink: 0;
 }
-/* Sekundaere Info-Badge in der Top Bar (z.B. "5 / 30 Schüler") */
 .top-bar-stat {
   font-size: var(--text-xs);
   color: var(--color-text-faint);
@@ -390,11 +482,9 @@ button.success:hover { background: var(--color-success-hover); }
     flex-shrink: 1;
   }
   .top-bar-divider { display: none; }
-
-  /* Stat-Badge in Top Bar ausblenden — spart Platz */
+  .top-bar-subtitle { display: none; }
   .top-bar-stat { display: none; }
 
-  /* Sort: Label ausblenden, Select verkleinern */
   .top-bar-sort .sort-label { display: none; }
   .top-bar-sort select {
     font-size: 0.78rem;
@@ -402,22 +492,25 @@ button.success:hover { background: var(--color-success-hover); }
     max-width: 120px;
   }
 
-  /* Action button: kompakt */
   .top-bar-actions button,
   .top-bar-actions a button {
-    font-size: 0.78rem;
-    padding: 0.35rem 0.65rem;
+    font-size: var(--btn-font-size-sm);
+    padding: var(--btn-padding-y-sm) var(--btn-padding-x-sm);
     white-space: nowrap;
   }
 
   /* Card grid → einspaltig */
   .card-grid { grid-template-columns: 1fr; }
 
+  /* Settings grid → einspaltig */
+  .settings-grid { grid-template-columns: 1fr; }
+
   /* Content padding */
-  .page-content { padding: 1rem !important; }
+  .page-content { padding: var(--page-padding-mobile) !important; }
 
   /* Card: etwas enger */
-  .card { padding: var(--space-4); }
+  .card { padding: var(--card-padding-sm); }
+  .content-card-body { padding: var(--card-padding-sm); }
 
   /* Page header stapeln */
   .page-header { flex-direction: column; align-items: flex-start; gap: var(--space-3); }
@@ -430,6 +523,9 @@ button.success:hover { background: var(--color-success-hover); }
 
   /* Empty state: weniger Padding */
   .empty-state { padding: var(--space-10) var(--space-4); }
+
+  /* btn-group auf Mobile: volle Breite, gestapelt wenn nötig */
+  .btn-group { flex-wrap: wrap; }
 }
 
 /* ═══════════════════════════════════════════════
@@ -438,4 +534,5 @@ button.success:hover { background: var(--color-success-hover); }
 @media (min-width: 768px) and (max-width: 1023px) {
   .top-bar { padding: var(--space-3) var(--space-4); }
   .card-grid { grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr)); }
+  .settings-grid { grid-template-columns: minmax(260px, 380px) 1fr; }
 }
