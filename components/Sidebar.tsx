@@ -267,30 +267,25 @@ export default function Sidebar({ username, isSuperuser }: { username: string; i
 
         .sb-desktop { display: flex; }
 
-        /* Hamburger: genügend Abstand vom Rand und vom Top-Bar-Inhalt */
+        /* Hamburger: sitzt in der mobilen Top-Bar (kein fixed positioning mehr) */
         .sb-hamburger {
           display: none;
-          position: fixed;
-          top: 14px;
-          left: 12px;
-          z-index: 1200;
-          width: 44px;
-          height: 44px;
-          border-radius: 12px;
-          background: #1c1b19;
-          border: 1px solid rgba(255,255,255,0.12);
+          width: 40px;
+          height: 40px;
+          border-radius: 10px;
+          background: transparent;
+          border: none;
           color: rgba(255,255,255,0.9);
           align-items: center;
           justify-content: center;
           cursor: pointer;
           padding: 0;
           line-height: 0;
-          box-shadow: 0 2px 16px rgba(0,0,0,0.35);
-          transition: opacity 160ms;
+          flex-shrink: 0;
+          transition: background 160ms;
         }
-        .sb-hamburger[data-open="true"] {
-          opacity: 0;
-          pointer-events: none;
+        .sb-hamburger:hover {
+          background: rgba(255,255,255,0.08);
         }
 
         .sb-overlay {
@@ -310,7 +305,7 @@ export default function Sidebar({ username, isSuperuser }: { username: string; i
           overflow: hidden;
         }
 
-        @media (max-width: 767px) {
+        @media (max-width: 1023px) {
           .sb-desktop { display: none !important; }
           .sb-hamburger { display: flex; }
           .sb-overlay { display: block; }
@@ -322,12 +317,13 @@ export default function Sidebar({ username, isSuperuser }: { username: string; i
         {panelContent(false)}
       </div>
 
-      {/* Mobile: Hamburger */}
+      {/* Mobile/Tablet: Hamburger button (rendered inside TopBar via prop) */}
       <button
         className="sb-hamburger"
         data-open={drawerOpen ? "true" : "false"}
         aria-label="Menü öffnen"
         onClick={() => setDrawerOpen(true)}
+        id="sb-hamburger-btn"
       >
         <IconMenu />
       </button>
