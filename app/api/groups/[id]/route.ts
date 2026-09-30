@@ -21,7 +21,7 @@ export async function PUT(req: Request, props: { params: Promise<{ id: string }>
   if (!allowed) return NextResponse.json({ error: "Keine Berechtigung." }, { status: 403 });
 
   const body = await req.json();
-  const { name, description, maxStudents, bannerImage } = body;
+  const { name, description, maxStudents } = body;
 
   if (!name || !description || !maxStudents || maxStudents <= 0) {
     return NextResponse.json({ error: "Ungültige Eingabedaten." }, { status: 400 });
@@ -37,12 +37,7 @@ export async function PUT(req: Request, props: { params: Promise<{ id: string }>
 
   const updated = await prisma.group.update({
     where: { id: params.id },
-    data: {
-      name,
-      description,
-      maxStudents: Number(maxStudents),
-      bannerImage: bannerImage !== undefined ? bannerImage : undefined,
-    },
+    data: { name, description, maxStudents: Number(maxStudents) },
   });
 
   return NextResponse.json(updated);

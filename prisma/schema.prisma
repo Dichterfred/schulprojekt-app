@@ -13,6 +13,9 @@ enum Role {
   STUDENT
 }
 
+// Hinweis: SQLite unterstützt in Prisma keine "enum"-Typen,
+// daher wird die Rolle eines Nutzers als einfacher String gespeichert.
+// Gültige Werte: "SUPERUSER", "TEACHER", "STUDENT"
 model User {
   id           String  @id @default(cuid())
   username     String? @unique
@@ -26,9 +29,11 @@ model User {
 
   ownedProjects Project[] @relation("OwnedProjects")
 
+  // Vom Super User zugewiesenes Projekt (= Anmeldung mit Projekt-Code + Vorname.Nachname)
   enrolledProjectId String?
   enrolledProject    Project? @relation("Enrollment", fields: [enrolledProjectId], references: [id], onDelete: Cascade)
 
+  // Einzelne Gruppen-Prioritäten, die dieser Schüler vergeben hat
   groupPriorities GroupPriority[]
 }
 
@@ -46,11 +51,12 @@ model Project {
   studentCount Int
   code         String   @unique
 
-  // Optional: Pfad zum Banner-Bild (z.B. "/uploads/projects/abc123.jpg")
-  bannerImage  String?
+  // Start/Ende: nur Datum relevant, technisch als UTC-Tagesanfang bzw. Tagesende gespeichert
+  startDate DateTime
+  endDate   DateTime
 
-  startDate          DateTime
-  endDate            DateTime
+  // Einschreibefrist: Datum UND Uhrzeit relevant, wird serverseitig für die
+  // Gruppen-Einschreibung der Schüler geprüft
   enrollmentDeadline DateTime
 
   ownerId String?
@@ -70,17 +76,16 @@ model Group {
   name        String
   description String
   maxStudents Int
-
-  // Optional: Pfad zum Banner-Bild (z.B. "/uploads/groups/abc123.jpg")
-  bannerImage String?
-
-  projectId String
-  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
 
   groupPriorities GroupPriority[]
 }
 
+// Speichert die Priorität, die ein Schüler einer Gruppe innerhalb seines
+// zugewiesenen Projekts gegeben hat. Jede Priorität (1..n) darf pro Schüler
+// nur einmal vergeben werden, ebenso darf jede Gruppe nur einmal bewertet werden.
 model GroupPriority {
   id        String @id @default(cuid())
 

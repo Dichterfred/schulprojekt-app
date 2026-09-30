@@ -39,7 +39,7 @@ export async function PUT(req: Request, props: { params: Promise<{ id: string }>
   }
 
   const body = await req.json();
-  const { name, description, studentCount, schoolClassIds, startDate, endDate, enrollmentDeadline, bannerImage } = body;
+  const { name, description, studentCount, schoolClassIds, startDate, endDate, enrollmentDeadline } = body;
 
   if (!name || !description || !studentCount || studentCount <= 0) {
     return NextResponse.json({ error: "Ungültige Eingabedaten." }, { status: 400 });
@@ -82,7 +82,6 @@ export async function PUT(req: Request, props: { params: Promise<{ id: string }>
       startDate: start,
       endDate: end,
       enrollmentDeadline: deadline,
-      bannerImage: bannerImage !== undefined ? bannerImage : undefined,
       schoolClasses: { set: schoolClassIds.map((id: string) => ({ id })) },
     },
     include: { groups: true, schoolClasses: true },
