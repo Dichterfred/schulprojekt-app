@@ -73,66 +73,45 @@ function GroupsContent() {
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
 
-      {/* ===== Top Bar ===== */}
-      <div style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "0.75rem",
-        padding: "0.85rem 2rem",
-        background: "rgba(255,255,255,0.8)",
-        backdropFilter: "blur(16px)",
-        WebkitBackdropFilter: "blur(16px)",
-        borderBottom: "1px solid rgba(0,0,0,0.07)",
-        flexShrink: 0,
-        position: "sticky",
-        top: 0,
-        zIndex: 10,
-      }}>
-        <h1 style={{ margin: 0, fontSize: "1.2rem", fontWeight: 700, letterSpacing: "-0.02em", marginRight: "0.5rem" }}>Gruppen</h1>
+      {/* ===== Top Bar — shared .top-bar classes (mobile-aware) ===== */}
+      <div className="top-bar">
+        <h1>Gruppen</h1>
+        <span className="top-bar-divider" />
 
-        <div style={{ width: 1, height: 22, background: "#E5E5EA", flexShrink: 0 }} />
+        {/* Projekt-Filter */}
+        <div className="top-bar-sort">
+          <span className="sort-label" style={{ fontSize: "0.82rem", color: "#6C6C70", fontWeight: 500, whiteSpace: "nowrap" }}>Projekt:</span>
+          <select
+            value={selectedProjectId}
+            onChange={(e) => setSelectedProjectId(e.target.value)}
+            style={{ width: "auto", marginBottom: 0, maxWidth: 180 }}
+          >
+            <option value="">-- wählen --</option>
+            {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+          </select>
+        </div>
 
-        {/* Filter: Projekt */}
-        <span style={{ fontSize: "0.82rem", color: "#6C6C70", fontWeight: 500, whiteSpace: "nowrap" }}>Projekt:</span>
-        <select
-          value={selectedProjectId}
-          onChange={(e) => setSelectedProjectId(e.target.value)}
-          style={{ width: "auto", marginBottom: 0, fontSize: "0.85rem", padding: "0.4rem 2rem 0.4rem 0.65rem", maxWidth: 220 }}
-        >
-          <option value="">-- wählen --</option>
-          {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-        </select>
-
-        {/* Zugeteilt-Info */}
+        {/* Zugeteilt-Info — auf Mobile ausblenden */}
         {selectedProject && (
-          <span style={{
-            fontSize: "0.78rem",
-            color: "#AEAEB2",
-            background: "#F2F2F7",
-            borderRadius: 6,
-            padding: "0.25rem 0.6rem",
-            whiteSpace: "nowrap",
-          }}>
-            {used} / {selectedProject.studentCount} Schüler
+          <span className="top-bar-stat">
+            {used} / {selectedProject.studentCount} Schüler
           </span>
         )}
 
-        {/* Spacer */}
-        <div style={{ flex: 1 }} />
-
         {/* Action */}
-        <Link href={`/groups/new${selectedProjectId ? `?projectId=${selectedProjectId}` : ""}`}>
-          <button style={{ padding: "0.45rem 1rem", fontSize: "0.875rem", borderRadius: 8 }}>
-            + Gruppe erstellen
-          </button>
-        </Link>
+        <div className="top-bar-actions">
+          <Link href={`/groups/new${selectedProjectId ? `?projectId=${selectedProjectId}` : ""`}>
+            <button style={{ borderRadius: 8 }}>+ Neu</button>
+          </Link>
+        </div>
       </div>
 
       {/* ===== Scrollable Content ===== */}
-      <div style={{ flex: 1, overflowY: "auto", padding: "1.75rem 2rem 2rem" }}>
+      <div className="page-content" style={{ flex: 1, overflowY: "auto", padding: "1.5rem 1.75rem 2rem" }}>
         {selectedProject && groups.length === 0 && (
-          <div style={{ textAlign: "center", padding: "4rem 2rem", color: "#AEAEB2" }}>
-            <p style={{ fontSize: "1rem", marginBottom: "1rem" }}>Noch keine Gruppen vorhanden.</p>
+          <div className="empty-state">
+            <div className="empty-state-icon">👥</div>
+            <p>Noch keine Gruppen vorhanden.</p>
             <Link href={`/groups/new?projectId=${selectedProjectId}`}><button>Erste Gruppe erstellen</button></Link>
           </div>
         )}
