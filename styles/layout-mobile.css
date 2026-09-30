@@ -10,9 +10,9 @@
     overflow-y: auto;
   }
 
-  /* Top Bar: kompakt, links Platz für Sidebar-Toggle-Button */
+  /* Top Bar: links 64px Platz für Hamburger-Button (44px + 10px links + 10px Abstand) */
   .top-bar {
-    padding: 0 var(--space-3) 0 52px;
+    padding: 0 var(--space-4) 0 64px;
     height: 52px;
     gap: var(--space-2);
     flex-wrap: nowrap;
@@ -56,8 +56,11 @@
   /* Settings Grid: 1 Spalte */
   .settings-grid { grid-template-columns: 1fr; }
 
-  /* Date Row: stapeln (keine gequetschten Felder) */
-  .date-row { grid-template-columns: 1fr; gap: var(--space-2); }
+  /*
+    Date Row: IMMER einspaltig auf Mobile.
+    Gilt auch innerhalb von Cards (z.B. Projekt-Bearbeiten-Ansicht).
+  */
+  .date-row { grid-template-columns: 1fr !important; gap: var(--space-2); }
 
   /* Page Header: stapeln */
   .page-header {
