@@ -54,17 +54,21 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Das Ende darf nicht vor dem Start liegen." }, { status: 400 });
   }
 
-  // SUPERUSER can optionally assign the project to a specific teacher
+  // Ziel-Owner ermitteln und verifizieren
   let ownerId: string;
   if (session.user.role === "SUPERUSER" && assignedOwnerId) {
-    // Verify the target user exists and is a TEACHER
     const teacher = await prisma.user.findFirst({ where: { id: assignedOwnerId, role: "TEACHER" } });
     if (!teacher) {
       return NextResponse.json({ error: "Gewählter Lehrer nicht gefunden." }, { status: 400 });
     }
     ownerId = assignedOwnerId;
   } else {
-    ownerId = session.user.id;
+    // Sicherstellen dass der eingeloggte User in der DB existiert
+    const self = await prisma.user.findUnique({ where: { id: session.user.id } });
+    if (!self) {
+      return NextResponse.json({ error: "Benutzer nicht gefunden." }, { status: 401 });
+    }
+    ownerId = self.id;
   }
 
   const code = await generateUniqueProjectCode();
@@ -74,7 +78,8 @@ export async function POST(req: Request) {
       name,
       description,
       studentCount: Number(studentCount),
-      ownerId,
+      // Relation über connect statt rohem ownerId-Feld → verhindert P2003
+      owner: { connect: { id: ownerId } },
       code,
       startDate: start,
       endDate: end,
