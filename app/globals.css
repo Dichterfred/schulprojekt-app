@@ -269,14 +269,6 @@ button.btn-sm {
   margin-bottom: var(--space-8);
 }
 
-/* ── New-Project Layout: Formular links (max 520px), rechts offen ── */
-.new-project-layout {
-  display: grid;
-  grid-template-columns: minmax(320px, 520px) 1fr;
-  gap: var(--space-8);
-  align-items: start;
-}
-
 /* ── Date Row (Start / Ende nebeneinander, stapelt auf Mobile) ── */
 .date-row {
   display: grid;
@@ -382,7 +374,7 @@ button.btn-sm {
   padding: var(--page-padding-y) var(--page-padding-x) var(--space-8);
 }
 
-/* ── New-Page Wrapper (Seiten mit Top-Bar aber ohne Sidebar-Content, z.B. /projects/new) ── */
+/* ── New-Page Wrapper (Seiten mit Top-Bar, z.B. /projects/new) ── */
 .new-page-wrapper {
   display: flex;
   flex-direction: column;
@@ -537,10 +529,6 @@ button.btn-sm {
   /* Settings grid → einspaltig */
   .settings-grid { grid-template-columns: 1fr; }
 
-  /* New-project layout → einspaltig, Card volle Breite */
-  .new-project-layout { grid-template-columns: 1fr; gap: var(--space-4); }
-  .new-project-layout > div:last-child { display: none; }
-
   /* Date row → einspaltig stapeln */
   .date-row { grid-template-columns: 1fr; gap: var(--space-2); }
 
@@ -575,7 +563,4 @@ button.btn-sm {
   .top-bar { padding: var(--space-3) var(--space-4); }
   .card-grid { grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr)); }
   .settings-grid { grid-template-columns: minmax(260px, 380px) 1fr; }
-  /* Tablet: neues Projekt einspaltig, volle Breite */
-  .new-project-layout { grid-template-columns: 1fr; }
-  .new-project-layout > div:last-child { display: none; }
 }
