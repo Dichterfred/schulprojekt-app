@@ -10,9 +10,12 @@
     overflow-y: auto;
   }
 
-  /* Top Bar: links 64px Platz für Hamburger-Button (44px + 10px links + 10px Abstand) */
+  /*
+    Top Bar: links 60px Platz für Hamburger-Button.
+    Button ist 44px breit, left: 8px -> 8 + 44 + 8 = 60px
+  */
   .top-bar {
-    padding: 0 var(--space-4) 0 64px;
+    padding: 0 var(--space-4) 0 60px;
     height: 52px;
     gap: var(--space-2);
     flex-wrap: nowrap;

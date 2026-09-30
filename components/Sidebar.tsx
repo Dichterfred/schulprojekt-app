@@ -267,11 +267,20 @@ export default function Sidebar({ username, isSuperuser }: { username: string; i
 
         .sb-desktop { display: flex; }
 
-        /* Hamburger: sitzt in der mobilen Top-Bar (kein fixed positioning mehr) */
+        /*
+          Hamburger: position fixed, vertikal zentriert innerhalb der .top-bar.
+          .top-bar hat auf Mobile height: 52px -> Mitte = 26px.
+          Button ist 44px hoch -> top = (52px - 44px) / 2 = 4px
+          Desktop: ausgeblendet.
+        */
         .sb-hamburger {
           display: none;
-          width: 40px;
-          height: 40px;
+          position: fixed;
+          top: 4px;
+          left: 8px;
+          z-index: 1200;
+          width: 44px;
+          height: 44px;
           border-radius: 10px;
           background: transparent;
           border: none;
@@ -281,11 +290,14 @@ export default function Sidebar({ username, isSuperuser }: { username: string; i
           cursor: pointer;
           padding: 0;
           line-height: 0;
-          flex-shrink: 0;
           transition: background 160ms;
         }
         .sb-hamburger:hover {
           background: rgba(255,255,255,0.08);
+        }
+        .sb-hamburger[data-open="true"] {
+          opacity: 0;
+          pointer-events: none;
         }
 
         .sb-overlay {
@@ -305,7 +317,14 @@ export default function Sidebar({ username, isSuperuser }: { username: string; i
           overflow: hidden;
         }
 
-        @media (max-width: 1023px) {
+        @media (max-width: 767px) {
+          .sb-desktop { display: none !important; }
+          .sb-hamburger { display: flex; }
+          .sb-overlay { display: block; }
+        }
+
+        /* Tablet: gleiche Logik, top-bar bleibt gleich hoch */
+        @media (min-width: 768px) and (max-width: 1023px) {
           .sb-desktop { display: none !important; }
           .sb-hamburger { display: flex; }
           .sb-overlay { display: block; }
@@ -317,18 +336,17 @@ export default function Sidebar({ username, isSuperuser }: { username: string; i
         {panelContent(false)}
       </div>
 
-      {/* Mobile/Tablet: Hamburger button (rendered inside TopBar via prop) */}
+      {/* Mobile/Tablet: Hamburger — sitzt visuell in der Top-Bar */}
       <button
         className="sb-hamburger"
         data-open={drawerOpen ? "true" : "false"}
         aria-label="Menü öffnen"
         onClick={() => setDrawerOpen(true)}
-        id="sb-hamburger-btn"
       >
         <IconMenu />
       </button>
 
-      {/* Mobile: Overlay + Drawer */}
+      {/* Mobile/Tablet: Overlay + Drawer */}
       {drawerOpen && (
         <>
           <div className="sb-overlay" onClick={() => setDrawerOpen(false)} aria-hidden />

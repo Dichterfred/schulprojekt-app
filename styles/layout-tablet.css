@@ -1,55 +1,34 @@
 /*
   LAYOUT — TABLET  (768px – 1023px)
-  Sidebar ist sichtbar aber schmäler. Inhalte passen sich an.
+  Sidebar ist ebenfalls ein Drawer-Overlay.
+  Hamburger-Button sitzt in der Top-Bar (left: 8px, top: 4px).
 */
 @media (min-width: 768px) and (max-width: 1023px) {
 
-  body { overflow-x: hidden; }
-
-  /* Top Bar */
+  /*
+    Top Bar: links 60px Platz für Hamburger-Button.
+  */
   .top-bar {
-    padding: var(--space-3) var(--space-4);
-    gap: var(--space-2);
+    padding: 0 var(--space-5) 0 60px;
+    height: 52px;
+    gap: var(--space-3);
+    flex-wrap: nowrap;
   }
-  .top-bar h1 { font-size: var(--text-base); }
-  .top-bar-divider  { display: none; }
-  .top-bar-subtitle { display: none; }
-  .top-bar-stat     { display: none; }
-  .top-bar-sort .sort-label { display: none; }
-  .top-bar-sort select {
-    font-size: 0.78rem;
-    padding: 0.3rem 1.6rem 0.3rem 0.5rem;
-    max-width: 130px;
-  }
-  .top-bar-actions button,
-  .top-bar-actions a button {
-    font-size: var(--btn-font-size-sm);
-    padding: var(--btn-padding-y-sm) var(--btn-padding-x-sm);
+  .top-bar h1 {
+    font-size: 1.05rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 1;
+    min-width: 0;
   }
 
   /* Page Content */
   .page-content,
   .new-page-content {
-    padding: var(--space-6) var(--space-5) var(--space-10);
+    padding: var(--space-5) var(--space-5) var(--space-8);
   }
 
   /* Card Grid: 2 Spalten */
-  .card-grid {
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: var(--space-4);
-  }
-
-  /* Settings Grid: kompakter */
-  .settings-grid {
-    grid-template-columns: minmax(260px, 380px) 1fr;
-  }
-
-  /* Date Row: nebeneinander */
-  .date-row { grid-template-columns: 1fr 1fr; }
-
-  /* Page Header: horizontal */
-  .page-header {
-    flex-direction: row;
-    align-items: center;
-  }
+  .card-grid { grid-template-columns: repeat(2, 1fr); gap: var(--space-4); }
 }
