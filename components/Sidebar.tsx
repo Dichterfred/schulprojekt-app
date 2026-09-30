@@ -268,10 +268,13 @@ export default function Sidebar({ username, isSuperuser }: { username: string; i
         .sb-desktop { display: flex; }
 
         /*
-          Hamburger: position fixed, vertikal zentriert innerhalb der .top-bar.
-          .top-bar hat auf Mobile height: 52px -> Mitte = 26px.
-          Button ist 44px hoch -> top = (52px - 44px) / 2 = 4px
-          Desktop: ausgeblendet.
+          Hamburger: position fixed, vertikal zentriert in der .top-bar (52px hoch).
+          Position unveraendert. Nur Styling angepasst nach Apple HIG:
+          - Hintergrund: primary-highlight (#cedcd8) — sichtbar auf hellem top-bar
+          - Icon-Farbe: primary (#01696f)
+          - Border: 1px solid primary mit 25% Opacity
+          - Border-Radius: 12px (--radius-lg)
+          - Shadow: shadow-sm
         */
         .sb-hamburger {
           display: none;
@@ -281,19 +284,27 @@ export default function Sidebar({ username, isSuperuser }: { username: string; i
           z-index: 1200;
           width: 44px;
           height: 44px;
-          border-radius: 10px;
-          background: transparent;
-          border: none;
-          color: rgba(255,255,255,0.9);
+          border-radius: 12px;
+          background: var(--color-primary-highlight, #cedcd8);
+          border: 1px solid rgba(1, 105, 111, 0.25);
+          color: var(--color-primary, #01696f);
+          box-shadow: 0 1px 2px rgba(40, 37, 29, 0.06), 0 1px 3px rgba(40, 37, 29, 0.04);
           align-items: center;
           justify-content: center;
           cursor: pointer;
           padding: 0;
           line-height: 0;
-          transition: background 160ms;
+          transition: background var(--transition, 180ms cubic-bezier(0.16,1,0.3,1)),
+                      box-shadow var(--transition, 180ms cubic-bezier(0.16,1,0.3,1));
+          -webkit-tap-highlight-color: transparent;
         }
         .sb-hamburger:hover {
-          background: rgba(255,255,255,0.08);
+          background: #b8cecc;
+          box-shadow: 0 4px 12px rgba(40, 37, 29, 0.08), 0 1px 4px rgba(40, 37, 29, 0.04);
+        }
+        .sb-hamburger:active {
+          opacity: 0.88;
+          transform: scale(0.97);
         }
         .sb-hamburger[data-open="true"] {
           opacity: 0;
@@ -323,7 +334,6 @@ export default function Sidebar({ username, isSuperuser }: { username: string; i
           .sb-overlay { display: block; }
         }
 
-        /* Tablet: gleiche Logik, top-bar bleibt gleich hoch */
         @media (min-width: 768px) and (max-width: 1023px) {
           .sb-desktop { display: none !important; }
           .sb-hamburger { display: flex; }
