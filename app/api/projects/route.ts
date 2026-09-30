@@ -28,7 +28,7 @@ export async function POST(req: Request) {
   }
 
   const body = await req.json();
-  const { name, description, studentCount, schoolClassIds, startDate, endDate, enrollmentDeadline, bannerImage, assignedOwnerId } = body;
+  const { name, description, studentCount, schoolClassIds, startDate, endDate, enrollmentDeadline } = body;
 
   if (!name || !description || !studentCount || studentCount <= 0) {
     return NextResponse.json({ error: "Ungültige Eingabedaten." }, { status: 400 });
@@ -54,26 +54,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Das Ende darf nicht vor dem Start liegen." }, { status: 400 });
   }
 
-  // Owner-Logik:
-  // - SUPERUSER + assignedOwnerId → Projekt wird dem gewählten Lehrer zugeordnet
-  // - SUPERUSER ohne assignedOwnerId → kein Owner (null)
-  // - TEACHER → immer sich selbst, assignedOwnerId wird ignoriert
-  let ownerConnect: { connect: { id: string } } | undefined = undefined;
-
-  if (session.user.role === "SUPERUSER") {
-    if (assignedOwnerId) {
-      const teacher = await prisma.user.findFirst({ where: { id: assignedOwnerId, role: "TEACHER" } });
-      if (!teacher) {
-        return NextResponse.json({ error: "Gewählter Lehrer nicht gefunden." }, { status: 400 });
-      }
-      ownerConnect = { connect: { id: assignedOwnerId } };
-    }
-    // kein assignedOwnerId → ownerConnect bleibt undefined → ownerId wird null
-  } else {
-    // TEACHER: immer eigene ID
-    ownerConnect = { connect: { id: session.user.id } };
-  }
-
   const code = await generateUniqueProjectCode();
 
   const project = await prisma.project.create({
@@ -81,12 +61,11 @@ export async function POST(req: Request) {
       name,
       description,
       studentCount: Number(studentCount),
-      ...(ownerConnect ? { owner: ownerConnect } : {}),
+      ownerId: session.user.id,
       code,
       startDate: start,
       endDate: end,
       enrollmentDeadline: deadline,
-      bannerImage: bannerImage ?? null,
       schoolClasses: { connect: schoolClassIds.map((id: string) => ({ id })) },
     },
     include: { groups: true, schoolClasses: true },
