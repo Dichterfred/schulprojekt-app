@@ -89,6 +89,9 @@ export default function Sidebar({ username, isSuperuser }: { username: string; i
   const sec = "rgba(255,255,255,0.26)";
   const initial = username.charAt(0).toUpperCase();
 
+  // Logout: relative path so port is always correct (3000, 3111, prod)
+  const handleLogout = () => signOut({ callbackUrl: "/lehrer" });
+
   const circleBtn: React.CSSProperties = {
     width: 28, height: 28, borderRadius: "9999px",
     background: "rgba(255,255,255,0.06)",
@@ -154,7 +157,7 @@ export default function Sidebar({ username, isSuperuser }: { username: string; i
                 </div>
               </div>
             </div>
-            {/* On mobile show X close button, desktop show collapse */}
+            {/* Mobile: X-Button zum Schließen; Desktop: Collapse-Button */}
             {isMobile ? (
               <button aria-label="Menü schließen" onClick={() => setDrawerOpen(false)} style={{ ...circleBtn, marginLeft: 8, width: 36, height: 36 }}>
                 <IconX />
@@ -229,7 +232,7 @@ export default function Sidebar({ username, isSuperuser }: { username: string; i
       {/* Logout */}
       {(!isMobile && collapsed) ? (
         <Tooltip label="Abmelden">
-          <button aria-label="Abmelden" onClick={() => signOut({ callbackUrl: "/lehrer" })} style={{
+          <button aria-label="Abmelden" onClick={handleLogout} style={{
             width: 36, height: 36, borderRadius: "9999px",
             background: "rgba(161,44,123,0.12)", border: "1px solid rgba(161,44,123,0.22)",
             color: "#d163a7", display: "flex", alignItems: "center", justifyContent: "center",
@@ -239,14 +242,13 @@ export default function Sidebar({ username, isSuperuser }: { username: string; i
           </button>
         </Tooltip>
       ) : (
-        <button onClick={() => signOut({ callbackUrl: "/lehrer" })} style={{
+        <button onClick={handleLogout} style={{
           marginTop: 8, width: "100%", borderRadius: 8,
           background: "rgba(161,44,123,0.12)", color: "#d163a7",
           border: "1px solid rgba(161,44,123,0.22)",
           fontWeight: 600, fontSize: "14px", padding: "10px 12px",
           cursor: "pointer", display: "flex", alignItems: "center",
           justifyContent: "center", gap: 8, lineHeight: 1,
-          /* safe area bottom padding on mobile */
           paddingBottom: isMobile ? "calc(10px + env(safe-area-inset-bottom, 0px))" : "10px",
         }}>
           <IconPower />
@@ -273,7 +275,8 @@ export default function Sidebar({ username, isSuperuser }: { username: string; i
 
         /* Desktop sidebar */
         .sb-desktop { display: flex; }
-        /* Mobile hamburger */
+
+        /* Mobile hamburger — nur sichtbar wenn Drawer GESCHLOSSEN ist */
         .sb-hamburger {
           display: none;
           position: fixed;
@@ -287,7 +290,14 @@ export default function Sidebar({ username, isSuperuser }: { username: string; i
           align-items: center; justify-content: center;
           cursor: pointer; padding: 0; line-height: 0;
           box-shadow: 0 2px 16px rgba(0,0,0,0.35);
+          transition: opacity 160ms;
         }
+        /* Hamburger verstecken wenn Drawer offen */
+        .sb-hamburger[data-open="true"] {
+          opacity: 0;
+          pointer-events: none;
+        }
+
         /* Mobile drawer */
         .sb-overlay {
           display: none;
@@ -318,12 +328,17 @@ export default function Sidebar({ username, isSuperuser }: { username: string; i
         {panelContent(false)}
       </div>
 
-      {/* ── Mobile: hamburger ── */}
-      <button className="sb-hamburger" aria-label="Menü öffnen" onClick={() => setDrawerOpen(v => !v)}>
-        {drawerOpen ? <IconX /> : <IconMenu />}
+      {/* ── Mobile: Hamburger — wird per data-open ausgeblendet wenn Drawer offen ── */}
+      <button
+        className="sb-hamburger"
+        data-open={drawerOpen ? "true" : "false"}
+        aria-label="Menü öffnen"
+        onClick={() => setDrawerOpen(true)}
+      >
+        <IconMenu />
       </button>
 
-      {/* ── Mobile: overlay + drawer ── */}
+      {/* ── Mobile: Overlay + Drawer ── */}
       {drawerOpen && (
         <>
           <div className="sb-overlay" onClick={() => setDrawerOpen(false)} aria-hidden />
