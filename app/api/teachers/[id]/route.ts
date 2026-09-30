@@ -25,6 +25,6 @@ export async function PATCH(req: Request, props: { params: Promise<{ id: string 
     return NextResponse.json({ error: "Passwort muss mindestens 4 Zeichen haben." }, { status: 400 });
   }
   const hashed = await bcrypt.hash(password, 10);
-  await prisma.user.update({ where: { id: params.id }, data: { password: hashed } });
+  await prisma.user.update({ where: { id: params.id }, data: { passwordHash: hashed } });
   return NextResponse.json({ success: true });
 }
