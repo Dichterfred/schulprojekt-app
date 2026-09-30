@@ -100,7 +100,7 @@ function GroupsContent() {
 
         {/* Action */}
         <div className="top-bar-actions">
-          <Link href={`/groups/new${selectedProjectId ? `?projectId=${selectedProjectId}` : ""`}>
+          <Link href={`/groups/new${selectedProjectId ? `?projectId=${selectedProjectId}` : ""}`}>
             <button style={{ borderRadius: 8 }}>+ Neu</button>
           </Link>
         </div>
