@@ -89,7 +89,6 @@ export default function Sidebar({ username, isSuperuser }: { username: string; i
   const sec = "rgba(255,255,255,0.26)";
   const initial = username.charAt(0).toUpperCase();
 
-  // Logout: relative path so port is always correct (3000, 3111, prod)
   const handleLogout = () => signOut({ callbackUrl: "/lehrer" });
 
   const circleBtn: React.CSSProperties = {
@@ -102,7 +101,6 @@ export default function Sidebar({ username, isSuperuser }: { username: string; i
     transition: "background 160ms",
   };
 
-  // ── Shared panel content ────────────────────────────────────────────────────
   const panelContent = (isMobile: boolean) => (
     <aside style={{
       width: isMobile ? "100%" : collapsed ? 64 : 248,
@@ -116,7 +114,7 @@ export default function Sidebar({ username, isSuperuser }: { username: string; i
       transition: isMobile ? "none" : "width 260ms cubic-bezier(0.4,0,0.2,1)",
     }}>
 
-      {/* ── Header row ── */}
+      {/* Header row */}
       <div style={{
         display: "flex", alignItems: "center",
         justifyContent: (!isMobile && collapsed) ? "center" : "space-between",
@@ -157,7 +155,6 @@ export default function Sidebar({ username, isSuperuser }: { username: string; i
                 </div>
               </div>
             </div>
-            {/* Mobile: X-Button zum Schließen; Desktop: Collapse-Button */}
             {isMobile ? (
               <button aria-label="Menü schließen" onClick={() => setDrawerOpen(false)} style={{ ...circleBtn, marginLeft: 8, width: 36, height: 36 }}>
                 <IconX />
@@ -182,14 +179,12 @@ export default function Sidebar({ username, isSuperuser }: { username: string; i
         </div>
       )}
 
-      {/* Section label */}
       {(isMobile || !collapsed) && (
         <div style={{ fontSize: "11px", fontWeight: 700, color: sec, textTransform: "uppercase", letterSpacing: "0.09em", padding: "0 12px", marginBottom: 4 }}>
           Navigation
         </div>
       )}
 
-      {/* Nav items */}
       <NavItem href="/projects" label="Projekte"      icon={<IconFolder />}   active={!!pathname?.startsWith("/projects")} collapsed={!isMobile && collapsed} onClick={() => setDrawerOpen(false)} />
       <NavItem href="/groups"   label="Gruppen"       icon={<IconPeople />}   active={!!pathname?.startsWith("/groups")}   collapsed={!isMobile && collapsed} onClick={() => setDrawerOpen(false)} />
       {isSuperuser && (
@@ -198,7 +193,6 @@ export default function Sidebar({ username, isSuperuser }: { username: string; i
 
       <div style={{ height: 1, background: bc, margin: "12px 8px" }} />
 
-      {/* Project list */}
       {(isMobile || !collapsed) && (
         <div style={{ flex: 1, overflowY: "auto" }}>
           <div style={{ fontSize: "11px", fontWeight: 700, color: sec, textTransform: "uppercase", letterSpacing: "0.09em", padding: "0 12px", marginBottom: 8 }}>
@@ -229,7 +223,6 @@ export default function Sidebar({ username, isSuperuser }: { username: string; i
 
       {!isMobile && collapsed && <div style={{ flex: 1 }} />}
 
-      {/* Logout */}
       {(!isMobile && collapsed) ? (
         <Tooltip label="Abmelden">
           <button aria-label="Abmelden" onClick={handleLogout} style={{
@@ -261,7 +254,6 @@ export default function Sidebar({ username, isSuperuser }: { username: string; i
   return (
     <>
       <style>{`
-        /* Tooltip */
         .sb-tip-wrap { position: relative; display: flex; width: 100%; justify-content: center; }
         .sb-tip {
           display: none; position: absolute;
@@ -273,32 +265,34 @@ export default function Sidebar({ username, isSuperuser }: { username: string; i
         }
         .sb-tip-wrap:hover .sb-tip { display: block; }
 
-        /* Desktop sidebar */
         .sb-desktop { display: flex; }
 
-        /* Mobile hamburger — nur sichtbar wenn Drawer GESCHLOSSEN ist */
+        /* Hamburger: genügend Abstand vom Rand und vom Top-Bar-Inhalt */
         .sb-hamburger {
           display: none;
           position: fixed;
-          top: 10px; left: 10px;
+          top: 14px;
+          left: 12px;
           z-index: 1200;
-          width: 42px; height: 42px;
-          border-radius: 10px;
+          width: 44px;
+          height: 44px;
+          border-radius: 12px;
           background: #1c1b19;
           border: 1px solid rgba(255,255,255,0.12);
           color: rgba(255,255,255,0.9);
-          align-items: center; justify-content: center;
-          cursor: pointer; padding: 0; line-height: 0;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          padding: 0;
+          line-height: 0;
           box-shadow: 0 2px 16px rgba(0,0,0,0.35);
           transition: opacity 160ms;
         }
-        /* Hamburger verstecken wenn Drawer offen */
         .sb-hamburger[data-open="true"] {
           opacity: 0;
           pointer-events: none;
         }
 
-        /* Mobile drawer */
         .sb-overlay {
           display: none;
           position: fixed; inset: 0;
@@ -323,12 +317,12 @@ export default function Sidebar({ username, isSuperuser }: { username: string; i
         }
       `}</style>
 
-      {/* ── Desktop sidebar ── */}
+      {/* Desktop sidebar */}
       <div className="sb-desktop">
         {panelContent(false)}
       </div>
 
-      {/* ── Mobile: Hamburger — wird per data-open ausgeblendet wenn Drawer offen ── */}
+      {/* Mobile: Hamburger */}
       <button
         className="sb-hamburger"
         data-open={drawerOpen ? "true" : "false"}
@@ -338,7 +332,7 @@ export default function Sidebar({ username, isSuperuser }: { username: string; i
         <IconMenu />
       </button>
 
-      {/* ── Mobile: Overlay + Drawer ── */}
+      {/* Mobile: Overlay + Drawer */}
       {drawerOpen && (
         <>
           <div className="sb-overlay" onClick={() => setDrawerOpen(false)} aria-hidden />

@@ -1,0 +1,83 @@
+/*
+  LAYOUT — MOBILE  (≤ 767px)
+  Sidebar ist ein Drawer-Overlay — Main nimmt volle Breite.
+  Kein horizontales Scrollen. Alles stapelt sich vertikal.
+*/
+@media (max-width: 767px) {
+
+  body {
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  /* Top Bar: links 64px Platz für Hamburger-Button (44px + 10px links + 10px Abstand) */
+  .top-bar {
+    padding: 0 var(--space-4) 0 64px;
+    height: 52px;
+    gap: var(--space-2);
+    flex-wrap: nowrap;
+  }
+  .top-bar h1 {
+    font-size: 0.95rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 1;
+    min-width: 0;
+  }
+  .top-bar-divider  { display: none; }
+  .top-bar-subtitle { display: none; }
+  .top-bar-stat     { display: none; }
+  .top-bar-sort .sort-label { display: none; }
+  .top-bar-sort select {
+    font-size: 0.78rem;
+    padding: 0.3rem 1.6rem 0.3rem 0.5rem;
+    max-width: 110px;
+  }
+  .top-bar-actions button,
+  .top-bar-actions a button {
+    font-size: var(--btn-font-size-sm);
+    padding: var(--btn-padding-y-sm) var(--btn-padding-x-sm);
+  }
+
+  /* Page Content: mobiles Padding */
+  .page-content,
+  .new-page-content {
+    padding: var(--space-4) var(--space-4) var(--space-8);
+  }
+
+  /* Card: kompakteres Padding */
+  .card           { padding: var(--card-padding-sm); }
+  .content-card-body { padding: var(--card-padding-sm); }
+
+  /* Card Grid: 1 Spalte */
+  .card-grid { grid-template-columns: 1fr; gap: var(--space-3); }
+
+  /* Settings Grid: 1 Spalte */
+  .settings-grid { grid-template-columns: 1fr; }
+
+  /*
+    Date Row: IMMER einspaltig auf Mobile.
+    Gilt auch innerhalb von Cards (z.B. Projekt-Bearbeiten-Ansicht).
+  */
+  .date-row { grid-template-columns: 1fr !important; gap: var(--space-2); }
+
+  /* Page Header: stapeln */
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+
+  /* Sort Bar: umbrechen erlaubt */
+  .sort-bar { flex-wrap: wrap; }
+
+  /* Btn Group: umbrechen erlaubt */
+  .btn-group { flex-wrap: wrap; }
+
+  /* Empty State: weniger Padding */
+  .empty-state { padding: var(--space-10) var(--space-4); }
+
+  /* iOS Safari: verhindert Zoom bei Input-Fokus */
+  input, textarea, select { font-size: 16px !important; }
+}

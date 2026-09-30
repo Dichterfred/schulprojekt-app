@@ -1,0 +1,62 @@
+/*
+  LAYOUT — DESKTOP  (≥ 1024px)
+  Sidebar ist sichtbar (~260px).
+  Hauptinhalt hat volle Breite minus Sidebar.
+*/
+@media (min-width: 1024px) {
+
+  body { overflow-x: hidden; }
+
+  /* Top Bar */
+  .top-bar {
+    padding: var(--space-3) var(--space-7);
+    gap: var(--space-3);
+  }
+  .top-bar h1 {
+    font-size: var(--text-lg);
+    flex-shrink: 0;
+  }
+  .top-bar-divider   { display: flex; }
+  .top-bar-subtitle  { display: block; }
+  .top-bar-stat      { display: block; }
+  .top-bar-sort .sort-label { display: inline; }
+  .top-bar-sort select { font-size: var(--text-xs); }
+
+  /* Page Content */
+  .page-content,
+  .new-page-content {
+    padding: var(--space-8) var(--space-8) var(--space-12);
+  }
+
+  /*
+    Card Grid: min 320px damit Projekt-Cards genügend Platz
+    für code-badge + Buttons haben
+  */
+  .card-grid {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: var(--space-5);
+  }
+
+  /* Settings Grid */
+  .settings-grid {
+    grid-template-columns: minmax(280px, 420px) 1fr;
+  }
+
+  /* Date Row: nebeneinander */
+  .date-row { grid-template-columns: 1fr 1fr; }
+
+  /* Page Header */
+  .page-header {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  /*
+    Projekt-Card Footer: Buttons IMMER nebeneinander (nie umbrechen).
+    Gilt für den untersten Flex-Container in .content-card-body.
+  */
+  .content-card-body .btn-group {
+    flex-wrap: nowrap;
+    gap: var(--space-2);
+  }
+}
