@@ -42,25 +42,30 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
 
   return (
     <html lang="de">
+      {/* viewport meta for proper mobile scaling */}
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+      </head>
       <body style={{ overflow: "hidden" }}>
         <Providers>
           {showSidebar ? (
-            <div style={{ display: "flex", height: "100vh", overflow: "hidden" }}>
-              {/* Sidebar — never scrolls */}
+            <div style={{ display: "flex", height: "100dvh", overflow: "hidden" }}>
+              {/* Sidebar renders its own mobile toggle + drawer */}
               <Sidebar username={session!.user.name || ""} isSuperuser={session!.user.role === "SUPERUSER"} />
-              {/* Main — only this scrolls */}
+              {/* Main content — scrolls independently */}
               <main style={{
                 flex: 1,
                 overflowY: "auto",
                 minWidth: 0,
                 display: "flex",
                 flexDirection: "column",
+                /* On mobile, sidebar is a drawer overlay — main takes full width */
               }}>
                 {children}
               </main>
             </div>
           ) : (
-            <main>{children}</main>
+            <main style={{ minHeight: "100dvh" }}>{children}</main>
           )}
           <LegalFooter />
         </Providers>
