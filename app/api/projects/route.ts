@@ -54,21 +54,24 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Das Ende darf nicht vor dem Start liegen." }, { status: 400 });
   }
 
-  // Ziel-Owner ermitteln und verifizieren
-  let ownerId: string;
-  if (session.user.role === "SUPERUSER" && assignedOwnerId) {
-    const teacher = await prisma.user.findFirst({ where: { id: assignedOwnerId, role: "TEACHER" } });
-    if (!teacher) {
-      return NextResponse.json({ error: "Gewählter Lehrer nicht gefunden." }, { status: 400 });
+  // Owner-Logik:
+  // - SUPERUSER + assignedOwnerId → Projekt wird dem gewählten Lehrer zugeordnet
+  // - SUPERUSER ohne assignedOwnerId → kein Owner (null)
+  // - TEACHER → immer sich selbst, assignedOwnerId wird ignoriert
+  let ownerConnect: { connect: { id: string } } | undefined = undefined;
+
+  if (session.user.role === "SUPERUSER") {
+    if (assignedOwnerId) {
+      const teacher = await prisma.user.findFirst({ where: { id: assignedOwnerId, role: "TEACHER" } });
+      if (!teacher) {
+        return NextResponse.json({ error: "Gewählter Lehrer nicht gefunden." }, { status: 400 });
+      }
+      ownerConnect = { connect: { id: assignedOwnerId } };
     }
-    ownerId = assignedOwnerId;
+    // kein assignedOwnerId → ownerConnect bleibt undefined → ownerId wird null
   } else {
-    // Sicherstellen dass der eingeloggte User in der DB existiert
-    const self = await prisma.user.findUnique({ where: { id: session.user.id } });
-    if (!self) {
-      return NextResponse.json({ error: "Benutzer nicht gefunden." }, { status: 401 });
-    }
-    ownerId = self.id;
+    // TEACHER: immer eigene ID
+    ownerConnect = { connect: { id: session.user.id } };
   }
 
   const code = await generateUniqueProjectCode();
@@ -78,8 +81,7 @@ export async function POST(req: Request) {
       name,
       description,
       studentCount: Number(studentCount),
-      // Relation über connect statt rohem ownerId-Feld → verhindert P2003
-      owner: { connect: { id: ownerId } },
+      ...(ownerConnect ? { owner: ownerConnect } : {}),
       code,
       startDate: start,
       endDate: end,
