@@ -298,7 +298,6 @@ button.success:hover { background: var(--color-success-hover); }
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  /* Desktop: generous padding */
   padding: var(--space-3) var(--space-6);
   background: oklch(from var(--color-surface) l c h / 0.92);
   backdrop-filter: blur(20px);
@@ -335,6 +334,16 @@ button.success:hover { background: var(--color-success-hover); }
   gap: var(--space-2);
   flex-shrink: 0;
 }
+/* Sekundaere Info-Badge in der Top Bar (z.B. "5 / 30 Schüler") */
+.top-bar-stat {
+  font-size: var(--text-xs);
+  color: var(--color-text-faint);
+  background: var(--color-surface-offset);
+  border-radius: var(--radius-sm);
+  padding: 0.2rem var(--space-2);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
 
 /* ── Empty State ── */
 .empty-state {
@@ -362,12 +371,10 @@ button.success:hover { background: var(--color-success-hover); }
    ═══════════════════════════════════════════════ */
 @media (max-width: 767px) {
 
-  /* Allow normal scroll on mobile */
   body { overflow-x: hidden; overflow-y: auto; }
 
-  /* ── Top bar: full-width, hamburger-aware ── */
+  /* ── Top bar ── */
   .top-bar {
-    /* left indent = hamburger (42px) + gap (10px) = 52px */
     padding: 0 var(--space-3) 0 52px;
     height: 52px;
     gap: var(--space-2);
@@ -382,18 +389,20 @@ button.success:hover { background: var(--color-success-hover); }
     min-width: 0;
     flex-shrink: 1;
   }
-  /* Hide divider on mobile to save space */
   .top-bar-divider { display: none; }
 
-  /* Sort: shrink label, use smaller select */
+  /* Stat-Badge in Top Bar ausblenden — spart Platz */
+  .top-bar-stat { display: none; }
+
+  /* Sort: Label ausblenden, Select verkleinern */
   .top-bar-sort .sort-label { display: none; }
   .top-bar-sort select {
     font-size: 0.78rem;
     padding: 0.3rem 1.6rem 0.3rem 0.5rem;
-    max-width: 110px;
+    max-width: 120px;
   }
 
-  /* Action button: compact */
+  /* Action button: kompakt */
   .top-bar-actions button,
   .top-bar-actions a button {
     font-size: 0.78rem;
@@ -401,25 +410,25 @@ button.success:hover { background: var(--color-success-hover); }
     white-space: nowrap;
   }
 
-  /* Card grid → single column */
+  /* Card grid → einspaltig */
   .card-grid { grid-template-columns: 1fr; }
 
   /* Content padding */
   .page-content { padding: 1rem !important; }
 
-  /* Card: tighter */
+  /* Card: etwas enger */
   .card { padding: var(--space-4); }
 
-  /* Page header stack */
+  /* Page header stapeln */
   .page-header { flex-direction: column; align-items: flex-start; gap: var(--space-3); }
 
-  /* Sort bar wrap */
+  /* Sort bar umbrechen */
   .sort-bar { flex-wrap: wrap; }
 
-  /* CRITICAL: prevent iOS from zooming on input focus */
+  /* iOS: kein Zoom bei Input-Fokus */
   input, textarea, select { font-size: 16px !important; }
 
-  /* Empty state: less padding */
+  /* Empty state: weniger Padding */
   .empty-state { padding: var(--space-10) var(--space-4); }
 }
 
