@@ -3,7 +3,6 @@
 import { useEffect, useState, FormEvent, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import BannerUpload from "@/components/BannerUpload";
 
 type Project = { id: string; name: string; studentCount: number };
 type Group = { id: string; maxStudents: number };
@@ -19,7 +18,6 @@ function NewGroupContent() {
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [bannerImage, setBannerImage] = useState<string | null>(null);
   const [maxStudents, setMaxStudents] = useState("");
   const [error, setError] = useState("");
 
@@ -38,8 +36,13 @@ function NewGroupContent() {
     if (res.ok) setExistingGroups(await res.json());
   }
 
-  useEffect(() => { loadProjects(); }, []);
-  useEffect(() => { if (selectedProjectId) loadExistingGroups(selectedProjectId); }, [selectedProjectId]);
+  useEffect(() => {
+    loadProjects();
+  }, []);
+
+  useEffect(() => {
+    if (selectedProjectId) loadExistingGroups(selectedProjectId);
+  }, [selectedProjectId]);
 
   const selectedProject = projects.find((p) => p.id === selectedProjectId);
   const used = existingGroups.reduce((sum, g) => sum + g.maxStudents, 0);
@@ -48,20 +51,24 @@ function NewGroupContent() {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError("");
+
     if (!selectedProjectId) {
       setError("Bitte ein Projekt auswählen.");
       return;
     }
+
     const res = await fetch("/api/groups", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, description, bannerImage, maxStudents: Number(maxStudents), projectId: selectedProjectId }),
+      body: JSON.stringify({ name, description, maxStudents: Number(maxStudents), projectId: selectedProjectId }),
     });
+
     if (!res.ok) {
       const data = await res.json();
       setError(data.error || "Fehler beim Anlegen der Gruppe.");
       return;
     }
+
     router.push(`/groups?projectId=${selectedProjectId}`);
     router.refresh();
   }
@@ -72,31 +79,29 @@ function NewGroupContent() {
         <h1 style={{ margin: 0 }}>Neue Gruppe erstellen</h1>
         <Link href="/groups"><button className="secondary">&larr; Zur Gruppenliste</button></Link>
       </div>
+
       <div className="card" style={{ maxWidth: 480 }}>
         <label>Projekt</label>
         <select value={selectedProjectId} onChange={(e) => setSelectedProjectId(e.target.value)} required>
           <option value="">-- Projekt wählen --</option>
           {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
         </select>
+
         {selectedProject && (
           <p style={{ fontSize: "0.85rem", color: "#555" }}>
             Noch verfügbare Plätze: {remaining} von {selectedProject.studentCount}
           </p>
         )}
+
         <form onSubmit={handleSubmit}>
-          <BannerUpload
-            folder="groups"
-            currentUrl={bannerImage}
-            onUploaded={(url) => setBannerImage(url)}
-            onRemove={() => setBannerImage(null)}
-          />
           <label>Gruppenname</label>
           <input value={name} onChange={(e) => setName(e.target.value)} required />
-          <label>Beschreibung (Links: [Text](https://...))</label>
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} required />
+          <label>Beschreibung</label>
+          <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} required />
           <label>Maximale Schüler Anzahl</label>
           <input
-            type="number" min={1}
+            type="number"
+            min={1}
             max={selectedProject && remaining > 0 ? remaining : undefined}
             value={maxStudents}
             onChange={(e) => setMaxStudents(e.target.value)}
