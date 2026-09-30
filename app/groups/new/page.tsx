@@ -80,7 +80,7 @@ function NewGroupContent() {
         <Link href="/groups"><button className="secondary">&larr; Zur Gruppenliste</button></Link>
       </div>
 
-      <div className="card" style={{ maxWidth: 480, margin: "0 auto" }}>
+      <div className="card" style={{ maxWidth: 480 }}>
         <label>Projekt</label>
         <select value={selectedProjectId} onChange={(e) => setSelectedProjectId(e.target.value)} required>
           <option value="">-- Projekt wählen --</option>
