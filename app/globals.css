@@ -268,6 +268,13 @@ button.btn-sm {
   margin-bottom: var(--space-8);
 }
 
+/* ── Date Row (Start / Ende nebeneinander, stapelt auf Mobile) ── */
+.date-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
 /* ── Edit Icon Button ── */
 .edit-icon-btn {
   position: absolute; top: var(--space-3); right: var(--space-3);
@@ -366,6 +373,20 @@ button.btn-sm {
   padding: var(--space-6) var(--space-7) var(--space-8);
 }
 
+/* ── New-Page Wrapper (Seiten ohne Top-Bar, z.B. /projects/new) ── */
+.new-page-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-x: hidden;
+}
+.new-page-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: var(--space-6) var(--space-7) var(--space-8);
+}
+
 /* ── Spinner ── */
 @keyframes spin { to { transform: rotate(360deg); } }
 .spinner {
@@ -393,6 +414,9 @@ button.btn-sm {
   top: 0;
   z-index: 10;
   min-height: 52px;
+  /* Verhindert, dass die Top Bar breiter als der Viewport wird */
+  max-width: 100%;
+  overflow: hidden;
 }
 .top-bar h1 {
   margin: 0;
@@ -505,8 +529,12 @@ button.btn-sm {
   /* Settings grid → einspaltig */
   .settings-grid { grid-template-columns: 1fr; }
 
+  /* Date row → einspaltig stapeln */
+  .date-row { grid-template-columns: 1fr; gap: var(--space-2); }
+
   /* Content padding */
   .page-content { padding: var(--page-padding-mobile) !important; }
+  .new-page-content { padding: var(--page-padding-mobile) !important; }
 
   /* Card: etwas enger */
   .card { padding: var(--card-padding-sm); }

@@ -157,9 +157,16 @@ export default function ProjectsPage() {
                           <label key={c.id}><input type="checkbox" checked={editClassIds.includes(c.id)} onChange={() => toggleEditClass(c.id)} />{c.name}</label>
                         ))}
                       </div>
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-2)" }}>
-                        <div><label>Start</label><input type="date" value={editStartDate} onChange={(e) => setEditStartDate(e.target.value)} required /></div>
-                        <div><label>Ende</label><input type="date" value={editEndDate} onChange={(e) => setEditEndDate(e.target.value)} required /></div>
+                      {/* Start / Ende: .date-row stapelt auf Mobile */}
+                      <div className="date-row">
+                        <div>
+                          <label>Start</label>
+                          <input type="date" value={editStartDate} onChange={(e) => setEditStartDate(e.target.value)} required />
+                        </div>
+                        <div>
+                          <label>Ende</label>
+                          <input type="date" value={editEndDate} onChange={(e) => setEditEndDate(e.target.value)} required />
+                        </div>
                       </div>
                       <label style={{ marginTop: "var(--space-3)" }}>Einschreibefrist</label>
                       <input type="datetime-local" value={editEnrollmentDeadline} onChange={(e) => setEditEnrollmentDeadline(e.target.value)} required style={{ marginBottom: "var(--space-3)" }} />
