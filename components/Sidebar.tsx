@@ -89,7 +89,10 @@ export default function Sidebar({ username, isSuperuser }: { username: string; i
   const sec = "rgba(255,255,255,0.26)";
   const initial = username.charAt(0).toUpperCase();
 
-  const handleLogout = () => signOut({ callbackUrl: "/lehrer" });
+  const handleLogout = async () => {
+    await signOut({ redirect: false });
+    window.location.href = "/lehrer";
+  };
 
   const circleBtn: React.CSSProperties = {
     width: 28, height: 28, borderRadius: "9999px",
