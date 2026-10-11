@@ -134,14 +134,14 @@ export default function StudentPage() {
           background: "var(--color-surface)",
           borderRadius: "var(--radius-xl)",
           padding: "var(--space-6)",
-          marginTop: "-var(--space-8)",
-          marginTop: "-2rem",
+          marginTop: "calc(-1 * var(--space-8))",
           boxShadow: "var(--shadow-lg)",
           marginBottom: "var(--space-4)",
           position: "relative", zIndex: 1,
           border: "1px solid oklch(from var(--color-text) l c h / 0.07)",
         }}>
-          <h1 style={{ marginBottom: "var(--space-2)", fontSize: "var(--text-xl)" }}>{project.name}</h1>
+
+        <h1 style={{ marginBottom: "var(--space-2)", fontSize: "var(--text-xl)" }}>{project.name}</h1>
           <div style={{ color: "var(--color-text-muted)", fontSize: "var(--text-sm)", lineHeight: 1.6, marginBottom: "var(--space-4)" }}>
             <DescriptionRenderer text={project.description} />
           </div>
