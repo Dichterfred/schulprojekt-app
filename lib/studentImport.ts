@@ -14,7 +14,11 @@ function cellString(cell: ExcelJS.Cell): string {
   if (v === null || v === undefined) return "";
   if (typeof v === "object" && !(v instanceof Date) && "result" in v) {
     const res = (v as { result?: unknown }).result;
-    return res === null || res === undefined ? "" : String(res).trim();
+    if (res === null || res === undefined) return "";
+    if (res instanceof Date) return String(cell.text ?? "").trim();
+    // Fehlerwerte ({ error: "#N/A" }) und andere Objekte nicht als Text übernehmen
+    if (typeof res === "object") return "";
+    return String(res).trim();
   }
   return String(cell.text ?? "").trim();
 }

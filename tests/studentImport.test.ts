@@ -52,6 +52,27 @@ describe("parseStudentWorkbook", () => {
     expect(r.rows).toEqual([{ row: 2, firstName: "Max", lastName: "Muster", className: "5" }]);
   });
 
+  it("übernimmt Formelfehler nicht als Text", async () => {
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet("S");
+    ws.addRow(["Vorname", "Nachname", "Klasse"]);
+    const row = ws.addRow([null, "Muster", "5a"]);
+    row.getCell(1).value = { formula: "NA()", result: { error: "#N/A" } } as ExcelJS.CellFormulaValue;
+    const buf = await wb.xlsx.writeBuffer();
+    const r = await parseStudentWorkbook(buf as ArrayBuffer);
+    expect(r.rows).toEqual([]);
+    expect(r.errors[0].row).toBe(2);
+    expect(r.errors[0].message).toContain("Vorname");
+  });
+
+  it("akzeptiert genau 2000 Datenzeilen", async () => {
+    const rows: unknown[][] = [["Vorname", "Nachname", "Klasse"]];
+    for (let i = 0; i < MAX_IMPORT_ROWS; i++) rows.push(["A" + i, "B", "5a"]);
+    const r = await parseStudentWorkbook(await build(rows));
+    expect(r.errors).toEqual([]);
+    expect(r.rows.length).toBe(2000);
+  });
+
   it("meldet fehlende Namen und Punkte mit Zeilennummer", async () => {
     const data = await build([
       ["Vorname", "Nachname", "Klasse"],
