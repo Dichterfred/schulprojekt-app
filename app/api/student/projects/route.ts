@@ -6,20 +6,17 @@ import { requireStudent } from "@/lib/studentSession";
 import { imageUrl } from "@/lib/validation";
 
 export const GET = handle(async () => {
-  const { studentId, schoolClassId, projectDay } = await requireStudent();
+  // Projekttag-Daten kommen bereits aus requireStudent (gelöschter Tag → 401 statt 500).
+  const { studentId, schoolClassId, projectDay: day } = await requireStudent();
 
-  const [day, projects, preferences] = await Promise.all([
-    prisma.projectDay.findUniqueOrThrow({
-      where: { id: projectDay.id },
-      select: { id: true, name: true, description: true, imageId: true, enrollmentDeadline: true },
-    }),
+  const [projects, preferences] = await Promise.all([
     prisma.project.findMany({
-      where: studentVisibleProjectsWhere(projectDay.id, schoolClassId),
+      where: studentVisibleProjectsWhere(day.id, schoolClassId),
       select: { id: true, name: true, description: true, imageId: true, maxStudents: true },
       orderBy: { createdAt: "asc" },
     }),
     prisma.preference.findMany({
-      where: { studentId, projectDayId: projectDay.id },
+      where: { studentId, projectDayId: day.id },
       select: { projectId: true, rank: true },
     }),
   ]);

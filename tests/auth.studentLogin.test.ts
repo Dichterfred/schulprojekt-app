@@ -8,6 +8,7 @@ const prismaMock = vi.hoisted(() => ({
 vi.mock("@/lib/prisma", () => ({ prisma: prismaMock }));
 
 import { authOptions } from "@/lib/auth";
+import { loginLimiter } from "@/lib/rateLimit";
 
 type Authorize = (
   credentials: Record<string, string> | undefined,
@@ -104,5 +105,13 @@ describe("student-login authorize", () => {
       req(),
     );
     expect(user).toBeNull();
+  });
+
+  it("zählt Fehlversuche unter dem normalisierten Rate-Limit-Schlüssel", async () => {
+    const failSpy = vi.spyOn(loginLimiter, "fail");
+    const r = req();
+    await studentAuthorize()({ code: " projekttag-2026 ", username: "  Max.Mueller ", password: "falsch" }, r);
+    expect(failSpy).toHaveBeenCalledWith(`student:${r.headers["x-forwarded-for"]}:PROJEKTTAG-2026:max.mueller`);
+    failSpy.mockRestore();
   });
 });

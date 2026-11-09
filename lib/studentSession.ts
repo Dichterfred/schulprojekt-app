@@ -5,7 +5,13 @@ import { isStudentSessionValid } from "@/lib/access";
 export type StudentContext = {
   studentId: string;
   schoolClassId: string;
-  projectDay: { id: string; enrollmentDeadline: Date };
+  projectDay: {
+    id: string;
+    name: string;
+    description: string;
+    imageId: string | null;
+    enrollmentDeadline: Date;
+  };
 };
 
 const sessionExpired = () => new ApiError(401, "Sitzung abgelaufen. Bitte neu anmelden.");
@@ -23,7 +29,14 @@ export async function requireStudent(): Promise<StudentContext> {
     prisma.student.findUnique({ where: { id }, select: { sessionVersion: true, schoolClassId: true } }),
     prisma.projectDay.findUnique({
       where: { id: projectDayId },
-      select: { id: true, enrollmentDeadline: true, schoolClasses: { select: { id: true } } },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        imageId: true,
+        enrollmentDeadline: true,
+        schoolClasses: { select: { id: true } },
+      },
     }),
   ]);
   if (!student || !projectDay) throw sessionExpired();
@@ -31,9 +44,6 @@ export async function requireStudent(): Promise<StudentContext> {
   const dayClassIds = projectDay.schoolClasses.map((c) => c.id);
   if (!isStudentSessionValid(student, sessionVersion, dayClassIds)) throw sessionExpired();
 
-  return {
-    studentId: id,
-    schoolClassId: student.schoolClassId,
-    projectDay: { id: projectDay.id, enrollmentDeadline: projectDay.enrollmentDeadline },
-  };
+  const { schoolClasses: _classes, ...day } = projectDay;
+  return { studentId: id, schoolClassId: student.schoolClassId, projectDay: day };
 }
