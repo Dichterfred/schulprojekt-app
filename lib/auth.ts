@@ -2,6 +2,15 @@ import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { loginLimiter } from "@/lib/rateLimit";
+import { verifyPin } from "@/lib/pin";
+import { parseStudentLogin } from "@/lib/validation";
+
+function clientIp(req: { headers?: Record<string, string | string[] | undefined> } | undefined): string {
+  const forwarded = req?.headers?.["x-forwarded-for"];
+  const value = Array.isArray(forwarded) ? forwarded[0] : forwarded;
+  return value?.split(",")[0]?.trim() || "unknown";
+}
 
 export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
@@ -13,15 +22,19 @@ export const authOptions: NextAuthOptions = {
         username: { label: "Benutzername", type: "text" },
         password: { label: "Passwort", type: "password" },
       },
-      // @ts-ignore
-      async authorize(credentials) {
+      async authorize(credentials, req) {
         if (!credentials?.username || !credentials?.password) return null;
+        const key = `teacher:${clientIp(req)}:${credentials.username.toLowerCase()}`;
+        if (!loginLimiter.isAllowed(key)) throw new Error("Zu viele Fehlversuche. Bitte später erneut versuchen.");
+
         const user = await prisma.user.findUnique({ where: { username: credentials.username } });
-        if (!user || !user.passwordHash) return null;
-        if (user.role === "STUDENT") return null;
-        const valid = await bcrypt.compare(credentials.password, user.passwordHash);
-        if (!valid) return null;
-        return { id: user.id, name: user.username || "", role: user.role };
+        const valid = user ? await bcrypt.compare(credentials.password, user.passwordHash) : false;
+        if (!user || !valid) {
+          loginLimiter.fail(key);
+          return null;
+        }
+        loginLimiter.reset(key);
+        return { id: user.id, name: user.username, role: user.role };
       },
     }),
     CredentialsProvider({
@@ -30,41 +43,61 @@ export const authOptions: NextAuthOptions = {
       credentials: {
         code: { label: "Projekt-Code", type: "text" },
         fullname: { label: "Vorname.Nachname", type: "text" },
+        pin: { label: "PIN", type: "password" },
       },
-      async authorize(credentials) {
-        if (!credentials?.code || !credentials?.fullname) return null;
-        const project = await prisma.project.findUnique({
-          where: { code: credentials.code.trim().toUpperCase() },
-        });
-        if (!project) return null;
-        const parts = credentials.fullname.trim().toLowerCase().split(".");
-        if (parts.length !== 2) return null;
-        const [firstName, lastName] = parts;
-        const students = await prisma.user.findMany({
-          where: { role: "STUDENT", enrolledProjectId: project.id },
-        });
-        const match = students.find(
-          (s) =>
-            (s.firstName || "").trim().toLowerCase() === firstName &&
-            (s.lastName || "").trim().toLowerCase() === lastName
-        );
-        if (!match) return null;
-        return { id: match.id, name: `${match.firstName} ${match.lastName}`, role: "STUDENT" };
+      async authorize(credentials, req) {
+        if (!credentials?.code || !credentials?.fullname || !credentials?.pin) return null;
+        const code = credentials.code.trim().toUpperCase();
+        const key = `student:${clientIp(req)}:${code}:${credentials.fullname.trim().toLowerCase()}`;
+        if (!loginLimiter.isAllowed(key)) throw new Error("Zu viele Fehlversuche. Bitte später erneut versuchen.");
+
+        const parsed = parseStudentLogin(credentials.fullname);
+        const candidates = parsed
+          ? await prisma.enrollment.findMany({
+              where: {
+                project: { code },
+                student: {
+                  firstName: { equals: parsed.firstName, mode: "insensitive" },
+                  lastName: { equals: parsed.lastName, mode: "insensitive" },
+                },
+              },
+              include: { student: true },
+            })
+          : [];
+
+        for (const enrollment of candidates) {
+          if (await verifyPin(credentials.pin.trim(), enrollment.pinHash)) {
+            loginLimiter.reset(key);
+            return {
+              id: enrollment.studentId,
+              name: `${enrollment.student.firstName} ${enrollment.student.lastName}`,
+              role: "STUDENT" as const,
+              enrollmentId: enrollment.id,
+              projectId: enrollment.projectId,
+            };
+          }
+        }
+        loginLimiter.fail(key);
+        return null;
       },
     }),
   ],
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.id = (user as any).id;
-        token.role = (user as any).role;
+        token.id = user.id;
+        token.role = user.role;
+        token.enrollmentId = user.enrollmentId;
+        token.projectId = user.projectId;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
-        (session.user as any).id = token.id;
-        (session.user as any).role = token.role;
+        session.user.id = token.id;
+        session.user.role = token.role;
+        session.user.enrollmentId = token.enrollmentId;
+        session.user.projectId = token.projectId;
       }
       return session;
     },

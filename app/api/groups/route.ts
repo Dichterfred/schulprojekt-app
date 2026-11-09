@@ -1,64 +1,45 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { badRequest, handle, parseBody, requireRole } from "@/lib/api";
+import { groupCreateSchema } from "@/lib/validation";
+import { assertImageUsable, findAccessibleProject, groupSelect, serializeGroup } from "@/lib/projects";
 
-async function checkProjectAccess(projectId: string, userId: string, role: string) {
-  const project = await prisma.project.findUnique({ where: { id: projectId }, include: { groups: true } });
-  if (!project) return { project: null, allowed: false };
-  const allowed = role === "SUPERUSER" || project.ownerId === userId;
-  return { project, allowed };
-}
+export const GET = handle(async (req) => {
+  const session = await requireRole("SUPERUSER", "TEACHER");
+  const projectId = new URL(req.url).searchParams.get("projectId");
+  if (!projectId) throw badRequest("projectId erforderlich.");
 
-export async function GET(req: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session || session.user.role === "STUDENT") {
-    return NextResponse.json({ error: "Nicht autorisiert" }, { status: 401 });
-  }
+  const project = await findAccessibleProject(session, projectId);
+  const groups = await prisma.group.findMany({
+    where: { projectId: project.id },
+    select: groupSelect,
+    orderBy: { createdAt: "asc" },
+  });
+  return NextResponse.json(groups.map(serializeGroup));
+});
 
-  const { searchParams } = new URL(req.url);
-  const projectId = searchParams.get("projectId");
-  if (!projectId) return NextResponse.json({ error: "projectId erforderlich." }, { status: 400 });
+export const POST = handle(async (req) => {
+  const session = await requireRole("SUPERUSER", "TEACHER");
+  const data = await parseBody(req, groupCreateSchema);
+  const project = await findAccessibleProject(session, data.projectId);
 
-  const { project, allowed } = await checkProjectAccess(projectId, session.user.id, session.user.role);
-  if (!project || !allowed) {
-    return NextResponse.json({ error: "Nicht gefunden oder keine Berechtigung." }, { status: 404 });
-  }
-
-  return NextResponse.json(project.groups);
-}
-
-export async function POST(req: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session || session.user.role === "STUDENT") {
-    return NextResponse.json({ error: "Nicht autorisiert" }, { status: 401 });
-  }
-
-  const body = await req.json();
-  const { name, description, maxStudents, projectId, bannerImage } = body;
-
-  if (!name || !description || !maxStudents || maxStudents <= 0 || !projectId) {
-    return NextResponse.json({ error: "Ungültige Eingabedaten." }, { status: 400 });
-  }
-
-  const { project, allowed } = await checkProjectAccess(projectId, session.user.id, session.user.role);
-  if (!project || !allowed) {
-    return NextResponse.json({ error: "Nicht gefunden oder keine Berechtigung." }, { status: 404 });
-  }
-
-  const currentSum = project.groups.reduce((sum, g) => sum + g.maxStudents, 0);
-  const newSum = currentSum + Number(maxStudents);
-
-  if (newSum > project.studentCount) {
-    const remaining = project.studentCount - currentSum;
-    return NextResponse.json(
-      { error: `Die maximale Schüleranzahl würde überschritten. Noch verfügbare Plätze: ${remaining}.` },
-      { status: 400 }
+  const allocated = project.groups.reduce((sum, g) => sum + g.maxStudents, 0);
+  if (allocated + data.maxStudents > project.studentCount) {
+    throw badRequest(
+      `Die maximale Schüleranzahl würde überschritten. Noch verfügbare Plätze: ${project.studentCount - allocated}.`
     );
   }
+  if (data.bannerImage) await assertImageUsable(data.bannerImage, {});
 
   const group = await prisma.group.create({
-    data: { name, description, maxStudents: Number(maxStudents), projectId, bannerImage: bannerImage ?? null },
+    data: {
+      name: data.name,
+      description: data.description,
+      maxStudents: data.maxStudents,
+      projectId: project.id,
+      imageId: data.bannerImage ?? null,
+    },
+    select: groupSelect,
   });
-  return NextResponse.json(group, { status: 201 });
-}
+  return NextResponse.json(serializeGroup(group), { status: 201 });
+});

@@ -1,66 +1,60 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import type { Session } from "next-auth";
 import { prisma } from "@/lib/prisma";
+import { badRequest, handle, notFound, parseBody, requireRole, type IdParams } from "@/lib/api";
+import { groupSchema } from "@/lib/validation";
+import { assertImageUsable, groupSelect, projectAccessFilter, serializeGroup } from "@/lib/projects";
 
-async function loadGroupWithProject(groupId: string) {
-  return prisma.group.findUnique({ where: { id: groupId }, include: { project: { include: { groups: true } } } });
-}
-
-export async function PUT(req: Request, props: { params: Promise<{ id: string }> }) {
-  const params = await props.params;
-  const session = await getServerSession(authOptions);
-  if (!session || session.user.role === "STUDENT") {
-    return NextResponse.json({ error: "Nicht autorisiert" }, { status: 401 });
-  }
-
-  const group = await loadGroupWithProject(params.id);
-  if (!group) return NextResponse.json({ error: "Nicht gefunden." }, { status: 404 });
-
-  const allowed = session.user.role === "SUPERUSER" || group.project.ownerId === session.user.id;
-  if (!allowed) return NextResponse.json({ error: "Keine Berechtigung." }, { status: 403 });
-
-  const body = await req.json();
-  const { name, description, maxStudents, bannerImage } = body;
-
-  if (!name || !description || !maxStudents || maxStudents <= 0) {
-    return NextResponse.json({ error: "Ungültige Eingabedaten." }, { status: 400 });
-  }
-
-  const otherGroupsSum = group.project.groups.filter((g) => g.id !== group.id).reduce((sum, g) => sum + g.maxStudents, 0);
-  const newSum = otherGroupsSum + Number(maxStudents);
-
-  if (newSum > group.project.studentCount) {
-    const remaining = group.project.studentCount - otherGroupsSum;
-    return NextResponse.json({ error: `Die maximale Schüleranzahl würde überschritten. Noch verfügbare Plätze: ${remaining}.` }, { status: 400 });
-  }
-
-  const updated = await prisma.group.update({
-    where: { id: params.id },
-    data: {
-      name,
-      description,
-      maxStudents: Number(maxStudents),
-      bannerImage: bannerImage !== undefined ? bannerImage : undefined,
+async function findAccessibleGroup(session: Session, groupId: string) {
+  const group = await prisma.group.findFirst({
+    where: { id: groupId, project: projectAccessFilter(session) },
+    select: {
+      ...groupSelect,
+      project: { select: { studentCount: true, groups: { select: { id: true, maxStudents: true } } } },
     },
   });
-
-  return NextResponse.json(updated);
+  if (!group) throw notFound();
+  return group;
 }
 
-export async function DELETE(req: Request, props: { params: Promise<{ id: string }> }) {
-  const params = await props.params;
-  const session = await getServerSession(authOptions);
-  if (!session || session.user.role === "STUDENT") {
-    return NextResponse.json({ error: "Nicht autorisiert" }, { status: 401 });
+export const PUT = handle<IdParams>(async (req, { params }) => {
+  const session = await requireRole("SUPERUSER", "TEACHER");
+  const group = await findAccessibleGroup(session, (await params).id);
+  const data = await parseBody(req, groupSchema);
+
+  const otherGroups = group.project.groups.filter((g) => g.id !== group.id).reduce((sum, g) => sum + g.maxStudents, 0);
+  if (otherGroups + data.maxStudents > group.project.studentCount) {
+    throw badRequest(
+      `Die maximale Schüleranzahl würde überschritten. Noch verfügbare Plätze: ${group.project.studentCount - otherGroups}.`
+    );
   }
 
-  const group = await loadGroupWithProject(params.id);
-  if (!group) return NextResponse.json({ error: "Nicht gefunden." }, { status: 404 });
+  const imageChanged = data.bannerImage !== undefined && data.bannerImage !== group.imageId;
+  if (imageChanged && data.bannerImage) await assertImageUsable(data.bannerImage, { groupId: group.id });
 
-  const allowed = session.user.role === "SUPERUSER" || group.project.ownerId === session.user.id;
-  if (!allowed) return NextResponse.json({ error: "Keine Berechtigung." }, { status: 403 });
+  const updated = await prisma.$transaction(async (tx) => {
+    const result = await tx.group.update({
+      where: { id: group.id },
+      data: {
+        name: data.name,
+        description: data.description,
+        maxStudents: data.maxStudents,
+        ...(imageChanged ? { imageId: data.bannerImage } : {}),
+      },
+      select: groupSelect,
+    });
+    if (imageChanged && group.imageId) await tx.image.delete({ where: { id: group.imageId } });
+    return result;
+  });
+  return NextResponse.json(serializeGroup(updated));
+});
 
-  await prisma.group.delete({ where: { id: params.id } });
+export const DELETE = handle<IdParams>(async (_req, { params }) => {
+  const session = await requireRole("SUPERUSER", "TEACHER");
+  const group = await findAccessibleGroup(session, (await params).id);
+  await prisma.$transaction([
+    prisma.group.delete({ where: { id: group.id } }),
+    prisma.image.deleteMany({ where: { id: group.imageId ?? "" } }),
+  ]);
   return NextResponse.json({ success: true });
-}
+});

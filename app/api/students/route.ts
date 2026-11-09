@@ -1,59 +1,42 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { ApiError, handle, parseBody, requireRole } from "@/lib/api";
+import { studentCreateSchema } from "@/lib/validation";
 
-export async function GET() {
-  const session = await getServerSession(authOptions);
-  if (!session || session.user.role !== "SUPERUSER") {
-    return NextResponse.json({ error: "Nicht autorisiert" }, { status: 401 });
-  }
-  const students = await prisma.user.findMany({
-    where: { role: "STUDENT" },
-    select: {
-      id: true, firstName: true, lastName: true, createdAt: true,
-      enrolledProjectId: true,
-      enrolledProject: { select: { id: true, name: true, code: true } },
-    },
-    orderBy: { createdAt: "desc" },
+const studentSelect = {
+  id: true,
+  firstName: true,
+  lastName: true,
+  createdAt: true,
+  schoolClass: { select: { id: true, name: true } },
+  enrollments: {
+    select: { id: true, project: { select: { id: true, name: true, code: true } } },
+    orderBy: { createdAt: "asc" },
+  },
+} as const;
+
+export const GET = handle(async () => {
+  await requireRole("SUPERUSER");
+  const students = await prisma.student.findMany({
+    select: studentSelect,
+    orderBy: [{ schoolClass: { sortOrder: "asc" } }, { lastName: "asc" }, { firstName: "asc" }],
   });
   return NextResponse.json(students);
-}
+});
 
-export async function POST(req: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session || session.user.role !== "SUPERUSER") {
-    return NextResponse.json({ error: "Nicht autorisiert" }, { status: 401 });
-  }
+export const POST = handle(async (req) => {
+  await requireRole("SUPERUSER");
+  const data = await parseBody(req, studentCreateSchema);
 
-  const body = await req.json();
-  const { firstName, lastName, projectId } = body;
-
-  if (!firstName || !lastName || !projectId) {
-    return NextResponse.json({ error: "Vorname, Nachname und Projekt sind erforderlich." }, { status: 400 });
-  }
-
-  const project = await prisma.project.findUnique({ where: { id: projectId } });
-  if (!project) return NextResponse.json({ error: "Projekt nicht gefunden." }, { status: 404 });
-
-  const existing = await prisma.user.findFirst({
+  const duplicate = await prisma.student.findFirst({
     where: {
-      role: "STUDENT", enrolledProjectId: projectId,
-      firstName: { equals: firstName.trim() }, lastName: { equals: lastName.trim() },
+      schoolClassId: data.schoolClassId,
+      firstName: { equals: data.firstName, mode: "insensitive" },
+      lastName: { equals: data.lastName, mode: "insensitive" },
     },
   });
-  if (existing) {
-    return NextResponse.json({ error: "Ein Schüler mit diesem Namen ist bereits in diesem Projekt angemeldet." }, { status: 400 });
-  }
+  if (duplicate) throw new ApiError(409, "Ein Schüler mit diesem Namen existiert in dieser Klasse bereits.");
 
-  const student = await prisma.user.create({
-    data: { firstName: firstName.trim(), lastName: lastName.trim(), role: "STUDENT", enrolledProjectId: projectId },
-    select: {
-      id: true, firstName: true, lastName: true, createdAt: true,
-      enrolledProjectId: true,
-      enrolledProject: { select: { id: true, name: true, code: true } },
-    },
-  });
-
+  const student = await prisma.student.create({ data, select: studentSelect });
   return NextResponse.json(student, { status: 201 });
-}
+});

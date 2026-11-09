@@ -1,0 +1,17 @@
+# Lokale Test-Datenbank – NICHT für Produktion.
+# Start:  docker compose -f docker-compose.dev.yml up -d
+# Stopp:  docker compose -f docker-compose.dev.yml down   (Daten bleiben im Volume)
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: dev
+      POSTGRES_PASSWORD: dev
+      POSTGRES_DB: schulprojekt
+    ports:
+      - "5433:5432"
+    volumes:
+      - schulprojekt-dev-db:/var/lib/postgresql/data
+
+volumes:
+  schulprojekt-dev-db:

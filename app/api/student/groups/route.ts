@@ -1,55 +1,47 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { handle, notFound, requireRole } from "@/lib/api";
+import { imageUrl } from "@/lib/validation";
 
-export async function GET() {
-  const session = await getServerSession(authOptions);
-  if (!session || session.user.role !== "STUDENT") {
-    return NextResponse.json({ error: "Nicht autorisiert" }, { status: 401 });
-  }
-
-  const student = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    include: {
-      enrolledProject: {
-        include: {
-          groups: { orderBy: { createdAt: "asc" } },
+export const GET = handle(async () => {
+  const session = await requireRole("STUDENT");
+  const enrollment = await prisma.enrollment.findUnique({
+    where: { id: session.user.enrollmentId ?? "" },
+    select: {
+      preferences: { select: { groupId: true, rank: true } },
+      project: {
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          imageId: true,
+          enrollmentDeadline: true,
+          groups: {
+            select: { id: true, name: true, description: true, imageId: true, maxStudents: true },
+            orderBy: { createdAt: "asc" },
+          },
         },
       },
     },
   });
+  if (!enrollment) throw notFound("Kein Projekt zugewiesen.");
 
-  if (!student || !student.enrolledProject) {
-    return NextResponse.json({ error: "Kein Projekt zugewiesen." }, { status: 404 });
-  }
-
-  const priorities = await prisma.groupPriority.findMany({
-    where: { studentId: student.id, projectId: student.enrolledProject.id },
-  });
-
-  const priorityByGroupId: Record<string, number> = {};
-  for (const p of priorities) priorityByGroupId[p.groupId] = p.priority;
-
-  const now = new Date();
-  const deadlinePassed = now > student.enrolledProject.enrollmentDeadline;
+  const rankByGroup = new Map(enrollment.preferences.map((p) => [p.groupId, p.rank]));
+  const { project } = enrollment;
 
   return NextResponse.json({
     project: {
-      id: student.enrolledProject.id,
-      name: student.enrolledProject.name,
-      description: student.enrolledProject.description,
-      bannerImage: student.enrolledProject.bannerImage,
-      enrollmentDeadline: student.enrolledProject.enrollmentDeadline,
+      id: project.id,
+      name: project.name,
+      description: project.description,
+      bannerImage: imageUrl(project.imageId),
+      enrollmentDeadline: project.enrollmentDeadline,
     },
-    deadlinePassed,
-    groups: student.enrolledProject.groups.map((g) => ({
-      id: g.id,
-      name: g.name,
-      description: g.description,
-      bannerImage: g.bannerImage,
-      maxStudents: g.maxStudents,
-      priority: priorityByGroupId[g.id] ?? null,
+    deadlinePassed: new Date() > project.enrollmentDeadline,
+    groups: project.groups.map(({ imageId, ...g }) => ({
+      ...g,
+      bannerImage: imageUrl(imageId),
+      priority: rankByGroup.get(g.id) ?? null,
     })),
   });
-}
+});

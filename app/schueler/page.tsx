@@ -9,6 +9,7 @@ export default function SchuelerLoginPage() {
   const router = useRouter();
   const [code, setCode] = useState("");
   const [fullname, setFullname] = useState("");
+  const [pin, setPin] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -16,9 +17,9 @@ export default function SchuelerLoginPage() {
     e.preventDefault();
     setError("");
     setLoading(true);
-    const res = await signIn("student-login", { code, fullname, redirect: false });
+    const res = await signIn("student-login", { code, fullname, pin, redirect: false });
     setLoading(false);
-    if (res?.error) { setError("Code oder Vorname.Nachname ist falsch."); return; }
+    if (res?.error) { setError(res.error === "CredentialsSignin" ? "Code, Name oder PIN ist falsch." : res.error); return; }
     router.push("/student");
     router.refresh();
   }
@@ -71,7 +72,7 @@ export default function SchuelerLoginPage() {
               <input
                 value={code}
                 onChange={(e) => setCode(e.target.value.toUpperCase())}
-                placeholder="z. B. AB12CD"
+                placeholder="z. B. PROJEKTWOCHE-2026"
                 autoCapitalize="characters"
                 autoCorrect="off"
                 autoComplete="off"
@@ -79,7 +80,7 @@ export default function SchuelerLoginPage() {
                 required
               />
             </div>
-            <div style={{ marginBottom: "var(--space-6)" }}>
+            <div style={{ marginBottom: "var(--space-4)" }}>
               <label>Vorname.Nachname</label>
               <input
                 value={fullname}
@@ -87,6 +88,19 @@ export default function SchuelerLoginPage() {
                 placeholder="max.mustermann"
                 autoCapitalize="none"
                 autoCorrect="off"
+                autoComplete="off"
+                required
+              />
+            </div>
+            <div style={{ marginBottom: "var(--space-6)" }}>
+              <label>PIN</label>
+              <input
+                type="password"
+                inputMode="numeric"
+                maxLength={6}
+                value={pin}
+                onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
+                placeholder="6-stellige PIN"
                 autoComplete="off"
                 required
               />

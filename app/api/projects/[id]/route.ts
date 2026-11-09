@@ -1,106 +1,67 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { badRequest, handle, parseBody, requireRole, type IdParams } from "@/lib/api";
+import { projectSchema } from "@/lib/validation";
+import { assertImageUsable, findAccessibleProject, projectSelect, serializeProject } from "@/lib/projects";
 
-async function checkAccess(projectId: string, userId: string, role: string) {
-  const project = await prisma.project.findUnique({
-    where: { id: projectId },
-    include: { groups: true, schoolClasses: true },
-  });
-  if (!project) return { project: null, allowed: false };
-  const allowed = role === "SUPERUSER" || project.ownerId === userId;
-  return { project, allowed };
-}
+export const GET = handle<IdParams>(async (_req, { params }) => {
+  const session = await requireRole("SUPERUSER", "TEACHER");
+  const project = await findAccessibleProject(session, (await params).id);
+  return NextResponse.json(serializeProject(project));
+});
 
-export async function GET(req: Request, props: { params: Promise<{ id: string }> }) {
-  const params = await props.params;
-  const session = await getServerSession(authOptions);
-  if (!session || session.user.role === "STUDENT") {
-    return NextResponse.json({ error: "Nicht autorisiert" }, { status: 401 });
-  }
-  const { project, allowed } = await checkAccess(params.id, session.user.id, session.user.role);
-  if (!project || !allowed) {
-    return NextResponse.json({ error: "Nicht gefunden oder keine Berechtigung." }, { status: 404 });
-  }
-  return NextResponse.json(project);
-}
+export const PUT = handle<IdParams>(async (req, { params }) => {
+  const session = await requireRole("SUPERUSER", "TEACHER");
+  const project = await findAccessibleProject(session, (await params).id);
+  const data = await parseBody(req, projectSchema);
 
-export async function PUT(req: Request, props: { params: Promise<{ id: string }> }) {
-  const params = await props.params;
-  const session = await getServerSession(authOptions);
-  if (!session || session.user.role === "STUDENT") {
-    return NextResponse.json({ error: "Nicht autorisiert" }, { status: 401 });
-  }
-
-  const { project, allowed } = await checkAccess(params.id, session.user.id, session.user.role);
-  if (!project || !allowed) {
-    return NextResponse.json({ error: "Nicht gefunden oder keine Berechtigung." }, { status: 404 });
-  }
-
-  const body = await req.json();
-  const { name, description, studentCount, schoolClassIds, startDate, endDate, enrollmentDeadline, bannerImage } = body;
-
-  if (!name || !description || !studentCount || studentCount <= 0) {
-    return NextResponse.json({ error: "Ungültige Eingabedaten." }, { status: 400 });
-  }
-
-  if (!Array.isArray(schoolClassIds) || schoolClassIds.length === 0) {
-    return NextResponse.json({ error: "Es muss mindestens eine Schulklasse ausgewählt werden." }, { status: 400 });
-  }
-
-  if (!startDate || !endDate || !enrollmentDeadline) {
-    return NextResponse.json({ error: "Start, Ende und Einschreibefrist sind erforderlich." }, { status: 400 });
-  }
-
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-  const deadline = new Date(enrollmentDeadline);
-
-  if (isNaN(start.getTime()) || isNaN(end.getTime()) || isNaN(deadline.getTime())) {
-    return NextResponse.json({ error: "Ungültiges Datumsformat." }, { status: 400 });
-  }
-
-  if (end < start) {
-    return NextResponse.json({ error: "Das Ende darf nicht vor dem Start liegen." }, { status: 400 });
-  }
-
-  const currentlyAllocated = project.groups.reduce((sum, g) => sum + g.maxStudents, 0);
-  if (Number(studentCount) < currentlyAllocated) {
-    return NextResponse.json(
-      { error: `Die Schüler Anzahl darf nicht kleiner sein als die Summe der bereits vergebenen Gruppenplätze (${currentlyAllocated}).` },
-      { status: 400 }
+  const allocated = project.groups.reduce((sum, g) => sum + g.maxStudents, 0);
+  if (data.studentCount < allocated) {
+    throw badRequest(
+      `Die Schüleranzahl darf nicht kleiner sein als die Summe der bereits vergebenen Gruppenplätze (${allocated}).`
     );
   }
+  if (data.studentCount < project._count.enrollments) {
+    throw badRequest(`Es sind bereits ${project._count.enrollments} Schüler eingeschrieben.`);
+  }
 
-  const updated = await prisma.project.update({
-    where: { id: params.id },
-    data: {
-      name,
-      description,
-      studentCount: Number(studentCount),
-      startDate: start,
-      endDate: end,
-      enrollmentDeadline: deadline,
-      bannerImage: bannerImage !== undefined ? bannerImage : undefined,
-      schoolClasses: { set: schoolClassIds.map((id: string) => ({ id })) },
-    },
-    include: { groups: true, schoolClasses: true },
+  const imageChanged = data.bannerImage !== undefined && data.bannerImage !== project.imageId;
+  if (imageChanged && data.bannerImage) await assertImageUsable(data.bannerImage, { projectId: project.id });
+
+  const updated = await prisma.$transaction(async (tx) => {
+    const result = await tx.project.update({
+      where: { id: project.id },
+      data: {
+        name: data.name,
+        description: data.description,
+        studentCount: data.studentCount,
+        startDate: data.startDate,
+        endDate: data.endDate,
+        enrollmentDeadline: data.enrollmentDeadline,
+        ...(imageChanged ? { imageId: data.bannerImage } : {}),
+        schoolClasses: { set: data.schoolClassIds.map((id) => ({ id })) },
+      },
+      select: projectSelect,
+    });
+    if (imageChanged && project.imageId) await tx.image.delete({ where: { id: project.imageId } });
+    return result;
   });
 
-  return NextResponse.json(updated);
-}
+  return NextResponse.json(serializeProject(updated));
+});
 
-export async function DELETE(req: Request, props: { params: Promise<{ id: string }> }) {
-  const params = await props.params;
-  const session = await getServerSession(authOptions);
-  if (!session || session.user.role === "STUDENT") {
-    return NextResponse.json({ error: "Nicht autorisiert" }, { status: 401 });
-  }
-  const { project, allowed } = await checkAccess(params.id, session.user.id, session.user.role);
-  if (!project || !allowed) {
-    return NextResponse.json({ error: "Nicht gefunden oder keine Berechtigung." }, { status: 404 });
-  }
-  await prisma.project.delete({ where: { id: params.id } });
+export const DELETE = handle<IdParams>(async (_req, { params }) => {
+  const session = await requireRole("SUPERUSER", "TEACHER");
+  const project = await findAccessibleProject(session, (await params).id);
+
+  const groupImageIds = (
+    await prisma.group.findMany({ where: { projectId: project.id, imageId: { not: null } }, select: { imageId: true } })
+  ).map((g) => g.imageId!);
+  const imageIds = [...groupImageIds, ...(project.imageId ? [project.imageId] : [])];
+
+  await prisma.$transaction([
+    prisma.project.delete({ where: { id: project.id } }),
+    prisma.image.deleteMany({ where: { id: { in: imageIds } } }),
+  ]);
   return NextResponse.json({ success: true });
-}
+});

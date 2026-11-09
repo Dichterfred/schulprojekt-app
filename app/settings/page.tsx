@@ -3,11 +3,15 @@
 import { useEffect, useState, FormEvent } from "react";
 
 type Teacher = { id: string; username: string; createdAt: string };
-type Project = { id: string; name: string; code: string };
+type Project = { id: string; name: string; code: string; schoolClasses: { id: string }[] };
+type SchoolClass = { id: string; name: string };
 type Student = {
   id: string; firstName: string; lastName: string; createdAt: string;
-  enrolledProject: { id: string; name: string; code: string } | null;
+  schoolClass: { id: string; name: string };
+  enrollments: { id: string; project: { id: string; name: string; code: string } }[];
 };
+/** Frisch erzeugte Zugangsdaten – die PIN ist nur jetzt sichtbar, gespeichert wird nur ihr Hash. */
+type IssuedPin = { name: string; projectCode: string; pin: string };
 
 export default function SettingsPage() {
   const [teachers, setTeachers] = useState<Teacher[]>([]);
@@ -24,8 +28,12 @@ export default function SettingsPage() {
   const [students, setStudents] = useState<Student[]>([]);
   const [sFirstName, setSFirstName] = useState("");
   const [sLastName, setSLastName] = useState("");
+  const [sClassId, setSClassId] = useState("");
   const [sProjectId, setSProjectId] = useState("");
   const [sError, setSError] = useState("");
+  const [schoolClasses, setSchoolClasses] = useState<SchoolClass[]>([]);
+  const [issuedPins, setIssuedPins] = useState<IssuedPin[]>([]);
+  const [enrollSelect, setEnrollSelect] = useState<Record<string, string>>({});
 
   async function loadTeachers() {
     const res = await fetch("/api/teachers");
@@ -33,18 +41,18 @@ export default function SettingsPage() {
   }
   async function loadProjects() {
     const res = await fetch("/api/projects");
-    if (res.ok) {
-      const data = await res.json();
-      setProjects(data);
-      if (!sProjectId && data.length > 0) setSProjectId(data[0].id);
-    }
+    if (res.ok) setProjects(await res.json());
+  }
+  async function loadSchoolClasses() {
+    const res = await fetch("/api/school-classes");
+    if (res.ok) setSchoolClasses(await res.json());
   }
   async function loadStudents() {
     const res = await fetch("/api/students");
     if (res.ok) setStudents(await res.json());
   }
 
-  useEffect(() => { loadTeachers(); loadProjects(); loadStudents(); }, []);
+  useEffect(() => { loadTeachers(); loadProjects(); loadStudents(); loadSchoolClasses(); }, []);
 
   async function handleTeacherSubmit(e: FormEvent) {
     e.preventDefault();
@@ -82,25 +90,69 @@ export default function SettingsPage() {
     setTimeout(() => { closePwEdit(); }, 1200);
   }
 
+  async function enroll(student: { id: string; firstName: string; lastName: string }, projectId: string): Promise<string | null> {
+    const res = await fetch(`/api/projects/${projectId}/enrollments`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ studentId: student.id }),
+    });
+    const data = await res.json();
+    if (!res.ok) return data.error || "Fehler beim Einschreiben.";
+    setIssuedPins((prev) => [...prev, { name: `${student.firstName} ${student.lastName}`, projectCode: data.projectCode, pin: data.pin }]);
+    return null;
+  }
+
   async function handleStudentSubmit(e: FormEvent) {
     e.preventDefault();
     setSError("");
-    if (!sProjectId) { setSError("Bitte ein Projekt auswählen."); return; }
+    if (!sClassId) { setSError("Bitte eine Klasse auswählen."); return; }
     const res = await fetch("/api/students", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ firstName: sFirstName, lastName: sLastName, projectId: sProjectId }),
+      body: JSON.stringify({ firstName: sFirstName, lastName: sLastName, schoolClassId: sClassId }),
     });
-    if (!res.ok) { const data = await res.json(); setSError(data.error || "Fehler beim Anlegen des Schülers."); return; }
+    const data = await res.json();
+    if (!res.ok) { setSError(data.error || "Fehler beim Anlegen des Schülers."); return; }
+    if (sProjectId) {
+      const err = await enroll(data, sProjectId);
+      if (err) setSError(`Schüler angelegt, aber nicht eingeschrieben: ${err}`);
+    }
     setSFirstName(""); setSLastName("");
     loadStudents();
   }
 
-  async function handleStudentDelete(id: string) {
-    if (!confirm("Diesen Schüler wirklich löschen?")) return;
-    await fetch(`/api/students/${id}`, { method: "DELETE" });
+  async function handleEnroll(student: Student) {
+    const projectId = enrollSelect[student.id];
+    if (!projectId) return;
+    const err = await enroll(student, projectId);
+    if (err) { alert(err); return; }
+    setEnrollSelect((prev) => ({ ...prev, [student.id]: "" }));
     loadStudents();
   }
+
+  async function handleUnenroll(enrollmentId: string) {
+    if (!confirm("Schüler aus diesem Projekt austragen? Seine Prioritäten werden gelöscht.")) return;
+    const res = await fetch(`/api/enrollments/${enrollmentId}`, { method: "DELETE" });
+    if (!res.ok) { alert((await res.json()).error || "Fehler beim Austragen."); return; }
+    loadStudents();
+  }
+
+  async function handleNewPin(student: Student, enrollmentId: string) {
+    if (!confirm("Neue PIN erzeugen? Die bisherige PIN funktioniert danach nicht mehr.")) return;
+    const res = await fetch(`/api/enrollments/${enrollmentId}/pin`, { method: "POST" });
+    const data = await res.json();
+    if (!res.ok) { alert(data.error || "Fehler beim Erzeugen der PIN."); return; }
+    setIssuedPins((prev) => [...prev, { name: `${student.firstName} ${student.lastName}`, projectCode: data.projectCode, pin: data.pin }]);
+  }
+
+  async function handleStudentDelete(id: string) {
+    if (!confirm("Diesen Schüler wirklich löschen? Alle Einschreibungen werden entfernt.")) return;
+    const res = await fetch(`/api/students/${id}`, { method: "DELETE" });
+    if (!res.ok) { alert((await res.json()).error || "Fehler beim Löschen."); return; }
+    loadStudents();
+  }
+
+  const projectsForClass = (classId: string) => projects.filter((p) => p.schoolClasses.some((c) => c.id === classId));
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
@@ -212,14 +264,23 @@ export default function SettingsPage() {
               Neuen Schüler anlegen
             </div>
             <form onSubmit={handleStudentSubmit}>
-              <div style={{ marginBottom: "var(--space-3)" }}>
-                <label style={{ marginTop: 0 }}>Projekt</label>
-                <select value={sProjectId} onChange={(e) => setSProjectId(e.target.value)}>
-                  <option value="">-- Projekt wählen --</option>
-                  {projects.map((p) => (
-                    <option key={p.id} value={p.id}>{p.name} (Code: {p.code})</option>
-                  ))}
-                </select>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-3)", marginBottom: "var(--space-3)" }}>
+                <div>
+                  <label style={{ marginTop: 0 }}>Klasse</label>
+                  <select value={sClassId} onChange={(e) => { setSClassId(e.target.value); setSProjectId(""); }} required>
+                    <option value="">-- Klasse --</option>
+                    {schoolClasses.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ marginTop: 0 }}>Projekt (optional)</label>
+                  <select value={sProjectId} onChange={(e) => setSProjectId(e.target.value)} disabled={!sClassId}>
+                    <option value="">-- keins --</option>
+                    {projectsForClass(sClassId).map((p) => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-3)", marginBottom: "var(--space-4)" }}>
                 <div>
@@ -234,6 +295,28 @@ export default function SettingsPage() {
               {sError && <p className="error-text">{sError}</p>}
               <button type="submit">Schüler anlegen</button>
             </form>
+
+            {issuedPins.length > 0 && (
+              <div className="item-card-panel" style={{ marginTop: "var(--space-4)" }}>
+                <div style={{ fontSize: "var(--text-xs)", fontWeight: 700, color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: "var(--space-2)" }}>
+                  Neue Zugangsdaten – nur jetzt sichtbar
+                </div>
+                <table style={{ width: "100%", fontSize: "var(--text-sm)", borderCollapse: "collapse" }}>
+                  <thead>
+                    <tr style={{ textAlign: "left" }}><th>Name</th><th>Projekt-Code</th><th>PIN</th></tr>
+                  </thead>
+                  <tbody>
+                    {issuedPins.map((p, i) => (
+                      <tr key={i}><td>{p.name}</td><td><span className="code-badge">{p.projectCode}</span></td><td style={{ fontFamily: "monospace", fontWeight: 700 }}>{p.pin}</td></tr>
+                    ))}
+                  </tbody>
+                </table>
+                <div className="btn-group" style={{ marginTop: "var(--space-3)" }}>
+                  <button type="button" className="secondary btn-sm" onClick={() => window.print()}>Drucken</button>
+                  <button type="button" className="secondary btn-sm" onClick={() => setIssuedPins([])}>Ausblenden</button>
+                </div>
+              </div>
+            )}
           </div>
 
           <div>
@@ -248,15 +331,42 @@ export default function SettingsPage() {
                         <div style={{ fontWeight: 600, marginBottom: "var(--space-1)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                           {s.firstName} {s.lastName}
                         </div>
-                        <div style={{ fontSize: "var(--text-xs)", color: "var(--color-text-muted)", display: "flex", gap: "var(--space-2)", alignItems: "center" }}>
-                          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.enrolledProject?.name || "—"}</span>
-                          {s.enrolledProject && <span className="code-badge">{s.enrolledProject.code}</span>}
-                        </div>
-                        <div style={{ fontSize: "var(--text-xs)", color: "var(--color-text-faint)", marginTop: "var(--space-1)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                          {s.enrolledProject?.code} / {s.firstName?.toLowerCase()}.{s.lastName?.toLowerCase()}
+                        <div style={{ fontSize: "var(--text-xs)", color: "var(--color-text-muted)" }}>
+                          <span className="class-badge">{s.schoolClass.name}</span>{" "}
+                          Login: {s.firstName.toLowerCase()}.{s.lastName.toLowerCase()}
                         </div>
                       </div>
                       <button className="danger btn-sm" style={{ flexShrink: 0 }} onClick={() => handleStudentDelete(s.id)}>Löschen</button>
+                    </div>
+                    <div className="item-card-panel">
+                      {s.enrollments.length === 0 && (
+                        <div style={{ fontSize: "var(--text-xs)", color: "var(--color-text-faint)" }}>In keinem Projekt eingeschrieben.</div>
+                      )}
+                      {s.enrollments.map((e) => (
+                        <div key={e.id} style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "var(--space-2)", fontSize: "var(--text-xs)", marginBottom: "var(--space-2)" }}>
+                          <span style={{ flexBasis: "100%", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{e.project.name}</span>
+                          <span className="code-badge">{e.project.code}</span>
+                          <button className="secondary btn-sm" onClick={() => handleNewPin(s, e.id)}>Neue PIN</button>
+                          <button className="danger btn-sm" title="Austragen" onClick={() => handleUnenroll(e.id)}>✕</button>
+                        </div>
+                      ))}
+                      {(() => {
+                        const available = projectsForClass(s.schoolClass.id).filter((p) => !s.enrollments.some((e) => e.project.id === p.id));
+                        if (available.length === 0) return null;
+                        return (
+                          <div className="btn-group" style={{ marginTop: "var(--space-2)" }}>
+                            <select
+                              value={enrollSelect[s.id] ?? ""}
+                              onChange={(ev) => setEnrollSelect((prev) => ({ ...prev, [s.id]: ev.target.value }))}
+                              style={{ flex: 1, marginBottom: 0 }}
+                            >
+                              <option value="">-- Projekt --</option>
+                              {available.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+                            </select>
+                            <button className="btn-sm" disabled={!enrollSelect[s.id]} onClick={() => handleEnroll(s)}>Einschreiben</button>
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
                 ))}

@@ -1,39 +1,33 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { badRequest, handle, requireRole } from "@/lib/api";
+import { imageUrl } from "@/lib/validation";
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 const MAX_SIZE_MB = 5;
+const ORPHAN_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
 /**
- * Nimmt eine Bilddatei entgegen, prüft Typ & Größe und gibt
- * direkt einen Base64-Data-URL zurück, der in der Datenbank
- * gespeichert wird. Kein Dateisystem, keine /public/uploads.
+ * Speichert ein Bild in der Tabelle `Image` und gibt seine URL zurück.
+ * Die URL wird anschließend beim Speichern von Projekt/Gruppe als `bannerImage` mitgeschickt.
  */
-export async function POST(req: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session || session.user.role === "STUDENT") {
-    return NextResponse.json({ error: "Nicht autorisiert" }, { status: 401 });
-  }
+export const POST = handle(async (req) => {
+  await requireRole("SUPERUSER", "TEACHER");
 
-  const formData = await req.formData();
-  const file = formData.get("file") as File | null;
+  const file = (await req.formData()).get("file");
+  if (!(file instanceof File)) throw badRequest("Keine Datei übermittelt.");
+  if (!ALLOWED_TYPES.includes(file.type)) throw badRequest("Nur JPEG, PNG, WebP und GIF sind erlaubt.");
+  if (file.size > MAX_SIZE_MB * 1024 * 1024) throw badRequest(`Maximale Dateigröße: ${MAX_SIZE_MB} MB.`);
 
-  if (!file) {
-    return NextResponse.json({ error: "Keine Datei übermittelt." }, { status: 400 });
-  }
+  const image = await prisma.image.create({
+    data: { mimeType: file.type, data: Buffer.from(await file.arrayBuffer()) },
+    select: { id: true },
+  });
 
-  if (!ALLOWED_TYPES.includes(file.type)) {
-    return NextResponse.json({ error: "Nur JPEG, PNG, WebP und GIF sind erlaubt." }, { status: 400 });
-  }
+  // Hochgeladene, aber nie verwendete Bilder (z. B. abgebrochenes Formular) aufräumen.
+  await prisma.image.deleteMany({
+    where: { project: null, group: null, createdAt: { lt: new Date(Date.now() - ORPHAN_MAX_AGE_MS) } },
+  });
 
-  if (file.size > MAX_SIZE_MB * 1024 * 1024) {
-    return NextResponse.json({ error: `Maximale Dateigröße: ${MAX_SIZE_MB} MB.` }, { status: 400 });
-  }
-
-  const buffer = Buffer.from(await file.arrayBuffer());
-  const base64 = buffer.toString("base64");
-  const dataUrl = `data:${file.type};base64,${base64}`;
-
-  return NextResponse.json({ url: dataUrl }, { status: 201 });
-}
+  return NextResponse.json({ url: imageUrl(image.id) }, { status: 201 });
+});

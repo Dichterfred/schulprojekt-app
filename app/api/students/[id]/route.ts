@@ -1,14 +1,9 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { handle, requireRole, type IdParams } from "@/lib/api";
 
-export async function DELETE(req: Request, props: { params: Promise<{ id: string }> }) {
-  const params = await props.params;
-  const session = await getServerSession(authOptions);
-  if (!session || session.user.role !== "SUPERUSER") {
-    return NextResponse.json({ error: "Nicht autorisiert" }, { status: 401 });
-  }
-  await prisma.user.delete({ where: { id: params.id } });
+export const DELETE = handle<IdParams>(async (_req, { params }) => {
+  await requireRole("SUPERUSER");
+  await prisma.student.delete({ where: { id: (await params).id } });
   return NextResponse.json({ success: true });
-}
+});

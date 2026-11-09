@@ -43,8 +43,8 @@ Das Interface orientiert sich an den Apple Human Interface Guidelines:
 
 | Rolle | URL | Zugangsdaten |
 |---|---|---|
-| Super User / Lehrer | `/lehrer` | Benutzername + Passwort (Super User: `admin` / `test1234`) |
-| Schüler | `/schueler` | Projekt-Code + `Vorname.Nachname` |
+| Super User / Lehrer | `/lehrer` | Benutzername + Passwort (erster Super User per Seed, siehe Setup) |
+| Schüler | `/schueler` | Projekt-Code + `vorname.nachname` + persönliche 6-stellige PIN |
 
 ---
 
@@ -82,7 +82,7 @@ Schulklasse zugeordnet werden (Mehrfachauswahl per Checkboxen).
 
 ### Schüler-Ansicht (`/student`)
 
-- Keine Sidebar — nur die Gruppen des zugewiesenen Projekts sind sichtbar.
+- Keine Sidebar — nur die Gruppen des Projekts, mit dem sich der Schüler angemeldet hat.
 - Schüler vergeben Prioritäten (1 bis n) per Dropdown; jede Priorität kann nur einmal
   vergeben werden (automatische Umverteilung bei Konflikt).
 - Speicherung erfolgt sofort serverseitig nach jeder Änderung.
@@ -96,54 +96,82 @@ Fixed Frosted-Glass-Footer unten rechts auf jeder Seite mit Links zu `/impressum
 
 ---
 
-## Datenmodell (relevante Tabellen)
+## Datenmodell
 
 | Tabelle | Zweck |
 |---|---|
-| `User` | Lehrer, Super User, Schüler. Schüler über `enrolledProjectId` einem Projekt zugeordnet. |
-| `Project` | Projekt mit Schulklassen, Zeitrahmen, Einschreibefrist, Code. |
-| `Group` | Gruppe innerhalb eines Projekts, optional mit Bannerbild. |
-| `SchoolClass` | 16 Klassen (5a–12b), über `SchoolClassesOnProjects` mit Projekten verknüpft. |
-| `GroupPriority` | Priorität eines Schülers für eine Gruppe (`studentId`, `groupId`, `priority`). |
+| `User` | Nur Lehrer und Super User (Benutzername + Passwort-Hash). |
+| `Student` | Schüler mit Vorname, Nachname und Klasse. Kann in mehreren Projekten eingeschrieben sein. |
+| `SchoolClass` | 16 Klassen (5a–12b), n:m mit Projekten verknüpft. |
+| `Project` | Projekt mit Klassen, Zeitrahmen, Einschreibefrist und Code (aus dem Namen erzeugt, ändert sich beim Umbenennen nicht). |
+| `Group` | Gruppe innerhalb eines Projekts. |
+| `Enrollment` | Einschreibung Schüler ↔ Projekt, enthält die Login-PIN (nur als Hash). |
+| `Preference` | Priorität (`rank`) einer Einschreibung für eine Gruppe – Eingabe für den Einteilungsalgorithmus. |
+| `Assignment` | Ergebnis der Einteilung: pro Projekt und Schüler genau eine Gruppe. |
+| `Image` | Bannerbilder von Projekten/Gruppen, ausgeliefert über `/api/images/<id>`. |
 
-> **SQLite-Hinweis:** Prisma unterstützt bei SQLite keine `enum`-Typen. Die Rolle
-> (`SUPERUSER`, `TEACHER`, `STUDENT`) wird daher als einfacher `String` gespeichert.
+Schüler können nur in Projekte eingeschrieben werden, denen ihre Klasse zugeordnet ist.
 
 ---
 
 ## Setup
 
+Benötigt Node.js und PostgreSQL. Für lokale Tests liegt `docker-compose.dev.yml` bei
+(Postgres auf Port 5433 – **nicht** für Produktion).
+
 ```bash
 # 1. Abhängigkeiten installieren
 npm install
 
-# 2. Datenbank erstellen
-npx prisma migrate dev --name init
+# 2. .env anlegen (Vorlage: example.env)
+#    DATABASE_URL="postgresql://dev:dev@localhost:5433/schulprojekt"   (lokal)
 
-# 3. Seed ausführen (Super User admin/test1234 + Schulklassen 5a–12b)
+# 3. Lokale Datenbank starten (optional)
+docker compose -f docker-compose.dev.yml up -d
+
+# 4. Migrationen anwenden
+npx prisma migrate deploy
+
+# 5. Seed: erster Super User + Schulklassen 5a–12b
+#    Das Passwort wird NICHT fest vorgegeben, sondern per Umgebungsvariable (.env) gesetzt.
+#    `npm run build` macht Schritt 4 und 5 automatisch; für `npm run dev` einmal manuell:
 npx prisma db seed
 
-# 4. Entwicklungsserver starten
+# 6. Starten
 npm run dev
 ```
 
-Dann `http://localhost:3000` im Browser öffnen.
+Tests: `npm test`
+
+---
+
+## Datenbank ändern (Migrationen)
+
+1. `prisma/schema.prisma` anpassen.
+2. Gegen die **lokale** Datenbank eine Migration erzeugen:
+   `npx prisma migrate dev --name <beschreibung>`
+3. Den neuen Ordner unter `prisma/migrations/` **mit committen**. Ohne Migrationsdatei
+   kommt die Änderung nie in der Produktions-Datenbank an.
+4. Beim Deploy wendet `npm run build` die Migrationen mit `prisma migrate deploy` an und führt
+   danach den Seed aus (`prisma db seed`). Der Seed ergänzt nur Fehlendes: Schulklassen und –
+   falls noch nicht vorhanden – den Super User aus `SEED_ADMIN_USERNAME`/`SEED_ADMIN_PASSWORD`.
+   Ein bestehender Super User wird nie überschrieben. Gibt es noch keinen und ist
+   `SEED_ADMIN_PASSWORD` nicht gesetzt (mind. 8 Zeichen), bricht der Build mit einer Meldung ab.
+
+Prüfen, ob Schema und Migrationen zusammenpassen (Ausgabe muss leer sein):
+
+```bash
+npx prisma migrate diff --from-url "$DATABASE_URL" --to-schema-datamodel prisma/schema.prisma --script
+```
 
 ---
 
 ## Sicherheitshinweise
 
-- **`NEXTAUTH_SECRET`** in `.env` für produktiven Einsatz durch einen zufälligen langen
-  String ersetzen:
-  ```bash
-  openssl rand -base64 32
-  ```
-- **Super-User-Passwort** (`test1234`) vor dem produktiven Einsatz in den Einstellungen ändern.
-
----
-
-## Optional: PostgreSQL statt SQLite
-
-In `prisma/schema.prisma` `provider` von `sqlite` auf `postgresql` ändern, ein echtes
-`enum Role { SUPERUSER TEACHER STUDENT }` verwenden, `DATABASE_URL` in `.env` anpassen
-und erneut `npx prisma migrate dev` ausführen.
+- **`NEXTAUTH_SECRET`** durch einen zufälligen langen String ersetzen: `openssl rand -base64 32`
+- **`NEXTAUTH_URL`** auf die echte Adresse der App setzen.
+- Lehrer-Passwörter haben mindestens 8 Zeichen.
+- Schüler-PINs sind 6-stellig und werden nur als Hash gespeichert. Sie sind nur direkt nach
+  dem Erzeugen sichtbar; bei Verlust in den Einstellungen „Neue PIN“ erzeugen.
+- Beide Logins sind auf 10 Fehlversuche pro 15 Minuten begrenzt (im Speicher des
+  Server-Prozesses – bei mehreren Instanzen nicht geteilt).
