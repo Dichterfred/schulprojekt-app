@@ -19,7 +19,7 @@ export default function LehrerLoginPage() {
     const res = await signIn("teacher-login", { username, password, redirect: false });
     setLoading(false);
     if (res?.error) { setError(res.error === "CredentialsSignin" ? "Benutzername oder Passwort ist falsch." : res.error); return; }
-    router.push("/projects");
+    router.push("/projekttage");
     router.refresh();
   }
 

@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
+import { formatDateOnly } from "@/lib/dateHelpers";
 
-type Project = { id: string; name: string; studentCount: number; groups: { maxStudents: number }[] };
+type ProjectDaySummary = { id: string; name: string; startDate: string; endDate: string };
 
 const SVG_RESET: React.CSSProperties = {
   display: "inline-block", flexShrink: 0, lineHeight: 0, maxWidth: "none",
@@ -73,14 +74,14 @@ function NavItem({
 }
 
 export default function Sidebar({ username, isSuperuser }: { username: string; isSuperuser: boolean }) {
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [projectDays, setProjectDays] = useState<ProjectDaySummary[]>([]);
   const [collapsed, setCollapsed] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => { setDrawerOpen(false); }, [pathname]);
   useEffect(() => {
-    fetch("/api/projects").then(r => r.ok ? r.json() : []).then(setProjects);
+    fetch("/api/project-days").then(r => r.ok ? r.json() : []).then(setProjectDays);
   }, [pathname]);
 
   const bc = "rgba(255,255,255,0.07)";
@@ -188,8 +189,10 @@ export default function Sidebar({ username, isSuperuser }: { username: string; i
         </div>
       )}
 
-      <NavItem href="/projects" label="Projekte"      icon={<IconFolder />}   active={!!pathname?.startsWith("/projects")} collapsed={!isMobile && collapsed} onClick={() => setDrawerOpen(false)} />
-      <NavItem href="/groups"   label="Gruppen"       icon={<IconPeople />}   active={!!pathname?.startsWith("/groups")}   collapsed={!isMobile && collapsed} onClick={() => setDrawerOpen(false)} />
+      <NavItem href="/projekttage" label="Projekttage" icon={<IconFolder />} active={!!pathname?.startsWith("/projekttage")} collapsed={!isMobile && collapsed} onClick={() => setDrawerOpen(false)} />
+      {isSuperuser && (
+        <NavItem href="/schueler-verwaltung" label="Schüler" icon={<IconPeople />} active={!!pathname?.startsWith("/schueler-verwaltung")} collapsed={!isMobile && collapsed} onClick={() => setDrawerOpen(false)} />
+      )}
       {isSuperuser && (
         <NavItem href="/settings" label="Einstellungen" icon={<IconSettings />} active={!!pathname?.startsWith("/settings")} collapsed={!isMobile && collapsed} onClick={() => setDrawerOpen(false)} />
       )}
@@ -199,25 +202,21 @@ export default function Sidebar({ username, isSuperuser }: { username: string; i
       {(isMobile || !collapsed) && (
         <div style={{ flex: 1, overflowY: "auto" }}>
           <div style={{ fontSize: "11px", fontWeight: 700, color: sec, textTransform: "uppercase", letterSpacing: "0.09em", padding: "0 12px", marginBottom: 8 }}>
-            {isSuperuser ? "Alle Projekte" : "Meine Projekte"}
+            Projekttage
           </div>
-          {projects.length === 0 && (
-            <p style={{ fontSize: "12px", color: muted, padding: "0 12px" }}>Keine Projekte.</p>
+          {projectDays.length === 0 && (
+            <p style={{ fontSize: "12px", color: muted, padding: "0 12px" }}>Keine Projekttage.</p>
           )}
-          {projects.map((p) => {
-            const used = p.groups.reduce((s, g) => s + g.maxStudents, 0);
-            const pct = p.studentCount > 0 ? Math.min(100, (used / p.studentCount) * 100) : 0;
+          {projectDays.map((d) => {
+            const isActive = pathname === `/projekttage/${d.id}` || !!pathname?.startsWith(`/projekttage/${d.id}/`);
             return (
-              <Link key={p.id} href={`/groups?projectId=${p.id}`} onClick={() => setDrawerOpen(false)} style={{
+              <Link key={d.id} href={`/projekttage/${d.id}`} onClick={() => setDrawerOpen(false)} style={{
                 display: "block", padding: "8px 12px", marginBottom: 2,
-                borderRadius: 8, background: "rgba(255,255,255,0.03)",
+                borderRadius: 8, background: isActive ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.03)",
                 color: muted, textDecoration: "none", fontSize: "12px",
               }}>
-                <div style={{ fontWeight: 500, marginBottom: 4, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: active }}>{p.name}</div>
-                <div style={{ height: 3, background: "rgba(255,255,255,0.08)", borderRadius: 99 }}>
-                  <div style={{ height: "100%", width: `${pct}%`, background: "var(--color-primary,#01696f)", borderRadius: 99, transition: "width 0.5s ease" }} />
-                </div>
-                <div style={{ fontSize: "10px", color: sec, marginTop: 3 }}>{used} / {p.studentCount} Schüler</div>
+                <div style={{ fontWeight: 500, marginBottom: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: active }}>{d.name}</div>
+                <div style={{ fontSize: "10px", color: sec }}>{formatDateOnly(d.startDate)} – {formatDateOnly(d.endDate)}</div>
               </Link>
             );
           })}

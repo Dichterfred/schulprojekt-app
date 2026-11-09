@@ -8,7 +8,7 @@ export default async function Home() {
 
   if (session) {
     if (session.user.role === "STUDENT") redirect("/student");
-    redirect("/projects");
+    redirect("/projekttage");
   }
 
   return (
