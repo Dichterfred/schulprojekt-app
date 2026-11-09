@@ -13,11 +13,13 @@
     "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
   },
   "dependencies": {
+    "@pdf-lib/fontkit": "^1.1.1",
     "@prisma/client": "^5.14.0",
     "bcryptjs": "^2.4.3",
     "exceljs": "^4.4.0",
     "next": "^16.4.5",
     "next-auth": "^4.24.7",
+    "pdf-lib": "^1.17.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "zod": "^4.6.7"
