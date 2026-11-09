@@ -8,15 +8,15 @@ declare module "next-auth" {
       id: string;
       role: AppRole;
       /** Nur bei Schülern gesetzt. */
-      enrollmentId?: string;
-      projectId?: string;
+      projectDayId?: string;
+      sessionVersion?: number;
     } & DefaultSession["user"];
   }
   interface User {
     id: string;
     role: AppRole;
-    enrollmentId?: string;
-    projectId?: string;
+    projectDayId?: string;
+    sessionVersion?: number;
   }
 }
 
@@ -24,7 +24,7 @@ declare module "next-auth/jwt" {
   interface JWT {
     id: string;
     role: AppRole;
-    enrollmentId?: string;
-    projectId?: string;
+    projectDayId?: string;
+    sessionVersion?: number;
   }
 }

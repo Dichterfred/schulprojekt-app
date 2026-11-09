@@ -1,55 +1,56 @@
 import { NextResponse } from "next/server";
-import type { Session } from "next-auth";
 import { prisma } from "@/lib/prisma";
-import { ApiError, badRequest, handle, notFound, parseBody, requireRole } from "@/lib/api";
+import { ApiError, badRequest, handle, notFound, parseBody } from "@/lib/api";
+import { studentVisibleProjectsWhere } from "@/lib/access";
+import { requireStudent, type StudentContext } from "@/lib/studentSession";
 import { priorityRankSchema } from "@/lib/validation";
 
-/** Lädt die Einschreibung des angemeldeten Schülers und prüft die Frist anhand der Serverzeit. */
-async function openEnrollment(session: Session) {
-  const enrollment = await prisma.enrollment.findUnique({
-    where: { id: session.user.enrollmentId ?? "" },
-    select: { id: true, project: { select: { enrollmentDeadline: true, groups: { select: { id: true } } } } },
-  });
-  if (!enrollment) throw notFound("Kein Projekt zugewiesen.");
-  if (new Date() > enrollment.project.enrollmentDeadline) {
-    throw new ApiError(403, "Die Einschreibefrist für dieses Projekt ist bereits abgelaufen.");
+/** Prüft die Frist des Projekttags anhand der Serverzeit. */
+function assertDeadlineOpen(ctx: StudentContext) {
+  if (new Date() > ctx.projectDay.enrollmentDeadline) {
+    throw new ApiError(403, "Die Einschreibefrist für diesen Projekttag ist bereits abgelaufen.");
   }
-  return enrollment;
 }
 
-async function prioritiesOf(enrollmentId: string) {
-  const preferences = await prisma.preference.findMany({ where: { enrollmentId } });
-  return Object.fromEntries(preferences.map((p) => [p.groupId, p.rank]));
+async function prioritiesOf(studentId: string, projectDayId: string) {
+  const preferences = await prisma.preference.findMany({ where: { studentId, projectDayId } });
+  return Object.fromEntries(preferences.map((p) => [p.projectId, p.rank]));
 }
 
 export const POST = handle(async (req) => {
-  const session = await requireRole("STUDENT");
-  const { groupId, priority } = await parseBody(req, priorityRankSchema);
-  const enrollment = await openEnrollment(session);
+  const ctx = await requireStudent();
+  const { projectId, priority } = await parseBody(req, priorityRankSchema);
+  assertDeadlineOpen(ctx);
 
-  const groups = enrollment.project.groups;
-  if (!groups.some((g) => g.id === groupId)) throw notFound("Diese Gruppe gehört nicht zu deinem Projekt.");
-  if (priority > groups.length) throw badRequest(`Die Priorität darf höchstens ${groups.length} betragen.`);
+  const { studentId, schoolClassId } = ctx;
+  // projectDayId stammt immer aus der Session, nie aus dem Request.
+  const projectDayId = ctx.projectDay.id;
+  const visible = await prisma.project.findMany({
+    where: studentVisibleProjectsWhere(projectDayId, schoolClassId),
+    select: { id: true },
+  });
+  if (!visible.some((p) => p.id === projectId)) throw notFound("Dieses Projekt ist für dich nicht verfügbar.");
+  if (priority > visible.length) throw badRequest(`Die Priorität darf höchstens ${visible.length} betragen.`);
 
-  // Ist die Priorität schon an eine andere Gruppe vergeben, "wandert" sie zur neu gewählten Gruppe.
+  // Ist die Priorität schon an ein anderes Projekt vergeben, "wandert" sie zum neu gewählten Projekt.
   await prisma.$transaction([
-    prisma.preference.deleteMany({ where: { enrollmentId: enrollment.id, rank: priority, groupId: { not: groupId } } }),
+    prisma.preference.deleteMany({ where: { studentId, projectDayId, rank: priority, projectId: { not: projectId } } }),
     prisma.preference.upsert({
-      where: { enrollmentId_groupId: { enrollmentId: enrollment.id, groupId } },
+      where: { studentId_projectId: { studentId, projectId } },
       update: { rank: priority },
-      create: { enrollmentId: enrollment.id, groupId, rank: priority },
+      create: { studentId, projectDayId, projectId, rank: priority },
     }),
   ]);
 
-  return NextResponse.json({ priorities: await prioritiesOf(enrollment.id) });
+  return NextResponse.json({ priorities: await prioritiesOf(studentId, projectDayId) });
 });
 
 export const DELETE = handle(async (req) => {
-  const session = await requireRole("STUDENT");
-  const groupId = new URL(req.url).searchParams.get("groupId");
-  if (!groupId) throw badRequest("groupId erforderlich.");
-  const enrollment = await openEnrollment(session);
+  const ctx = await requireStudent();
+  const projectId = new URL(req.url).searchParams.get("projectId");
+  if (!projectId) throw badRequest("projectId erforderlich.");
+  assertDeadlineOpen(ctx);
 
-  await prisma.preference.deleteMany({ where: { enrollmentId: enrollment.id, groupId } });
+  await prisma.preference.deleteMany({ where: { studentId: ctx.studentId, projectDayId: ctx.projectDay.id, projectId } });
   return NextResponse.json({ success: true });
 });
