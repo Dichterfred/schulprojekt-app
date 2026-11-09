@@ -1,4 +1,5 @@
-import { prisma } from "@/lib/prisma";
+// Relativer Import, damit auch prisma/seed.ts (ts-node ohne Pfad-Aliase) diese Datei laden kann.
+import { prisma } from "./prisma";
 
 const MAX_LENGTH = 20;
 

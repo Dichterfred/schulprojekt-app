@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { PASSWORD_MIN_LENGTH } from "../lib/validation";
 import { assignUsernames } from "../lib/username";
 import { createStudentCredentials, loadPasswordKey } from "../lib/studentPassword";
+import { slugifyProjectName } from "../lib/projectCode";
 
 const prisma = new PrismaClient();
 
@@ -38,7 +39,9 @@ async function seedSchoolClasses() {
   console.log("Schulklassen 5a–12b vorhanden.");
 }
 
-const DEMO_CODE = "demo-projekttag";
+const DEMO_NAME = "Demo-Projekttag";
+// Gleiche Code-Erzeugung wie beim Anlegen per API (Großbuchstaben), damit der Login den Code findet.
+const DEMO_CODE = slugifyProjectName(DEMO_NAME);
 const DEMO_STUDENTS = [
   { firstName: "Anna", lastName: "Beispiel", className: "5a" },
   { firstName: "Ben", lastName: "Muster", className: "5a" },
@@ -61,7 +64,7 @@ async function seedDemo() {
     where: { code: DEMO_CODE },
     update: {},
     create: {
-      name: "Demo-Projekttag",
+      name: DEMO_NAME,
       description: "Beispieldaten für die lokale Entwicklung.",
       code: DEMO_CODE,
       startDate: new Date(now + 14 * day),
