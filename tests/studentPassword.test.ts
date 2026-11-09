@@ -41,6 +41,13 @@ describe("Schülerpasswort", () => {
     ).toThrow();
   });
 
+  it("wirft bei verkürztem Auth-Tag", () => {
+    const k = randomBytes(32);
+    const [iv, tag, ct] = encryptPassword("abcdef", k).split(":");
+    const short = Buffer.from(tag, "base64").subarray(0, 8).toString("base64");
+    expect(() => decryptPassword(`${iv}:${short}:${ct}`, k)).toThrow();
+  });
+
   it("wirft bei falschem Schlüssel", () => {
     const enc = encryptPassword("abc", randomBytes(32));
     expect(() => decryptPassword(enc, randomBytes(32))).toThrow();

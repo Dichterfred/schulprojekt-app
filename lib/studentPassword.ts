@@ -33,15 +33,19 @@ export function encryptPassword(plain: string, key: Buffer = loadPasswordKey()):
   return [iv, tag, ciphertext].map((b) => b.toString("base64")).join(":");
 }
 
+/** Entschlüsselt "iv:authTag:ciphertext"; wirft bei ungültigem Format, falscher Tag-/IV-Länge, falschem Schlüssel oder Manipulation. */
 export function decryptPassword(encrypted: string, key: Buffer = loadPasswordKey()): string {
   const parts = encrypted.split(":");
   if (parts.length !== 3) throw new Error("Ungültiges Format des verschlüsselten Passworts.");
   const [iv, tag, ciphertext] = parts.map((p) => Buffer.from(p, "base64"));
-  const decipher = createDecipheriv("aes-256-gcm", key, iv);
+  if (iv.length !== 12) throw new Error("Ungültige IV-Länge im verschlüsselten Passwort.");
+  if (tag.length !== 16) throw new Error("Ungültige Auth-Tag-Länge im verschlüsselten Passwort.");
+  const decipher = createDecipheriv("aes-256-gcm", key, iv, { authTagLength: 16 });
   decipher.setAuthTag(tag);
   return Buffer.concat([decipher.update(ciphertext), decipher.final()]).toString("utf8");
 }
 
+/** Erzeugt ein neues Zufallspasswort samt bcrypt-Hash und verschlüsselter Speicherform. */
 export async function createStudentCredentials(
   key?: Buffer,
 ): Promise<{ password: string; passwordHash: string; passwordEncrypted: string }> {
@@ -51,6 +55,7 @@ export async function createStudentCredentials(
   return { password, passwordHash, passwordEncrypted };
 }
 
+/** Prüft ein Klartextpasswort gegen den bcrypt-Hash. */
 export function verifyStudentPassword(plain: string, hash: string): Promise<boolean> {
   return bcrypt.compare(plain, hash);
 }
