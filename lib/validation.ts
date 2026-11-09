@@ -17,8 +17,8 @@ export function imageUrl(imageId: string | null): string | null {
 const name = z.string().trim().min(1, "Name ist erforderlich.").max(200);
 const description = z.string().trim().min(1, "Beschreibung ist erforderlich.").max(10000);
 const positiveInt = (label: string) =>
-  z.coerce.number({ invalid_type_error: `${label} muss eine Zahl sein.` }).int(`${label} muss eine ganze Zahl sein.`).positive(`${label} muss größer als 0 sein.`);
-const date = (label: string) => z.coerce.date({ errorMap: () => ({ message: `${label}: ungültiges Datum.` }) });
+  z.coerce.number({ error: `${label} muss eine Zahl sein.` }).int(`${label} muss eine ganze Zahl sein.`).positive(`${label} muss größer als 0 sein.`);
+const date = (label: string) => z.coerce.date({ error: `${label}: ungültiges Datum.` });
 
 export const projectSchema = z
   .object({
@@ -49,7 +49,7 @@ export const groupCreateSchema = groupSchema.extend({ projectId: z.string().min(
 
 export const PASSWORD_MIN_LENGTH = 8;
 const password = z
-  .string({ invalid_type_error: "Passwort muss ein Text sein." })
+  .string({ error: "Passwort muss ein Text sein." })
   .min(PASSWORD_MIN_LENGTH, `Das Passwort muss mindestens ${PASSWORD_MIN_LENGTH} Zeichen haben.`)
   .max(200);
 

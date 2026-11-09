@@ -84,3 +84,23 @@ describe("weitere Schemas", () => {
     expect(priorityRankSchema.safeParse({ groupId: "g", priority: 2 }).success).toBe(true);
   });
 });
+
+describe("deutsche Fehlermeldungen", () => {
+  const firstMessage = (r: { success: boolean; error?: { issues: { message: string }[] } }) => r.error?.issues[0]?.message;
+
+  it("bei ungültiger Zahl", () => {
+    expect(firstMessage(groupSchema.safeParse({ name: "G", description: "d", maxStudents: "abc" }))).toBe(
+      "Maximale Schüleranzahl muss eine Zahl sein."
+    );
+  });
+
+  it("bei ungültigem Datum", () => {
+    expect(firstMessage(projectSchema.safeParse({ ...validProject, startDate: "kein-datum" }))).toBe(
+      "Start: ungültiges Datum."
+    );
+  });
+
+  it("bei Passwort, das kein Text ist", () => {
+    expect(firstMessage(passwordSchema.safeParse({ password: 12345678 }))).toBe("Passwort muss ein Text sein.");
+  });
+});
