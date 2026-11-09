@@ -90,3 +90,35 @@ export function projectToForm(p: {
 export function excludedClassesLabel(classes: { name: string }[]): string {
   return classes.length > 0 ? `ohne: ${classes.map((c) => c.name).join(", ")}` : "";
 }
+
+/** Eintrag aus Fehler- bzw. Übersprungen-Liste des Excel-Imports (Zeile 0 = Fehler der ganzen Datei). */
+export type ImportIssue = { row: number; message: string };
+
+export function importIssueLabel(issue: ImportIssue): string {
+  return issue.row > 0 ? `Zeile ${issue.row}: ${issue.message}` : issue.message;
+}
+
+/** Kurzfassung des Importergebnisses, z. B. "3 angelegt, 1 übersprungen". */
+export function importSummary(result: { created: number; skipped: ImportIssue[] }): string {
+  return `${result.created} angelegt, ${result.skipped.length} übersprungen`;
+}
+
+/** Body für POST /api/students/pdf – leere Auswahl = alle Klassen. */
+export function studentsPdfBody(classId: string): { classId: string } | Record<string, never> {
+  return classId ? { classId } : {};
+}
+
+/** Dateiname aus `Content-Disposition` (ohne Pfadanteile) oder der Fallback. */
+export function fileNameFromDisposition(header: string | null, fallback: string): string {
+  const match = header?.match(/filename\*?=(?:"([^"]+)"|([^;\s]+))/i);
+  const raw = match?.[1] ?? match?.[2];
+  const name = raw?.split(/[\/]/).pop()?.trim();
+  return name || fallback;
+}
+
+/** Formularwerte eines Schülers (Anlegen und Bearbeiten). */
+export type StudentFormValues = { firstName: string; lastName: string; schoolClassId: string };
+
+export function studentFormToBody(f: StudentFormValues): StudentFormValues {
+  return { firstName: f.firstName.trim(), lastName: f.lastName.trim(), schoolClassId: f.schoolClassId };
+}

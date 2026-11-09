@@ -31,9 +31,12 @@ describe("projectDaySchema", () => {
     expect(result.success).toBe(false);
   });
 
-  it("lehnt eine Einschreibefrist nach Projektende ab", () => {
+  it("lehnt eine Einschreibefrist nach dem Ende des Projekttags ab", () => {
     const result = projectDaySchema.safeParse({ ...validProject, enrollmentDeadline: "2027-01-01T00:00:00.000Z" });
     expect(result.success).toBe(false);
+    expect(result.error?.issues[0]?.message).toBe(
+      "Die Einschreibefrist darf nicht nach dem Ende des Projekttags liegen.",
+    );
   });
 
   it("lehnt fehlende Klassen ab", () => {

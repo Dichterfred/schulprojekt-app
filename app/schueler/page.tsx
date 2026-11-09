@@ -8,8 +8,8 @@ import Link from "next/link";
 export default function SchuelerLoginPage() {
   const router = useRouter();
   const [code, setCode] = useState("");
-  const [fullname, setFullname] = useState("");
-  const [pin, setPin] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -17,9 +17,17 @@ export default function SchuelerLoginPage() {
     e.preventDefault();
     setError("");
     setLoading(true);
-    const res = await signIn("student-login", { code, fullname, pin, redirect: false });
+    const res = await signIn("student-login", { code, username, password, redirect: false });
     setLoading(false);
-    if (res?.error) { setError(res.error === "CredentialsSignin" ? "Code, Name oder PIN ist falsch." : res.error); return; }
+    if (!res || res.error) {
+      // Generische Meldung (kein Hinweis, welcher Teil falsch war); nur die Sperre nach Fehlversuchen wird genannt.
+      setError(
+        res?.error?.startsWith("Zu viele Fehlversuche")
+          ? res.error
+          : "Anmeldung fehlgeschlagen. Bitte Projekttag-Code, Anmeldename und Passwort prüfen.",
+      );
+      return;
+    }
     router.push("/student");
     router.refresh();
   }
@@ -68,11 +76,12 @@ export default function SchuelerLoginPage() {
         }}>
           <form onSubmit={handleSubmit}>
             <div style={{ marginBottom: "var(--space-4)" }}>
-              <label style={{ marginTop: 0 }}>Projekt-Code</label>
+              <label style={{ marginTop: 0 }} htmlFor="login-code">Projekttag-Code</label>
               <input
+                id="login-code"
                 value={code}
                 onChange={(e) => setCode(e.target.value.toUpperCase())}
-                placeholder="z. B. PROJEKTWOCHE-2026"
+                placeholder="Code vom Aushang"
                 autoCapitalize="characters"
                 autoCorrect="off"
                 autoComplete="off"
@@ -81,27 +90,29 @@ export default function SchuelerLoginPage() {
               />
             </div>
             <div style={{ marginBottom: "var(--space-4)" }}>
-              <label>Vorname.Nachname</label>
+              <label htmlFor="login-username">Anmeldename</label>
               <input
-                value={fullname}
-                onChange={(e) => setFullname(e.target.value)}
-                placeholder="max.mustermann"
+                id="login-username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="vorname.nachname"
                 autoCapitalize="none"
                 autoCorrect="off"
-                autoComplete="off"
+                spellCheck={false}
+                autoComplete="username"
                 required
               />
             </div>
             <div style={{ marginBottom: "var(--space-6)" }}>
-              <label>PIN</label>
+              <label htmlFor="login-password">Passwort</label>
               <input
+                id="login-password"
                 type="password"
-                inputMode="numeric"
-                maxLength={6}
-                value={pin}
-                onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
-                placeholder="6-stellige PIN"
-                autoComplete="off"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoCapitalize="none"
+                autoCorrect="off"
+                autoComplete="current-password"
                 required
               />
             </div>

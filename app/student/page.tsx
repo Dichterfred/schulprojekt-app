@@ -1,62 +1,83 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { signOut } from "next-auth/react";
+import { apiError } from "@/lib/apiTypes";
 import LogoutButton from "@/components/LogoutButton";
 import { formatDateTime } from "@/lib/dateHelpers";
 import DescriptionRenderer from "@/components/DescriptionRenderer";
 
-type Group = {
+type Project = {
   id: string; name: string; description: string;
   bannerImage: string | null; maxStudents: number; priority: number | null;
 };
-type ProjectInfo = {
+type ProjectDayInfo = {
   id: string; name: string; description: string;
   bannerImage: string | null; enrollmentDeadline: string;
 };
+type StudentProjectsResponse = { projectDay: ProjectDayInfo; deadlinePassed: boolean; projects: Project[] };
+
+/** Session ungültig (z. B. neues Passwort, Klassenwechsel) → abmelden und zum Schüler-Login. */
+function isSessionExpired(res: Response): boolean {
+  if (res.status !== 401) return false;
+  signOut({ callbackUrl: "/schueler" });
+  return true;
+}
 
 export default function StudentPage() {
   const [loading, setLoading] = useState(true);
-  const [project, setProject] = useState<ProjectInfo | null>(null);
-  const [groups, setGroups] = useState<Group[]>([]);
+  const [projectDay, setProjectDay] = useState<ProjectDayInfo | null>(null);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [deadlinePassed, setDeadlinePassed] = useState(false);
   const [error, setError] = useState("");
   const [savingId, setSavingId] = useState<string | null>(null);
   const [savedId, setSavedId] = useState<string | null>(null);
 
-  async function load() {
-    setLoading(true);
-    const res = await fetch("/api/student/groups");
-    if (res.ok) {
-      const data = await res.json();
-      setProject(data.project); setGroups(data.groups); setDeadlinePassed(data.deadlinePassed);
-    } else {
-      setError("Es konnte kein zugewiesenes Projekt gefunden werden.");
-    }
-    setLoading(false);
+  function apply(data: StudentProjectsResponse) {
+    setProjectDay(data.projectDay); setProjects(data.projects); setDeadlinePassed(data.deadlinePassed);
   }
-  useEffect(() => { load(); }, []);
 
-  async function handlePriorityChange(groupId: string, value: string) {
-    setError(""); setSavedId(null);
-    if (value === "") {
-      setSavingId(groupId);
-      await fetch(`/api/student/priorities?groupId=${groupId}`, { method: "DELETE" });
-      await load(); setSavingId(null); return;
-    }
-    const priority = Number(value);
-    setSavingId(groupId);
-    const res = await fetch("/api/student/priorities", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ groupId, priority }),
+  /** Lädt Projekttag und Projekte neu; `false`, wenn die Session abgelaufen ist oder ein Fehler auftrat. */
+  async function reload(): Promise<boolean> {
+    const res = await fetch("/api/student/projects");
+    if (isSessionExpired(res)) return false;
+    if (!res.ok) { setError(await apiError(res, "Die Projekte konnten nicht geladen werden.")); return false; }
+    apply(await res.json());
+    return true;
+  }
+
+  // `cancelled` verhindert, dass eine veraltete Antwort (doppelter Effekt im Dev-Modus) den Zustand setzt.
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/student/projects").then(async (res) => {
+      if (cancelled || isSessionExpired(res)) return;
+      if (res.ok) apply(await res.json());
+      else setError(await apiError(res, "Der Projekttag konnte nicht geladen werden."));
+      if (!cancelled) setLoading(false);
     });
+    return () => { cancelled = true; };
+  }, []);
+
+  async function handlePriorityChange(projectId: string, value: string) {
+    setError(""); setSavedId(null);
+    setSavingId(projectId);
+    const res = value === ""
+      ? await fetch(`/api/student/priorities?projectId=${encodeURIComponent(projectId)}`, { method: "DELETE" })
+      : await fetch("/api/student/priorities", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ projectId, priority: Number(value) }),
+      });
+    if (isSessionExpired(res)) return;
     if (!res.ok) {
-      const data = await res.json();
-      setError(data.error || "Fehler beim Speichern der Priorität.");
+      setError(await apiError(res, "Fehler beim Speichern der Priorität."));
+      // Stand neu laden (z. B. Projekt inzwischen ausgeschlossen oder Frist abgelaufen)
+      await reload();
       setSavingId(null); return;
     }
-    await load(); setSavingId(null);
-    setSavedId(groupId); setTimeout(() => setSavedId(null), 2000);
+    const ok = await reload();
+    setSavingId(null);
+    if (ok && value !== "") { setSavedId(projectId); setTimeout(() => setSavedId(null), 2000); }
   }
 
   if (loading) {
@@ -70,7 +91,7 @@ export default function StudentPage() {
     );
   }
 
-  if (!project) {
+  if (!projectDay) {
     return (
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", background: "var(--color-bg)", padding: "var(--space-6)" }}>
         <div style={{
@@ -88,9 +109,9 @@ export default function StudentPage() {
               <polyline points="14 2 14 8 20 8"/>
             </svg>
           </div>
-          <h2 style={{ marginBottom: "var(--space-2)" }}>Kein Projekt zugewiesen</h2>
+          <h2 style={{ marginBottom: "var(--space-2)" }}>Projekttag nicht verfügbar</h2>
           <p style={{ color: "var(--color-text-muted)", marginBottom: "var(--space-6)", fontSize: "var(--text-sm)" }}>
-            {error || "Dir wurde noch kein Projekt zugewiesen. Bitte wende dich an deine Lehrkraft."}
+            {error || "Der Projekttag konnte nicht geladen werden. Bitte wende dich an deine Lehrkraft."}
           </p>
           <LogoutButton callbackUrl="/schueler" />
         </div>
@@ -98,21 +119,21 @@ export default function StudentPage() {
     );
   }
 
-  const groupCount = groups.length;
-  const usedPriorities = groups.filter((g) => g.priority !== null).map((g) => g.priority);
-  const assignedCount = groups.filter((g) => g.priority !== null).length;
-  const progressPct = groupCount > 0 ? assignedCount / groupCount : 0;
+  const projectCount = projects.length;
+  const usedPriorities = projects.filter((x) => x.priority !== null).map((x) => x.priority);
+  const assignedCount = projects.filter((x) => x.priority !== null).length;
+  const progressPct = projectCount > 0 ? assignedCount / projectCount : 0;
   const r = 18; const circ = 2 * Math.PI * r;
   const dash = progressPct * circ;
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--color-bg)" }}>
 
-      {/* ── Project Banner ── */}
+      {/* ── Banner des Projekttags ── */}
       <div style={{ position: "relative" }}>
-        {project.bannerImage ? (
+        {projectDay.bannerImage ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={project.bannerImage} alt="Projektbanner" style={{ width: "100%", height: 200, objectFit: "cover", display: "block" }} />
+          <img src={projectDay.bannerImage} alt="Banner des Projekttags" style={{ width: "100%", height: 200, objectFit: "cover", display: "block" }} />
         ) : (
           <div style={{ height: 160, background: "var(--color-primary)" }} />
         )}
@@ -141,9 +162,9 @@ export default function StudentPage() {
           border: "1px solid oklch(from var(--color-text) l c h / 0.07)",
         }}>
 
-        <h1 style={{ marginBottom: "var(--space-2)", fontSize: "var(--text-xl)" }}>{project.name}</h1>
+        <h1 style={{ marginBottom: "var(--space-2)", fontSize: "var(--text-xl)" }}>{projectDay.name}</h1>
           <div style={{ color: "var(--color-text-muted)", fontSize: "var(--text-sm)", lineHeight: 1.6, marginBottom: "var(--space-4)" }}>
-            <DescriptionRenderer text={project.description} />
+            <DescriptionRenderer text={projectDay.description} />
           </div>
 
           {/* Deadline pill */}
@@ -164,7 +185,7 @@ export default function StudentPage() {
                 {deadlinePassed ? "Frist abgelaufen" : "Einschreibefrist"}
               </div>
               <div style={{ fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--color-text)" }}>
-                {formatDateTime(project.enrollmentDeadline)}
+                {formatDateTime(projectDay.enrollmentDeadline)}
               </div>
             </div>
           </div>
@@ -177,7 +198,7 @@ export default function StudentPage() {
         </div>
 
         {/* Progress Card */}
-        {groupCount > 0 && (
+        {projectCount > 0 && (
           <div style={{
             background: "var(--color-surface)",
             borderRadius: "var(--radius-xl)",
@@ -193,7 +214,7 @@ export default function StudentPage() {
               </div>
               <div style={{ fontSize: "var(--text-lg)", fontWeight: 700, letterSpacing: "-0.02em" }}>
                 {assignedCount}
-                <span style={{ fontSize: "var(--text-sm)", fontWeight: 500, color: "var(--color-text-muted)" }}> / {groupCount} Gruppen bewertet</span>
+                <span style={{ fontSize: "var(--text-sm)", fontWeight: 500, color: "var(--color-text-muted)" }}> / {projectCount} Projekte bewertet</span>
               </div>
             </div>
             <svg width="52" height="52" viewBox="0 0 52 52" style={{ flexShrink: 0 }}>
@@ -213,12 +234,12 @@ export default function StudentPage() {
 
         {/* Section Header */}
         <div className="section-label" style={{ paddingLeft: "var(--space-1)" }}>
-          Gruppen bewerten — Priorität 1 = höchste
+          Projekte bewerten — Priorität 1 = höchste
         </div>
 
         {error && <p className="error-text">{error}</p>}
 
-        {groups.length === 0 && (
+        {projects.length === 0 && (
           <div className="empty-state">
             <div className="empty-state-icon" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
               <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -226,30 +247,30 @@ export default function StudentPage() {
                 <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
               </svg>
             </div>
-            <p>Für dieses Projekt wurden noch keine Gruppen angelegt.</p>
+            <p>Für diesen Projekttag gibt es noch keine Projekte.</p>
           </div>
         )}
 
-        {/* Group Cards */}
-        {groups.map((g, idx) => (
-          <div key={g.id} style={{
+        {/* Projekt-Karten */}
+        {projects.map((p, idx) => (
+          <div key={p.id} style={{
             background: "var(--color-surface)",
             borderRadius: "var(--radius-xl)",
             overflow: "hidden",
             marginBottom: "var(--space-3)",
             boxShadow: "var(--shadow-sm)",
-            border: g.priority !== null
+            border: p.priority !== null
               ? `1.5px solid oklch(from var(--color-primary) l c h / 0.3)`
               : `1px solid oklch(from var(--color-text) l c h / 0.07)`,
             transition: "border-color 0.2s, box-shadow 0.2s",
           }}>
-            {g.bannerImage ? (
+            {p.bannerImage ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={g.bannerImage} alt="Banner" style={{ width: "100%", height: 100, objectFit: "cover", display: "block" }} />
+              <img src={p.bannerImage} alt="Banner" style={{ width: "100%", height: 100, objectFit: "cover", display: "block" }} />
             ) : (
               <div style={{
                 height: 4,
-                background: g.priority !== null ? "var(--color-primary)" : "var(--color-surface-dynamic)",
+                background: p.priority !== null ? "var(--color-primary)" : "var(--color-surface-dynamic)",
               }} />
             )}
 
@@ -262,50 +283,50 @@ export default function StudentPage() {
                     display: "inline-flex", alignItems: "center", justifyContent: "center",
                     fontSize: "0.68rem", fontWeight: 700, color: "var(--color-text-muted)", flexShrink: 0,
                   }}>{idx + 1}</span>
-                  <h4 style={{ margin: 0, fontSize: "var(--text-base)" }}>{g.name}</h4>
-                  {g.priority !== null && (
+                  <h4 style={{ margin: 0, fontSize: "var(--text-base)" }}>{p.name}</h4>
+                  {p.priority !== null && (
                     <span style={{
                       fontSize: "var(--text-xs)", fontWeight: 700,
                       background: "var(--color-primary-highlight)",
                       color: "var(--color-primary)",
                       padding: "0.1rem var(--space-2)",
                       borderRadius: "var(--radius-sm)",
-                    }}>P{g.priority}</span>
+                    }}>P{p.priority}</span>
                   )}
                 </div>
                 <div style={{ fontSize: "var(--text-sm)", color: "var(--color-text-muted)", lineHeight: 1.55, marginBottom: "var(--space-2)" }}>
-                  <DescriptionRenderer text={g.description} />
+                  <DescriptionRenderer text={p.description} />
                 </div>
-                <p style={{ fontSize: "var(--text-xs)", color: "var(--color-text-faint)", margin: 0 }}>Max. {g.maxStudents} Schüler</p>
+                <p style={{ fontSize: "var(--text-xs)", color: "var(--color-text-faint)", margin: 0 }}>Max. {p.maxStudents} Schüler</p>
               </div>
 
               <div style={{ textAlign: "right", minWidth: 140, flexShrink: 0 }}>
                 <select
                   className="priority-select"
-                  value={g.priority ?? ""}
-                  disabled={deadlinePassed || savingId === g.id}
-                  onChange={(e) => handlePriorityChange(g.id, e.target.value)}
+                  value={p.priority ?? ""}
+                  disabled={deadlinePassed || savingId === p.id}
+                  onChange={(e) => handlePriorityChange(p.id, e.target.value)}
                   style={{
-                    borderColor: g.priority !== null ? "oklch(from var(--color-primary) l c h / 0.3)" : undefined,
-                    background: g.priority !== null ? "var(--color-primary-highlight)" : undefined,
-                    fontWeight: g.priority !== null ? 600 : undefined,
-                    color: g.priority !== null ? "var(--color-primary)" : undefined,
+                    borderColor: p.priority !== null ? "oklch(from var(--color-primary) l c h / 0.3)" : undefined,
+                    background: p.priority !== null ? "var(--color-primary-highlight)" : undefined,
+                    fontWeight: p.priority !== null ? 600 : undefined,
+                    color: p.priority !== null ? "var(--color-primary)" : undefined,
                   }}
                 >
                   <option value="">- keine -</option>
-                  {Array.from({ length: groupCount }, (_, i) => i + 1).map((n) => (
-                    <option key={n} value={n} disabled={usedPriorities.includes(n) && g.priority !== n}>
+                  {Array.from({ length: projectCount }, (_, i) => i + 1).map((n) => (
+                    <option key={n} value={n} disabled={usedPriorities.includes(n) && p.priority !== n}>
                       Priorität {n}
                     </option>
                   ))}
                 </select>
-                {savingId === g.id && (
+                {savingId === p.id && (
                   <div style={{ fontSize: "var(--text-xs)", color: "var(--color-text-faint)", marginTop: "var(--space-2)", display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "var(--space-1)" }}>
                     <span style={{ width: 10, height: 10, border: "1.5px solid var(--color-surface-dynamic)", borderTopColor: "var(--color-text-faint)", borderRadius: "50%", animation: "spin 0.65s linear infinite", display: "inline-block" }} />
                     Speichert…
                   </div>
                 )}
-                {savedId === g.id && (
+                {savedId === p.id && (
                   <span className="saved-badge" style={{ marginTop: "var(--space-2)", display: "inline-block" }}>✓ Gespeichert</span>
                 )}
               </div>

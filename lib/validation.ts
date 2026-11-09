@@ -32,7 +32,7 @@ export const projectDaySchema = z
   })
   .refine((p) => p.endDate >= p.startDate, { message: "Das Ende darf nicht vor dem Start liegen.", path: ["endDate"] })
   .refine((p) => p.enrollmentDeadline <= p.endDate, {
-    message: "Die Einschreibefrist darf nicht nach dem Projektende liegen.",
+    message: "Die Einschreibefrist darf nicht nach dem Ende des Projekttags liegen.",
     path: ["enrollmentDeadline"],
   });
 

@@ -9,7 +9,7 @@ import Link from "next/link";
 
 export const metadata = {
   title: "Schulprojekt Verwaltung",
-  description: "Projekte und Gruppen verwalten",
+  description: "Projekttage und Projekte verwalten",
 };
 
 function LegalFooter() {
