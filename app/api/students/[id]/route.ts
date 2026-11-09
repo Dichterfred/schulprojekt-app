@@ -4,7 +4,7 @@ import { ApiError, handle, notFound, parseBody, requireRole, type IdParams } fro
 import { studentUpdateSchema } from "@/lib/validation";
 import { buildUsernameBase, withNumberSuffix } from "@/lib/username";
 import { assertSchoolClassesExist } from "@/lib/schoolClasses";
-import { pruneInvalidPreferences } from "@/lib/preferencesMaintenance";
+import { pruneInvalidPreferences, TX_OPTIONS } from "@/lib/preferencesMaintenance";
 import { requireUsernameBase, studentListSelect, takenUsernames } from "@/lib/students";
 
 /**
@@ -66,7 +66,7 @@ export const PATCH = handle<IdParams>(async (req, { params }) => {
     });
     if (classChanged) await pruneInvalidPreferences(tx, { studentIds: [id] });
     return result;
-  });
+  }, TX_OPTIONS);
   return NextResponse.json(student);
 });
 

@@ -11,7 +11,7 @@ import {
   projectSelect,
   serializeProject,
 } from "@/lib/projects";
-import { pruneInvalidPreferences } from "@/lib/preferencesMaintenance";
+import { pruneInvalidPreferences, TX_OPTIONS } from "@/lib/preferencesMaintenance";
 
 export const GET = handle<IdParams>(async (_req, { params }) => {
   const session = await requireRole("SUPERUSER", "TEACHER");
@@ -67,7 +67,7 @@ export const PATCH = handle<IdParams>(async (req, { params }) => {
     if (excludedChanged) await pruneInvalidPreferences(tx, { projectDayId: project.projectDayId });
     if (imageChanged && project.imageId) await tx.image.delete({ where: { id: project.imageId } });
     return result;
-  });
+  }, TX_OPTIONS);
 
   return NextResponse.json(serializeProject(updated));
 });
@@ -82,6 +82,6 @@ export const DELETE = handle<IdParams>(async (_req, { params }) => {
     if (project.imageId) await tx.image.delete({ where: { id: project.imageId } });
     // Übrige Ränge der betroffenen Schüler lückenlos verdichten
     await pruneInvalidPreferences(tx, { projectDayId: project.projectDayId });
-  });
+  }, TX_OPTIONS);
   return NextResponse.json({ success: true });
 });

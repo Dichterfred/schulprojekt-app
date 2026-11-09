@@ -1,6 +1,9 @@
 import type { Prisma } from "@prisma/client";
 import { compactRanks } from "@/lib/ranks";
 
+/** Großzügiges Timeout für Transaktionen, die `pruneInvalidPreferences` aufrufen (viele Zeilen möglich). */
+export const TX_OPTIONS = { timeout: 30_000 } as const;
+
 /** Abstand für die Zwischenränge in Phase 1 (deutlich über jedem realen Rang). */
 const RANK_OFFSET = 10000;
 
@@ -63,12 +66,24 @@ export async function pruneInvalidPreferences(
   const changes = [...groups.values()].flatMap((list) => compactRanks(list));
   if (changes.length === 0) return;
 
-  // Zwei Phasen wegen @@unique([studentId, projectDayId, rank]):
-  // erst alle betroffenen aus dem Weg räumen, dann auf den Zielrang setzen.
+  // Zwei Phasen wegen @@unique([studentId, projectDayId, rank]), gebündelt statt zeilenweise:
+  // Phase 1 räumt alle betroffenen aus dem Weg (rank + 10000),
+  // Phase 2 setzt sie auf den Zielrang – ein updateMany pro Differenz (from - to).
+  await tx.preference.updateMany({
+    where: { id: { in: changes.map((c) => c.id) } },
+    data: { rank: { increment: RANK_OFFSET } },
+  });
+  const byDelta = new Map<number, string[]>();
   for (const c of changes) {
-    await tx.preference.update({ where: { id: c.id }, data: { rank: c.from + RANK_OFFSET } });
+    const delta = c.from - c.to;
+    const ids = byDelta.get(delta);
+    if (ids) ids.push(c.id);
+    else byDelta.set(delta, [c.id]);
   }
-  for (const c of changes) {
-    await tx.preference.update({ where: { id: c.id }, data: { rank: c.to } });
+  for (const [delta, ids] of byDelta) {
+    await tx.preference.updateMany({
+      where: { id: { in: ids } },
+      data: { rank: { decrement: RANK_OFFSET + delta } },
+    });
   }
 }

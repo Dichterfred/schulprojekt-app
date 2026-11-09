@@ -12,7 +12,7 @@ import {
   serializeProjectDay,
 } from "@/lib/projects";
 import { assertSchoolClassesExist } from "@/lib/schoolClasses";
-import { pruneInvalidPreferences } from "@/lib/preferencesMaintenance";
+import { pruneInvalidPreferences, TX_OPTIONS } from "@/lib/preferencesMaintenance";
 
 /** Projekttag mit den Projekten, die der Nutzer sehen darf (Lehrer: nur eigene). */
 export const GET = handle<IdParams>(async (_req, { params }) => {
@@ -71,7 +71,7 @@ export const PATCH = handle<IdParams>(async (req, { params }) => {
 
     if (imageChanged && day.imageId) await tx.image.delete({ where: { id: day.imageId } });
     return result;
-  });
+  }, TX_OPTIONS);
 
   return NextResponse.json(serializeProjectDay(updated));
 });

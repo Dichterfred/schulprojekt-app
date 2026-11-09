@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { badRequest, handle, requireRole } from "@/lib/api";
+import { ApiError, badRequest, handle, requireRole } from "@/lib/api";
 import { MAX_IMPORT_BYTES, parseStudentWorkbook, planImport, type ImportIssue } from "@/lib/studentImport";
 import { createStudentCredentials } from "@/lib/studentPassword";
 import { assignUsernames, buildUsernameBase } from "@/lib/username";
@@ -12,6 +12,12 @@ const errorResponse = (errors: ImportIssue[]) =>
 /** Excel-Import (ganz oder gar nicht). Antwort: Anzahl, übersprungene Duplikate, IDs der neuen Schüler. */
 export const POST = handle(async (req) => {
   await requireRole("SUPERUSER");
+
+  // Früh abweisen, bevor der Body gelesen wird (+64 KB für Multipart-Overhead)
+  const contentLength = Number(req.headers.get("content-length") ?? 0);
+  if (contentLength > MAX_IMPORT_BYTES + 64 * 1024) {
+    throw new ApiError(413, `Die Datei ist zu groß (max. ${MAX_IMPORT_BYTES / 1024 / 1024} MB).`);
+  }
 
   let form: FormData;
   try {

@@ -41,6 +41,24 @@ function mockTx(opts: {
         p.rank = data.rank;
         return p;
       },
+      updateMany: async ({
+        where,
+        data,
+      }: {
+        where: { id: { in: string[] } };
+        data: { rank: { increment?: number; decrement?: number } };
+      }) => {
+        const delta = (data.rank.increment ?? 0) - (data.rank.decrement ?? 0);
+        // Postgres prüft nicht-verzögerbare Unique-Constraints zeilenweise
+        for (const id of where.id.in) {
+          const p = prefs.find((x) => x.id === id)!;
+          const rank = p.rank + delta;
+          calls.push({ op: "updateMany", id, rank });
+          assertFree(p, rank);
+          p.rank = rank;
+        }
+        return { count: where.id.in.length };
+      },
     },
     project: {
       findMany: async ({ where }: { where: { id: { in: string[] } } }) =>
@@ -69,12 +87,12 @@ describe("pruneInvalidPreferences", () => {
 
     await pruneInvalidPreferences(tx, { projectDayId: "d" });
 
-    const updates = calls.filter((c) => c.op === "update");
-    // Phase 1: alle betroffenen über 10000, Phase 2: Zielränge
-    expect(updates.map((u) => u.rank! > 10000)).toEqual([true, true, false, false]);
-    expect(updates.slice(2)).toEqual([
-      { op: "update", id: "b", rank: 2 },
-      { op: "update", id: "c", rank: 3 },
+    const writes = calls.filter((c) => c.op === "update" || c.op === "updateMany");
+    // Phase 1: alle betroffenen über 10000, erst danach Phase 2 auf die Zielränge
+    expect(writes.map((u) => u.rank! > 10000)).toEqual([true, true, false, false]);
+    expect(writes.slice(2).map((u) => [u.id, u.rank])).toEqual([
+      ["b", 2],
+      ["c", 3],
     ]);
     expect(prefs.map((p) => [p.id, p.rank])).toEqual([
       ["a", 1],
@@ -119,6 +137,36 @@ describe("pruneInvalidPreferences", () => {
     await pruneInvalidPreferences(tx, { studentIds: ["s1", "s2"] });
 
     expect(prefs.map((p) => [p.id, p.rank])).toEqual([["ok", 1]]);
+  });
+
+  it("bündelt die Schreibzugriffe: 1× Phase 1, 1× pro Differenz in Phase 2", async () => {
+    // Zwei Schüler, Ränge [2,3,5,6] → [1,2,3,4] (Differenzen 1,1,2,2) und [2] → [1] (Differenz 1)
+    const p = (id: string, studentId: string, rank: number) => ({ id, rank, studentId, projectDayId: "d", projectId: `p${rank}` });
+    const { tx, prefs, calls } = mockTx({
+      prefs: [p("a", "s1", 2), p("b", "s1", 3), p("c", "s1", 5), p("e", "s1", 6), p("f", "s2", 2)],
+      studentClass: { s1: "k1", s2: "k1" },
+      excluded: {},
+      dayClasses: { d: ["k1"] },
+    });
+    const updateManyCalls: number[] = [];
+    const orig = (tx as unknown as { preference: { updateMany: (a: { where: { id: { in: string[] } } }) => unknown } }).preference;
+    const inner = orig.updateMany;
+    orig.updateMany = (a) => {
+      updateManyCalls.push(a.where.id.in.length);
+      return inner(a as never);
+    };
+
+    await pruneInvalidPreferences(tx, { projectDayId: "d" });
+
+    expect(calls.some((c) => c.op === "update")).toBe(false);
+    expect(updateManyCalls).toEqual([5, 3, 2]);
+    expect(prefs.map((x) => [x.id, x.rank])).toEqual([
+      ["a", 1],
+      ["b", 2],
+      ["c", 3],
+      ["e", 4],
+      ["f", 1],
+    ]);
   });
 
   it("tut nichts, wenn alles gültig und lückenlos ist", async () => {
