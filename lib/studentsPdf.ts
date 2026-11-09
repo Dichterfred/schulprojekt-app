@@ -137,3 +137,30 @@ export async function renderCredentialsPdf(
   return pdfDoc.save();
 }
 
+
+const FILE_UMLAUTS: Record<string, string> = { ä: "ae", ö: "oe", ü: "ue", Ä: "AE", Ö: "OE", Ü: "UE", ß: "ss" };
+
+/** Dateiname "zugangsdaten-<label>.pdf"; nur ASCII-Zeichen, die im Header unproblematisch sind. */
+export function credentialsPdfFileName(label: string): string {
+  const safe = label
+    .replace(/[äöüÄÖÜß]/g, (c) => FILE_UMLAUTS[c] ?? c)
+    .normalize("NFKD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^A-Za-z0-9_-]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return `zugangsdaten-${safe || "klasse"}.pdf`;
+}
+
+/** Gruppiert bereits sortierte Zeilen nach Klasse (Reihenfolge bleibt erhalten). */
+export function groupByClass(
+  rows: (CredentialRow & { className: string })[],
+): { className: string; students: CredentialRow[] }[] {
+  const groups: { className: string; students: CredentialRow[] }[] = [];
+  for (const { className, ...student } of rows) {
+    const last = groups[groups.length - 1];
+    if (last && last.className === className) last.students.push(student);
+    else groups.push({ className, students: [student] });
+  }
+  return groups;
+}

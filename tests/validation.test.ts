@@ -4,6 +4,7 @@ import {
   priorityRankSchema,
   projectDaySchema,
   projectSchema,
+  projectUpdateSchema,
   studentCreateSchema,
   studentsPdfRequestSchema,
   studentUpdateSchema,
@@ -56,6 +57,16 @@ describe("weitere Schemas", () => {
   it("projectSchema: excludedClassIds fehlt → []", () => {
     expect(projectSchema.parse({ name: "A", description: "B", maxStudents: 5 }).excludedClassIds).toEqual([]);
     expect(projectSchema.parse({ name: "A", description: "B", maxStudents: 5, excludedClassIds: ["c"] }).excludedClassIds).toEqual(["c"]);
+  });
+
+  it("projectUpdateSchema setzt keine Defaults (PATCH darf Ausschlüsse nicht leeren)", () => {
+    const parsed = projectUpdateSchema.parse({ name: "Neu" });
+    expect(parsed).toEqual({ name: "Neu" });
+    expect("excludedClassIds" in parsed).toBe(false);
+    expect(projectUpdateSchema.parse({ excludedClassIds: [] }).excludedClassIds).toEqual([]);
+    expect(projectUpdateSchema.safeParse({ maxStudents: 0 }).success).toBe(false);
+    // Projekttag eines Projekts lässt sich nicht per PATCH ändern
+    expect(projectUpdateSchema.parse({ projectDayId: "x" })).toEqual({});
   });
 
   it("studentUpdateSchema ist teilweise", () => {

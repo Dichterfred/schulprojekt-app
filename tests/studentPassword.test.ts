@@ -54,11 +54,11 @@ describe("Schülerpasswort", () => {
   });
 
   it("loadPasswordKey wirft bei fehlendem oder falschem Schlüssel", () => {
-    expect(() => loadPasswordKey({})).toThrow(/STUDENT_PASSWORD_KEY/);
+    expect(() => loadPasswordKey({} as unknown as NodeJS.ProcessEnv)).toThrow(/STUDENT_PASSWORD_KEY/);
     expect(() =>
       loadPasswordKey({
         STUDENT_PASSWORD_KEY: Buffer.alloc(16).toString("base64"),
-      } as NodeJS.ProcessEnv),
+      } as unknown as NodeJS.ProcessEnv),
     ).toThrow(/32-Byte/);
   });
 
@@ -66,7 +66,7 @@ describe("Schülerpasswort", () => {
     const k = randomBytes(32);
     const loaded = loadPasswordKey({
       STUDENT_PASSWORD_KEY: k.toString("base64"),
-    } as NodeJS.ProcessEnv);
+    } as unknown as NodeJS.ProcessEnv);
     expect(loaded.equals(k)).toBe(true);
   });
 

@@ -1,23 +1,35 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { badRequest, handle, parseBody, requireRole } from "@/lib/api";
-import { projectSchema } from "@/lib/validation";
-import { generateUniqueProjectCode } from "@/lib/projectCode";
-import { assertImageUsable, projectAccessFilter, projectSelect, serializeProject } from "@/lib/projects";
+import { invalidExcludedClassIds, projectAccessFilter } from "@/lib/access";
+import { projectCreateSchema } from "@/lib/validation";
+import {
+  assertImageUsable,
+  EXCLUDED_CLASSES_ERROR,
+  findProjectDay,
+  projectSelect,
+  serializeProject,
+} from "@/lib/projects";
 
-export const GET = handle(async () => {
+/** Projekte eines Projekttags (`?projectDayId=`); Lehrer sehen nur eigene. */
+export const GET = handle(async (req) => {
   const session = await requireRole("SUPERUSER", "TEACHER");
+  const projectDayId = new URL(req.url).searchParams.get("projectDayId");
+  if (!projectDayId) throw badRequest("projectDayId erforderlich.");
+
+  const day = await findProjectDay(projectDayId);
   const projects = await prisma.project.findMany({
-    where: projectAccessFilter(session),
+    where: { projectDayId: day.id, ...projectAccessFilter(session.user) },
     select: projectSelect,
-    orderBy: { createdAt: "desc" },
+    orderBy: { createdAt: "asc" },
   });
   return NextResponse.json(projects.map(serializeProject));
 });
 
 export const POST = handle(async (req) => {
   const session = await requireRole("SUPERUSER", "TEACHER");
-  const data = await parseBody(req, projectSchema);
+  const data = await parseBody(req, projectCreateSchema);
+  const day = await findProjectDay(data.projectDayId);
 
   // Owner: Lehrer immer selbst; Superuser optional einem Lehrer zuordnen.
   let ownerId: string | null = session.user.id;
@@ -30,20 +42,21 @@ export const POST = handle(async (req) => {
     }
   }
 
+  const excluded = [...new Set(data.excludedClassIds)];
+  if (invalidExcludedClassIds(excluded, day.schoolClasses.map((c) => c.id)).length > 0) {
+    throw badRequest(EXCLUDED_CLASSES_ERROR);
+  }
   if (data.bannerImage) await assertImageUsable(data.bannerImage, {});
 
   const project = await prisma.project.create({
     data: {
       name: data.name,
       description: data.description,
-      studentCount: data.studentCount,
-      code: await generateUniqueProjectCode(data.name),
-      startDate: data.startDate,
-      endDate: data.endDate,
-      enrollmentDeadline: data.enrollmentDeadline,
+      maxStudents: data.maxStudents,
+      projectDayId: day.id,
       imageId: data.bannerImage ?? null,
       ownerId,
-      schoolClasses: { connect: data.schoolClassIds.map((id) => ({ id })) },
+      excludedClasses: { connect: excluded.map((id) => ({ id })) },
     },
     select: projectSelect,
   });

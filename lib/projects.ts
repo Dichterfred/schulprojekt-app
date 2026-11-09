@@ -2,71 +2,78 @@ import type { Prisma } from "@prisma/client";
 import type { Session } from "next-auth";
 import { prisma } from "@/lib/prisma";
 import { notFound } from "@/lib/api";
+import { projectAccessFilter } from "@/lib/access";
 import { imageUrl } from "@/lib/validation";
 
-/** Felder, die Listen/Detailansichten brauchen – bewusst ohne Bilddaten. */
-export const projectSelect = {
+export const EXCLUDED_CLASSES_ERROR = "Ausgeschlossene Klassen müssen zum Projekttag gehören.";
+
+const classSelect = { select: { id: true, name: true, sortOrder: true }, orderBy: { sortOrder: "asc" } } as const;
+
+/** Felder eines Projekttags für Listen/Detailansichten – bewusst ohne Bilddaten. */
+export const projectDaySelect = {
   id: true,
   name: true,
   description: true,
-  studentCount: true,
   code: true,
   startDate: true,
   endDate: true,
   enrollmentDeadline: true,
   imageId: true,
-  ownerId: true,
   createdAt: true,
-  schoolClasses: { select: { id: true, name: true, sortOrder: true }, orderBy: { sortOrder: "asc" } },
-  groups: { select: { id: true, name: true, maxStudents: true }, orderBy: { createdAt: "asc" } },
-  _count: { select: { enrollments: true } },
-} satisfies Prisma.ProjectSelect;
+  schoolClasses: classSelect,
+} satisfies Prisma.ProjectDaySelect;
 
-type ProjectRow = Prisma.ProjectGetPayload<{ select: typeof projectSelect }>;
+type ProjectDayRow = Prisma.ProjectDayGetPayload<{ select: typeof projectDaySelect }>;
 
-export function serializeProject({ imageId, _count, ...p }: ProjectRow) {
-  return { ...p, bannerImage: imageUrl(imageId), enrolledCount: _count.enrollments };
+export function serializeProjectDay({ imageId, ...d }: ProjectDayRow) {
+  return { ...d, bannerImage: imageUrl(imageId) };
 }
 
-export const groupSelect = {
+/** Felder eines Projekts inkl. Owner (Anzeige) und ausgeschlossener Klassen. */
+export const projectSelect = {
   id: true,
   name: true,
   description: true,
   maxStudents: true,
   imageId: true,
-  projectId: true,
+  projectDayId: true,
+  ownerId: true,
   createdAt: true,
-} satisfies Prisma.GroupSelect;
+  owner: { select: { id: true, username: true } },
+  excludedClasses: classSelect,
+} satisfies Prisma.ProjectSelect;
 
-type GroupRow = Prisma.GroupGetPayload<{ select: typeof groupSelect }>;
+type ProjectRow = Prisma.ProjectGetPayload<{ select: typeof projectSelect }>;
 
-export function serializeGroup({ imageId, ...g }: GroupRow) {
-  return { ...g, bannerImage: imageUrl(imageId) };
+export function serializeProject({ imageId, ...p }: ProjectRow) {
+  return { ...p, bannerImage: imageUrl(imageId) };
 }
 
-/** Superuser dürfen alles, Lehrer nur eigene Projekte. */
-export function projectAccessFilter(session: Session): Prisma.ProjectWhereInput {
-  return session.user.role === "SUPERUSER" ? {} : { ownerId: session.user.id };
+/** Lädt einen Projekttag (lesbar für alle Lehrer und den Super User) – sonst 404. */
+export async function findProjectDay(id: string) {
+  const day = await prisma.projectDay.findUnique({ where: { id }, select: projectDaySelect });
+  if (!day) throw notFound("Projekttag nicht gefunden.");
+  return day;
 }
 
-/** Lädt ein Projekt, auf das der Nutzer Zugriff hat – sonst 404. */
-export async function findAccessibleProject(session: Session, projectId: string) {
+/** Lädt ein Projekt, auf das der Nutzer Zugriff hat (Super User alle, Lehrer eigene) – sonst 404. */
+export async function findAccessibleProject(session: Session, id: string) {
   const project = await prisma.project.findFirst({
-    where: { id: projectId, ...projectAccessFilter(session) },
+    where: { id, ...projectAccessFilter(session.user) },
     select: projectSelect,
   });
   if (!project) throw notFound();
   return project;
 }
 
-/** Prüft, dass ein Bild existiert und noch keinem anderen Projekt/keiner anderen Gruppe gehört. */
-export async function assertImageUsable(imageId: string, owner: { projectId?: string; groupId?: string }) {
+/** Prüft, dass ein Bild existiert und noch keinem anderen Projekttag/Projekt gehört. */
+export async function assertImageUsable(imageId: string, owner: { projectDayId?: string; projectId?: string }) {
   const image = await prisma.image.findUnique({
     where: { id: imageId },
-    select: { project: { select: { id: true } }, group: { select: { id: true } } },
+    select: { projectDay: { select: { id: true } }, project: { select: { id: true } } },
   });
   if (!image) throw notFound("Bild nicht gefunden.");
+  const usedByOtherDay = image.projectDay && image.projectDay.id !== owner.projectDayId;
   const usedByOtherProject = image.project && image.project.id !== owner.projectId;
-  const usedByOtherGroup = image.group && image.group.id !== owner.groupId;
-  if (usedByOtherProject || usedByOtherGroup) throw notFound("Bild nicht gefunden.");
+  if (usedByOtherDay || usedByOtherProject) throw notFound("Bild nicht gefunden.");
 }

@@ -35,6 +35,6 @@ export async function generateUniqueProjectCode(name: string): Promise<string> {
   const base = slugifyProjectName(name);
   for (let n = 1; ; n++) {
     const candidate = withSuffix(base, n);
-    if (!(await prisma.project.findUnique({ where: { code: candidate }, select: { id: true } }))) return candidate;
+    if (!(await prisma.projectDay.findUnique({ where: { code: candidate }, select: { id: true } }))) return candidate;
   }
 }

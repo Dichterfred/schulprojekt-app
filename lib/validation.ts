@@ -36,14 +36,21 @@ export const projectDaySchema = z
     path: ["enrollmentDeadline"],
   });
 
-export const projectSchema = z.object({
+const excludedClassIds = z.array(z.string().min(1));
+
+const projectBase = z.object({
   name,
   description,
   maxStudents: positiveInt("Maximale Schüleranzahl"),
   bannerImage,
-  excludedClassIds: z.array(z.string().min(1)).default([]),
+  excludedClassIds,
   assignedOwnerId: z.string().min(1).nullable().optional(),
 });
+
+export const projectSchema = projectBase.extend({ excludedClassIds: excludedClassIds.default([]) });
+
+/** Für PATCH: alles optional und bewusst ohne Defaults – fehlende Felder bleiben unverändert. */
+export const projectUpdateSchema = projectBase.partial();
 
 export const projectCreateSchema = projectSchema.extend({ projectDayId: z.string().min(1, "projectDayId erforderlich.") });
 

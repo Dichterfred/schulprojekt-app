@@ -9,7 +9,7 @@ const ORPHAN_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
 /**
  * Speichert ein Bild in der Tabelle `Image` und gibt seine URL zurück.
- * Die URL wird anschließend beim Speichern von Projekt/Gruppe als `bannerImage` mitgeschickt.
+ * Die URL wird anschließend beim Speichern von Projekttag/Projekt als `bannerImage` mitgeschickt.
  */
 export const POST = handle(async (req) => {
   await requireRole("SUPERUSER", "TEACHER");
@@ -26,7 +26,7 @@ export const POST = handle(async (req) => {
 
   // Hochgeladene, aber nie verwendete Bilder (z. B. abgebrochenes Formular) aufräumen.
   await prisma.image.deleteMany({
-    where: { project: null, group: null, createdAt: { lt: new Date(Date.now() - ORPHAN_MAX_AGE_MS) } },
+    where: { projectDay: null, project: null, createdAt: { lt: new Date(Date.now() - ORPHAN_MAX_AGE_MS) } },
   });
 
   return NextResponse.json({ url: imageUrl(image.id) }, { status: 201 });

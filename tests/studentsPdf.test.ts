@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { PDFDocument } from "pdf-lib";
 import { promises as fs } from "fs";
 import fontkit from "@pdf-lib/fontkit";
-import { fitText, renderCredentialsPdf, type CredentialRow } from "@/lib/studentsPdf";
+import { credentialsPdfFileName, fitText, groupByClass, renderCredentialsPdf, type CredentialRow } from "@/lib/studentsPdf";
 
 function rows(n: number): CredentialRow[] {
   return Array.from({ length: n }, (_, i) => ({
@@ -82,5 +82,26 @@ describe("fitText", () => {
     ];
     const bytes = await renderCredentialsPdf([{ className: "5a", students }]);
     expect(bytes.length).toBeGreaterThan(0);
+  });
+});
+
+describe("credentialsPdfFileName", () => {
+  it("baut den Dateinamen aus dem Klassennamen", () => {
+    expect(credentialsPdfFileName("5a")).toBe("zugangsdaten-5a.pdf");
+    expect(credentialsPdfFileName("alle")).toBe("zugangsdaten-alle.pdf");
+  });
+  it("entfernt Zeichen, die im Header Probleme machen", () => {
+    expect(credentialsPdfFileName('Q1 "Bio"/Ä')).toBe("zugangsdaten-Q1-Bio-AE.pdf");
+    expect(credentialsPdfFileName("???")).toBe("zugangsdaten-klasse.pdf");
+  });
+});
+
+describe("groupByClass", () => {
+  it("gruppiert in Eingangsreihenfolge nach Klasse", () => {
+    const s = (className: string, lastName: string) => ({ className, firstName: "x", lastName, username: lastName, password: "p" });
+    expect(groupByClass([s("5a", "A"), s("5a", "B"), s("6b", "C")])).toEqual([
+      { className: "5a", students: [{ firstName: "x", lastName: "A", username: "A", password: "p" }, { firstName: "x", lastName: "B", username: "B", password: "p" }] },
+      { className: "6b", students: [{ firstName: "x", lastName: "C", username: "C", password: "p" }] },
+    ]);
   });
 });
