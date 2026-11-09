@@ -48,9 +48,13 @@ const DEMO_STUDENTS = [
 
 /** Optionale Demo-Daten (nur bei SEED_DEMO=true): ein Projekttag und vier Schüler. Idempotent. */
 async function seedDemo() {
+  // Zuerst prüfen, damit bei fehlendem Schlüssel nichts geschrieben wird.
+  const key = loadPasswordKey();
   const classes = await prisma.schoolClass.findMany({ where: { name: { in: ["5a", "5b"] } } });
   const byName = new Map(classes.map((c) => [c.name, c.id]));
-  const existed = await prisma.projectDay.findUnique({ where: { code: DEMO_CODE } });
+  for (const name of ["5a", "5b"]) {
+    if (!byName.has(name)) throw new Error(`Demo-Seed: Klasse ${name} fehlt.`);
+  }
   const now = Date.now();
   const day = 24 * 60 * 60 * 1000;
   await prisma.projectDay.upsert({
@@ -66,15 +70,25 @@ async function seedDemo() {
       schoolClasses: { connect: [...byName.values()].map((id) => ({ id })) },
     },
   });
-  if (existed) {
-    console.log("Demo-Projekttag existiert bereits, überspringe Demo-Schüler.");
+  console.log(`Demo-Projekttag '${DEMO_CODE}' vorhanden.`);
+  // Idempotenz pro Schüler: gleicher Vor-/Nachname in derselben Klasse wird übersprungen.
+  const taken = new Set((await prisma.student.findMany({ select: { username: true } })).map((s) => s.username));
+  const toCreate = [];
+  for (const d of DEMO_STUDENTS) {
+    const schoolClassId = byName.get(d.className)!;
+    const exists = await prisma.student.findFirst({
+      where: { firstName: d.firstName, lastName: d.lastName, schoolClassId },
+      select: { id: true },
+    });
+    if (!exists) toCreate.push({ ...d, schoolClassId });
+  }
+  if (toCreate.length === 0) {
+    console.log("Demo-Schüler existieren bereits, überspringe.");
     return;
   }
-  loadPasswordKey(); // früh mit klarer Meldung scheitern, falls STUDENT_PASSWORD_KEY fehlt
-  const taken = new Set((await prisma.student.findMany({ select: { username: true } })).map((s) => s.username));
-  console.log(`Demo-Projekttag '${DEMO_CODE}' wurde erstellt. Demo-Schüler (Anmeldename / Passwort):`);
-  for (const s of assignUsernames(DEMO_STUDENTS, taken)) {
-    const { password, passwordHash, passwordEncrypted } = await createStudentCredentials();
+  console.log("Neue Demo-Schüler (Anmeldename / Passwort):");
+  for (const s of assignUsernames(toCreate, taken)) {
+    const { password, passwordHash, passwordEncrypted } = await createStudentCredentials(key);
     await prisma.student.create({
       data: {
         firstName: s.firstName,
@@ -82,7 +96,7 @@ async function seedDemo() {
         username: s.username,
         passwordHash,
         passwordEncrypted,
-        schoolClassId: byName.get(s.className)!,
+        schoolClassId: s.schoolClassId,
       },
     });
     console.log(`  ${s.username} / ${password}`);
