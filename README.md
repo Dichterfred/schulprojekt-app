@@ -1,6 +1,6 @@
 # Schulprojekt Verwaltung
 
-Next.js 14 (App Router) + TypeScript App zur Verwaltung von Projekten und Gruppen,
+Next.js 14 (App Router) + TypeScript App zur Verwaltung von Projekttagen und Projekten,
 mit getrennten Logins für Lehrer und Schüler, Schulklassen-Zuordnung, Zeitrahmen,
 Einschreibefrist mit serverseitiger Prüfung, Gruppen-Prioritäten für Schüler sowie
 Impressum/Datenschutz.
@@ -44,7 +44,7 @@ Das Interface orientiert sich an den Apple Human Interface Guidelines:
 | Rolle | URL | Zugangsdaten |
 |---|---|---|
 | Super User / Lehrer | `/lehrer` | Benutzername + Passwort (erster Super User per Seed, siehe Setup) |
-| Schüler | `/schueler` | Projekt-Code + `vorname.nachname` + persönliche 6-stellige PIN |
+| Schüler | `/schueler` | Projekttag-Code + Anmeldename (`vorname.nachname`) + Passwort (10 Zeichen, per PDF verteilt) |
 
 ---
 
@@ -101,16 +101,15 @@ Fixed Frosted-Glass-Footer unten rechts auf jeder Seite mit Links zu `/impressum
 | Tabelle | Zweck |
 |---|---|
 | `User` | Nur Lehrer und Super User (Benutzername + Passwort-Hash). |
-| `Student` | Schüler mit Vorname, Nachname und Klasse. Kann in mehreren Projekten eingeschrieben sein. |
-| `SchoolClass` | 16 Klassen (5a–12b), n:m mit Projekten verknüpft. |
-| `Project` | Projekt mit Klassen, Zeitrahmen, Einschreibefrist und Code (aus dem Namen erzeugt, ändert sich beim Umbenennen nicht). |
-| `Group` | Gruppe innerhalb eines Projekts. |
-| `Enrollment` | Einschreibung Schüler ↔ Projekt, enthält die Login-PIN (nur als Hash). |
-| `Preference` | Priorität (`rank`) einer Einschreibung für eine Gruppe – Eingabe für den Einteilungsalgorithmus. |
-| `Assignment` | Ergebnis der Einteilung: pro Projekt und Schüler genau eine Gruppe. |
-| `Image` | Bannerbilder von Projekten/Gruppen, ausgeliefert über `/api/images/<id>`. |
+| `Student` | Schüler mit Vor-/Nachname, Klasse, eindeutigem Anmeldenamen und Passwort (bcrypt-Hash + AES-256-GCM-verschlüsselt für die PDF). |
+| `SchoolClass` | 16 Klassen (5a–12b), n:m mit Projekttagen verknüpft; Projekte können Klassen ausschließen. |
+| `ProjectDay` | Projekttag mit Klassen, Zeitrahmen, Einschreibefrist und Code (aus dem Namen erzeugt, ändert sich beim Umbenennen nicht). |
+| `Project` | Projekt innerhalb eines Projekttags (Plätze, optional Lehrer, ausgeschlossene Klassen). |
+| `Preference` | Priorität (`rank`) eines Schülers für ein Projekt – Eingabe für den Einteilungsalgorithmus. |
+| `Assignment` | Ergebnis der Einteilung: pro Projekttag und Schüler genau ein Projekt. |
+| `Image` | Bannerbilder von Projekttagen/Projekten, ausgeliefert über `/api/images/<id>`. |
 
-Schüler können nur in Projekte eingeschrieben werden, denen ihre Klasse zugeordnet ist.
+Schüler können sich nur an Projekttagen anmelden, denen ihre Klasse zugeordnet ist.
 
 ---
 
@@ -125,6 +124,7 @@ npm install
 
 # 2. .env anlegen (Vorlage: example.env)
 #    DATABASE_URL="postgresql://dev:dev@localhost:5433/schulprojekt"   (lokal)
+#    STUDENT_PASSWORD_KEY mit `openssl rand -base64 32` erzeugen (Schüler-Passwörter)
 
 # 3. Lokale Datenbank starten (optional)
 docker compose -f docker-compose.dev.yml up -d
@@ -133,6 +133,7 @@ docker compose -f docker-compose.dev.yml up -d
 npx prisma migrate deploy
 
 # 5. Seed: erster Super User + Schulklassen 5a–12b
+#    (optional Demo-Projekttag mit 4 Schülern: SEED_DEMO=true, Zugangsdaten nur auf der Konsole)
 #    Das Passwort wird NICHT fest vorgegeben, sondern per Umgebungsvariable (.env) gesetzt.
 #    `npm run build` macht Schritt 4 und 5 automatisch; für `npm run dev` einmal manuell:
 npx prisma db seed
@@ -171,7 +172,8 @@ npx prisma migrate diff --from-url "$DATABASE_URL" --to-schema-datamodel prisma/
 - **`NEXTAUTH_SECRET`** durch einen zufälligen langen String ersetzen: `openssl rand -base64 32`
 - **`NEXTAUTH_URL`** auf die echte Adresse der App setzen.
 - Lehrer-Passwörter haben mindestens 8 Zeichen.
-- Schüler-PINs sind 6-stellig und werden nur als Hash gespeichert. Sie sind nur direkt nach
-  dem Erzeugen sichtbar; bei Verlust in den Einstellungen „Neue PIN“ erzeugen.
+- Schüler-Passwörter (10 Zeichen) werden als bcrypt-Hash und AES-256-GCM-verschlüsselt
+  gespeichert (Schlüssel: `STUDENT_PASSWORD_KEY`). Klartext gibt es nur in der PDF und direkt
+  nach „Neues Passwort erzeugen“.
 - Beide Logins sind auf 10 Fehlversuche pro 15 Minuten begrenzt (im Speicher des
   Server-Prozesses – bei mehreren Instanzen nicht geteilt).

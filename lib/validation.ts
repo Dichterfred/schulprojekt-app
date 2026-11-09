@@ -20,17 +20,15 @@ const positiveInt = (label: string) =>
   z.coerce.number({ error: `${label} muss eine Zahl sein.` }).int(`${label} muss eine ganze Zahl sein.`).positive(`${label} muss größer als 0 sein.`);
 const date = (label: string) => z.coerce.date({ error: `${label}: ungültiges Datum.` });
 
-export const projectSchema = z
+export const projectDaySchema = z
   .object({
     name,
     description,
-    studentCount: positiveInt("Schüleranzahl"),
     schoolClassIds: z.array(z.string().min(1)).min(1, "Es muss mindestens eine Schulklasse ausgewählt werden."),
     startDate: date("Start"),
     endDate: date("Ende"),
     enrollmentDeadline: date("Einschreibefrist"),
     bannerImage,
-    assignedOwnerId: z.string().min(1).nullable().optional(),
   })
   .refine((p) => p.endDate >= p.startDate, { message: "Das Ende darf nicht vor dem Start liegen.", path: ["endDate"] })
   .refine((p) => p.enrollmentDeadline <= p.endDate, {
@@ -38,14 +36,16 @@ export const projectSchema = z
     path: ["enrollmentDeadline"],
   });
 
-export const groupSchema = z.object({
+export const projectSchema = z.object({
   name,
   description,
   maxStudents: positiveInt("Maximale Schüleranzahl"),
   bannerImage,
+  excludedClassIds: z.array(z.string().min(1)).default([]),
+  assignedOwnerId: z.string().min(1).nullable().optional(),
 });
 
-export const groupCreateSchema = groupSchema.extend({ projectId: z.string().min(1, "projectId erforderlich.") });
+export const projectCreateSchema = projectSchema.extend({ projectDayId: z.string().min(1, "projectDayId erforderlich.") });
 
 export const PASSWORD_MIN_LENGTH = 8;
 const password = z
@@ -75,23 +75,16 @@ export const studentCreateSchema = z.object({
   schoolClassId: z.string().min(1, "Bitte eine Klasse auswählen."),
 });
 
-export const enrollmentCreateSchema = z.object({ studentId: z.string().min(1) });
+export const studentUpdateSchema = studentCreateSchema.partial();
 
 export const priorityRankSchema = z.object({
-  groupId: z.string().min(1),
+  projectId: z.string().min(1),
   priority: z.number().int("Priorität muss eine ganze Zahl sein.").min(1),
 });
 
-/**
- * Zerlegt die Login-Eingabe "vorname.nachname" am letzten Punkt.
- * Leerzeichen bleiben erhalten (Doppelnamen), Groß-/Kleinschreibung wird ignoriert.
- */
-export function parseStudentLogin(fullname: string): { firstName: string; lastName: string } | null {
-  const value = fullname.trim().toLowerCase();
-  const dot = value.lastIndexOf(".");
-  if (dot <= 0 || dot === value.length - 1) return null;
-  const firstName = value.slice(0, dot).trim();
-  const lastName = value.slice(dot + 1).trim();
-  if (!firstName || !lastName) return null;
-  return { firstName, lastName };
-}
+/** Body für den PDF-Export: eine Klasse, einzelne Schüler-IDs oder alle Klassen (leer). */
+export const studentsPdfRequestSchema = z.union([
+  z.object({ classId: z.string().min(1) }),
+  z.object({ studentIds: z.array(z.string().min(1)).min(1).max(2000) }),
+  z.strictObject({}),
+]);
