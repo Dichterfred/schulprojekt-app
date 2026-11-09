@@ -21,6 +21,16 @@ describe("guardRedirect", () => {
     expect(guardRedirect("/settings", "TEACHER")).toBe("/projekttage");
   });
 
+  it("leitet Lehrer von den Projekttag-Formularen weg, lässt Projekt-Formulare aber zu", () => {
+    expect(guardRedirect("/projekttage/new", "TEACHER")).toBe("/projekttage");
+    expect(guardRedirect("/projekttage/abc/edit", "TEACHER")).toBe("/projekttage");
+    expect(guardRedirect("/projekttage/abc", "TEACHER")).toBeNull();
+    expect(guardRedirect("/projekttage/abc/projekte/new", "TEACHER")).toBeNull();
+    expect(guardRedirect("/projekttage/abc/projekte/p1/edit", "TEACHER")).toBeNull();
+    expect(guardRedirect("/projekttage/new", "SUPERUSER")).toBeNull();
+    expect(guardRedirect("/projekttage/abc/edit", "SUPERUSER")).toBeNull();
+  });
+
   it("lässt den Super User überall in den Lehrerbereich", () => {
     expect(guardRedirect("/projekttage", "SUPERUSER")).toBeNull();
     expect(guardRedirect("/schueler-verwaltung", "SUPERUSER")).toBeNull();

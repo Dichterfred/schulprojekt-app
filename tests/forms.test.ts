@@ -68,6 +68,19 @@ describe("projectFormToBody", () => {
     expect(projectFormToBody(projectForm, true).assignedOwnerId).toBeNull();
   });
 
+  it("Super-User-Bodies (Owner null oder ID) sind für POST und PATCH gültig", () => {
+    for (const assignedOwnerId of ["", "t1"]) {
+      const body = projectFormToBody({ ...projectForm, assignedOwnerId }, true);
+      expect(body.assignedOwnerId).toBe(assignedOwnerId || null);
+      const update = projectUpdateSchema.safeParse(body);
+      expect(update.success).toBe(true);
+      expect(update.data?.assignedOwnerId).toBe(assignedOwnerId || null);
+      const create = projectCreateSchema.safeParse({ ...body, projectDayId: "d1" });
+      expect(create.success).toBe(true);
+      expect(create.data?.assignedOwnerId).toBe(assignedOwnerId || null);
+    }
+  });
+
   it("überträgt ein Projekt in die Formularwerte", () => {
     expect(
       projectToForm({

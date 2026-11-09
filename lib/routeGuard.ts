@@ -8,6 +8,13 @@ function isUnder(pathname: string, base: string): boolean {
 const TEACHER_AREAS = ["/projekttage", "/schueler-verwaltung", "/settings"];
 const SUPERUSER_ONLY = ["/schueler-verwaltung", "/settings"];
 
+/** Projekttag anlegen/bearbeiten (nicht die Projekt-Formulare darunter) ist dem Super User vorbehalten. */
+const SUPERUSER_ONLY_PATTERNS = [/^\/projekttage\/new\/?$/, /^\/projekttage\/[^/]+\/edit\/?$/];
+
+function isSuperuserOnly(pathname: string): boolean {
+  return SUPERUSER_ONLY.some((base) => isUnder(pathname, base)) || SUPERUSER_ONLY_PATTERNS.some((re) => re.test(pathname));
+}
+
 /** Ziel der Weiterleitung für einen Pfad und eine Rolle (`null` = keine Sitzung) – oder `null`, wenn der Zugriff erlaubt ist. */
 export function guardRedirect(pathname: string, role: GuardRole | null): string | null {
   const isStudentArea = isUnder(pathname, "/student");
@@ -18,7 +25,7 @@ export function guardRedirect(pathname: string, role: GuardRole | null): string 
 
   if (isTeacherArea) {
     if (role === "STUDENT") return "/student";
-    if (role !== "SUPERUSER" && SUPERUSER_ONLY.some((base) => isUnder(pathname, base))) return "/projekttage";
+    if (role !== "SUPERUSER" && isSuperuserOnly(pathname)) return "/projekttage";
     return null;
   }
   return role === "STUDENT" ? null : "/projekttage";

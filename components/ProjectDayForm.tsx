@@ -104,7 +104,7 @@ export default function ProjectDayForm({ dayId }: { dayId?: string }) {
         <div className="card" style={{ maxWidth: 600, margin: "0 auto" }}>
           {me && me.role !== "SUPERUSER" ? (
             <p className="error-text">Nur der Super User darf Projekttage anlegen oder bearbeiten.</p>
-          ) : !loaded ? (
+          ) : !loaded || me === undefined ? (
             error ? <p className="error-text">{error}</p> : <p style={{ color: "var(--color-text-faint)" }}>Lädt…</p>
           ) : (
             <form onSubmit={handleSubmit}>
