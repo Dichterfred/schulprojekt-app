@@ -15,11 +15,38 @@ const COL_GAP = 8;
 
 // Spaltenbreiten (Summe = Seitenbreite - 2 * Rand)
 const COLS = [
-  { title: "Nachname", width: 120 },
-  { title: "Vorname", width: 110 },
-  { title: "Anmeldename", width: 170 },
-  { title: "Passwort", width: PAGE_W - 2 * MARGIN - 400 },
+  { title: "Nachname", width: 95 },
+  { title: "Vorname", width: 85 },
+  { title: "Anmeldename", width: 210 },
+  { title: "Passwort", width: PAGE_W - 2 * MARGIN - 390 },
 ];
+const MIN_SIZE = 6;
+const LINE_H = 10;
+
+// Passt den Text in die Breite: erst Schrift bis minSize verkleinern, sonst in Zeilen umbrechen (nichts geht verloren)
+export function fitText(
+  text: string,
+  font: PDFFont,
+  maxWidth: number,
+  size: number,
+  minSize: number,
+): { lines: string[]; size: number } {
+  let s = size;
+  while (font.widthOfTextAtSize(text, s) > maxWidth && s - 0.5 >= minSize) s -= 0.5;
+  if (font.widthOfTextAtSize(text, s) <= maxWidth) return { lines: [text], size: s };
+  const lines: string[] = [];
+  let cur = "";
+  for (const ch of Array.from(text)) {
+    if (cur !== "" && font.widthOfTextAtSize(cur + ch, s) > maxWidth) {
+      lines.push(cur);
+      cur = ch;
+    } else {
+      cur += ch;
+    }
+  }
+  if (cur !== "") lines.push(cur);
+  return { lines, size: s };
+}
 
 // Kürzt den Text mit "…" so, dass er in die Breite passt
 function fit(text: string, font: PDFFont, size: number, maxWidth: number): string {
@@ -42,8 +69,13 @@ export async function renderCredentialsPdf(
   const grey = rgb(0.5, 0.5, 0.5);
 
   const cellX = (i: number) => MARGIN + COLS.slice(0, i).reduce((s, c) => s + c.width, 0);
+  // Namen: erst Schrift verkleinern, unter der Mindestgröße mit "…" kürzen
   const drawCell = (page: PDFPage, i: number, text: string, y: number, size: number) => {
-    page.drawText(fit(text, font, size, COLS[i].width - COL_GAP), { x: cellX(i), y, size, font, color: black });
+    const maxW = COLS[i].width - COL_GAP;
+    const f = fitText(text, font, maxW, size, MIN_SIZE);
+    const out = f.lines.length > 1 ? fit(text, font, MIN_SIZE, maxW) : f.lines[0];
+    const outSize = f.lines.length > 1 ? MIN_SIZE : f.size;
+    page.drawText(out, { x: cellX(i), y, size: outSize, font, color: black });
   };
 
   const newPage = (title: string): PDFPage => {
@@ -64,23 +96,33 @@ export async function renderCredentialsPdf(
     let page = newPage(title);
     let y = TOP_Y - 50 - ROW_H;
     for (const s of cls.students) {
-      if (y - ROW_H < FOOTER_Y + 20) {
+      // Anmeldename und Passwort nie abschneiden: Schrift verkleinern, sonst umbrechen
+      const user = fitText(s.username, font, COLS[2].width - COL_GAP, 11, MIN_SIZE);
+      const pass = fitText(s.password, font, COLS[3].width - COL_GAP, 14, MIN_SIZE);
+      const extraLines = Math.max(user.lines.length, pass.lines.length, 1) - 1;
+      const rowH = ROW_H + extraLines * LINE_H;
+      if (y - rowH < FOOTER_Y + 20) {
         page = newPage(`${title} (Fortsetzung)`);
         y = TOP_Y - 50 - ROW_H;
       }
       drawCell(page, 0, s.lastName, y, 11);
       drawCell(page, 1, s.firstName, y, 11);
-      drawCell(page, 2, s.username, y, 11);
-      drawCell(page, 3, s.password, y - 1, 14);
+      user.lines.forEach((l, k) =>
+        page.drawText(l, { x: cellX(2), y: y - k * LINE_H, size: user.size, font, color: black }),
+      );
+      pass.lines.forEach((l, k) =>
+        page.drawText(l, { x: cellX(3), y: y - 1 - k * LINE_H, size: pass.size, font, color: black }),
+      );
       // gestrichelte Trennlinie zum Ausschneiden
+      const lineY = y - 12 - extraLines * LINE_H;
       page.drawLine({
-        start: { x: MARGIN, y: y - 12 },
-        end: { x: PAGE_W - MARGIN, y: y - 12 },
+        start: { x: MARGIN, y: lineY },
+        end: { x: PAGE_W - MARGIN, y: lineY },
         thickness: 0.5,
         color: grey,
         dashArray: [4, 3],
       });
-      y -= ROW_H;
+      y -= rowH;
     }
   }
 
