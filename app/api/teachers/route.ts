@@ -1,43 +1,31 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import { prisma } from "@/lib/prisma";
+import { ApiError, handle, parseBody, requireRole } from "@/lib/api";
+import { teacherCreateSchema } from "@/lib/validation";
 
-export async function GET() {
-  const session = await getServerSession(authOptions);
-  if (!session || session.user.role !== "SUPERUSER") {
-    return NextResponse.json({ error: "Nicht autorisiert" }, { status: 401 });
-  }
+const teacherSelect = { id: true, username: true, createdAt: true } as const;
+
+export const GET = handle(async () => {
+  await requireRole("SUPERUSER");
   const teachers = await prisma.user.findMany({
     where: { role: "TEACHER" },
-    select: { id: true, username: true, createdAt: true },
+    select: teacherSelect,
     orderBy: { createdAt: "desc" },
   });
   return NextResponse.json(teachers);
-}
+});
 
-export async function POST(req: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session || session.user.role !== "SUPERUSER") {
-    return NextResponse.json({ error: "Nicht autorisiert" }, { status: 401 });
+export const POST = handle(async (req) => {
+  await requireRole("SUPERUSER");
+  const { username, password } = await parseBody(req, teacherCreateSchema);
+
+  if (await prisma.user.findUnique({ where: { username } })) {
+    throw new ApiError(409, "Benutzername ist bereits vergeben.");
   }
-
-  const body = await req.json();
-  const { username, password } = body;
-
-  if (!username || !password || password.length < 4) {
-    return NextResponse.json({ error: "Benutzername und ein Passwort mit mind. 4 Zeichen sind erforderlich." }, { status: 400 });
-  }
-
-  const existing = await prisma.user.findUnique({ where: { username } });
-  if (existing) return NextResponse.json({ error: "Benutzername ist bereits vergeben." }, { status: 400 });
-
-  const passwordHash = await bcrypt.hash(password, 10);
   const teacher = await prisma.user.create({
-    data: { username, passwordHash, role: "TEACHER" },
-    select: { id: true, username: true, createdAt: true },
+    data: { username, passwordHash: await bcrypt.hash(password, 10), role: "TEACHER" },
+    select: teacherSelect,
   });
-
   return NextResponse.json(teacher, { status: 201 });
-}
+});

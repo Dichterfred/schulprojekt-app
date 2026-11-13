@@ -1,14 +1,27 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { handle, notFound, parseBody, requireRole, type IdParams } from "@/lib/api";
+import { passwordSchema } from "@/lib/validation";
 
-export async function DELETE(req: Request, props: { params: Promise<{ id: string }> }) {
-  const params = await props.params;
-  const session = await getServerSession(authOptions);
-  if (!session || session.user.role !== "SUPERUSER") {
-    return NextResponse.json({ error: "Nicht autorisiert" }, { status: 401 });
-  }
-  await prisma.user.delete({ where: { id: params.id } });
-  return NextResponse.json({ success: true });
+/** Nur Konten mit Rolle TEACHER – Superuser können hierüber nicht gelöscht/geändert werden. */
+async function findTeacher(id: string) {
+  const teacher = await prisma.user.findFirst({ where: { id, role: "TEACHER" }, select: { id: true } });
+  if (!teacher) throw notFound("Lehrer nicht gefunden.");
+  return teacher;
 }
+
+export const DELETE = handle<IdParams>(async (_req, { params }) => {
+  await requireRole("SUPERUSER");
+  const teacher = await findTeacher((await params).id);
+  await prisma.user.delete({ where: { id: teacher.id } });
+  return NextResponse.json({ success: true });
+});
+
+export const PATCH = handle<IdParams>(async (req, { params }) => {
+  await requireRole("SUPERUSER");
+  const teacher = await findTeacher((await params).id);
+  const { password } = await parseBody(req, passwordSchema);
+  await prisma.user.update({ where: { id: teacher.id }, data: { passwordHash: await bcrypt.hash(password, 10) } });
+  return NextResponse.json({ success: true });
+});

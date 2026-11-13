@@ -1,0 +1,32 @@
+export type GuardRole = "SUPERUSER" | "TEACHER" | "STUDENT";
+
+/** Prüft, ob `pathname` genau `base` ist oder darunter liegt (kein Präfix-Treffer wie "/schueler" vs. "/schueler-verwaltung"). */
+function isUnder(pathname: string, base: string): boolean {
+  return pathname === base || pathname.startsWith(`${base}/`);
+}
+
+const TEACHER_AREAS = ["/projekttage", "/schueler-verwaltung", "/settings"];
+const SUPERUSER_ONLY = ["/schueler-verwaltung", "/settings"];
+
+/** Projekttag anlegen/bearbeiten (nicht die Projekt-Formulare darunter) ist dem Super User vorbehalten. */
+const SUPERUSER_ONLY_PATTERNS = [/^\/projekttage\/new\/?$/, /^\/projekttage\/[^/]+\/edit\/?$/];
+
+function isSuperuserOnly(pathname: string): boolean {
+  return SUPERUSER_ONLY.some((base) => isUnder(pathname, base)) || SUPERUSER_ONLY_PATTERNS.some((re) => re.test(pathname));
+}
+
+/** Ziel der Weiterleitung für einen Pfad und eine Rolle (`null` = keine Sitzung) – oder `null`, wenn der Zugriff erlaubt ist. */
+export function guardRedirect(pathname: string, role: GuardRole | null): string | null {
+  const isStudentArea = isUnder(pathname, "/student");
+  const isTeacherArea = TEACHER_AREAS.some((base) => isUnder(pathname, base));
+  if (!isStudentArea && !isTeacherArea) return null;
+
+  if (!role) return isStudentArea ? "/schueler" : "/lehrer";
+
+  if (isTeacherArea) {
+    if (role === "STUDENT") return "/student";
+    if (role !== "SUPERUSER" && isSuperuserOnly(pathname)) return "/projekttage";
+    return null;
+  }
+  return role === "STUDENT" ? null : "/projekttage";
+}

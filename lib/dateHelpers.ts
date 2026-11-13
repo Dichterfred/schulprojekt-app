@@ -17,8 +17,9 @@ export function toLocalDateTimeInputValue(isoString: string): string {
   return local.toISOString().slice(0, 16);
 }
 
+/** Reine Datumswerte liegen als UTC-Tagesgrenzen vor (siehe startOfDayUTC/endOfDayUTC) – daher in UTC formatieren. */
 export function formatDateOnly(isoString: string): string {
-  return new Date(isoString).toLocaleDateString("de-DE");
+  return new Date(isoString).toLocaleDateString("de-DE", { timeZone: "UTC" });
 }
 
 export function formatDateTime(isoString: string): string {

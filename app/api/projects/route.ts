@@ -1,75 +1,64 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { generateUniqueProjectCode } from "@/lib/generateCode";
+import { badRequest, handle, parseBody, requireRole } from "@/lib/api";
+import { invalidExcludedClassIds, projectAccessFilter } from "@/lib/access";
+import { projectCreateSchema } from "@/lib/validation";
+import {
+  assertImageUsable,
+  EXCLUDED_CLASSES_ERROR,
+  findProjectDay,
+  projectSelect,
+  serializeProject,
+} from "@/lib/projects";
 
-export async function GET() {
-  const session = await getServerSession(authOptions);
-  if (!session || session.user.role === "STUDENT") {
-    return NextResponse.json({ error: "Nicht autorisiert" }, { status: 401 });
-  }
+/** Projekte eines Projekttags (`?projectDayId=`); Lehrer sehen nur eigene. */
+export const GET = handle(async (req) => {
+  const session = await requireRole("SUPERUSER", "TEACHER");
+  const projectDayId = new URL(req.url).searchParams.get("projectDayId");
+  if (!projectDayId) throw badRequest("projectDayId erforderlich.");
 
-  const where = session.user.role === "SUPERUSER" ? {} : { ownerId: session.user.id };
-
+  const day = await findProjectDay(projectDayId);
   const projects = await prisma.project.findMany({
-    where,
-    include: { groups: true, schoolClasses: true },
-    orderBy: { createdAt: "desc" },
+    where: { projectDayId: day.id, ...projectAccessFilter(session.user) },
+    select: projectSelect,
+    orderBy: { createdAt: "asc" },
   });
+  return NextResponse.json(projects.map(serializeProject));
+});
 
-  return NextResponse.json(projects);
-}
+export const POST = handle(async (req) => {
+  const session = await requireRole("SUPERUSER", "TEACHER");
+  const data = await parseBody(req, projectCreateSchema);
+  const day = await findProjectDay(data.projectDayId);
 
-export async function POST(req: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session || session.user.role === "STUDENT") {
-    return NextResponse.json({ error: "Nicht autorisiert" }, { status: 401 });
+  // Owner: Lehrer immer selbst; Superuser optional einem Lehrer zuordnen.
+  let ownerId: string | null = session.user.id;
+  if (session.user.role === "SUPERUSER") {
+    ownerId = null;
+    if (data.assignedOwnerId) {
+      const teacher = await prisma.user.findFirst({ where: { id: data.assignedOwnerId, role: "TEACHER" } });
+      if (!teacher) throw badRequest("Gewählter Lehrer nicht gefunden.");
+      ownerId = teacher.id;
+    }
   }
 
-  const body = await req.json();
-  const { name, description, studentCount, schoolClassIds, startDate, endDate, enrollmentDeadline } = body;
-
-  if (!name || !description || !studentCount || studentCount <= 0) {
-    return NextResponse.json({ error: "Ungültige Eingabedaten." }, { status: 400 });
+  const excluded = [...new Set(data.excludedClassIds)];
+  if (invalidExcludedClassIds(excluded, day.schoolClasses.map((c) => c.id)).length > 0) {
+    throw badRequest(EXCLUDED_CLASSES_ERROR);
   }
-
-  if (!Array.isArray(schoolClassIds) || schoolClassIds.length === 0) {
-    return NextResponse.json({ error: "Es muss mindestens eine Schulklasse ausgewählt werden." }, { status: 400 });
-  }
-
-  if (!startDate || !endDate || !enrollmentDeadline) {
-    return NextResponse.json({ error: "Start, Ende und Einschreibefrist sind erforderlich." }, { status: 400 });
-  }
-
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-  const deadline = new Date(enrollmentDeadline);
-
-  if (isNaN(start.getTime()) || isNaN(end.getTime()) || isNaN(deadline.getTime())) {
-    return NextResponse.json({ error: "Ungültiges Datumsformat." }, { status: 400 });
-  }
-
-  if (end < start) {
-    return NextResponse.json({ error: "Das Ende darf nicht vor dem Start liegen." }, { status: 400 });
-  }
-
-  const code = await generateUniqueProjectCode();
+  if (data.bannerImage) await assertImageUsable(data.bannerImage, {});
 
   const project = await prisma.project.create({
     data: {
-      name,
-      description,
-      studentCount: Number(studentCount),
-      ownerId: session.user.id,
-      code,
-      startDate: start,
-      endDate: end,
-      enrollmentDeadline: deadline,
-      schoolClasses: { connect: schoolClassIds.map((id: string) => ({ id })) },
+      name: data.name,
+      description: data.description,
+      maxStudents: data.maxStudents,
+      projectDayId: day.id,
+      imageId: data.bannerImage ?? null,
+      ownerId,
+      excludedClasses: { connect: excluded.map((id) => ({ id })) },
     },
-    include: { groups: true, schoolClasses: true },
+    select: projectSelect,
   });
-
-  return NextResponse.json(project, { status: 201 });
-}
+  return NextResponse.json(serializeProject(project), { status: 201 });
+});

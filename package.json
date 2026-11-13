@@ -4,20 +4,25 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3111",
-    "build": "prisma generate && prisma migrate deploy && next build",
+    "build": "prisma generate && prisma migrate deploy && prisma db seed && next build",
     "start": "next start -p 3111",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "vitest run"
   },
   "prisma": {
     "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
   },
   "dependencies": {
+    "@pdf-lib/fontkit": "^1.1.1",
     "@prisma/client": "^5.14.0",
     "bcryptjs": "^2.4.3",
-    "next": "16.3.3",
+    "exceljs": "^4.4.0",
+    "next": "^16.4.5",
     "next-auth": "^4.24.7",
+    "pdf-lib": "^1.17.1",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
@@ -26,6 +31,7 @@
     "@types/react-dom": "^18.3.0",
     "prisma": "^5.14.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "vitest": "^4.1.12"
   }
 }
