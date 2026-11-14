@@ -1,277 +1,277 @@
-import {groups, studentPreferenceList} from "../../group-registration/groupRegistration";
+import {RegistrationGroup, StudentChoices} from "../../group-registration/groupRegistration";
 
-export const groupPreferenceListsTestData: studentPreferenceList[] = [
+export const studentsMixedR2: StudentChoices[] = [
     {
-        studentid: "student-01",
-        projectid: "project-1",
-        prefList: [{groupId: "group-1", preference: 1}, {groupId: "group-2", preference: 4}, {
+        studentId: "student-01",
+        projectId: "project-1",
+        choices: [{groupId: "group-1", priority: 1}, {groupId: "group-2", priority: 4}, {
             groupId: "group-3",
-            preference: 2
-        }, {groupId: "group-4", preference: 3}]
+            priority: 2
+        }, {groupId: "group-4", priority: 3}]
     },
     {
-        studentid: "student-02",
-        projectid: "project-1",
-        prefList: [{groupId: "group-1", preference: 3}, {groupId: "group-2", preference: 2}, {
+        studentId: "student-02",
+        projectId: "project-1",
+        choices: [{groupId: "group-1", priority: 3}, {groupId: "group-2", priority: 2}, {
             groupId: "group-3",
-            preference: 1
-        }, {groupId: "group-4", preference: 4}]
+            priority: 1
+        }, {groupId: "group-4", priority: 4}]
     },
     {
-        studentid: "student-03",
-        projectid: "project-1",
-        prefList: [{groupId: "group-1", preference: 4}, {groupId: "group-2", preference: 1}, {
+        studentId: "student-03",
+        projectId: "project-1",
+        choices: [{groupId: "group-1", priority: 4}, {groupId: "group-2", priority: 1}, {
             groupId: "group-3",
-            preference: 3
-        }, {groupId: "group-4", preference: 2}]
+            priority: 3
+        }, {groupId: "group-4", priority: 2}]
     },
     {
-        studentid: "student-04",
-        projectid: "project-1",
-        prefList: [{groupId: "group-1", preference: 2}, {groupId: "group-2", preference: 1}, {
+        studentId: "student-04",
+        projectId: "project-1",
+        choices: [{groupId: "group-1", priority: 2}, {groupId: "group-2", priority: 1}, {
             groupId: "group-3",
-            preference: 3
-        }, {groupId: "group-4", preference: 4}]
+            priority: 3
+        }, {groupId: "group-4", priority: 4}]
     },
     {
-        studentid: "student-05",
-        projectid: "project-1",
-        prefList: [{groupId: "group-1", preference: 4}, {groupId: "group-2", preference: 1}, {
+        studentId: "student-05",
+        projectId: "project-1",
+        choices: [{groupId: "group-1", priority: 4}, {groupId: "group-2", priority: 1}, {
             groupId: "group-3",
-            preference: 2
-        }, {groupId: "group-4", preference: 3}]
+            priority: 2
+        }, {groupId: "group-4", priority: 3}]
     },
     {
-        studentid: "student-06",
-        projectid: "project-1",
-        prefList: [{groupId: "group-1", preference: 1}, {groupId: "group-2", preference: 4}, {
+        studentId: "student-06",
+        projectId: "project-1",
+        choices: [{groupId: "group-1", priority: 1}, {groupId: "group-2", priority: 4}, {
             groupId: "group-3",
-            preference: 2
-        }, {groupId: "group-4", preference: 3}]
+            priority: 2
+        }, {groupId: "group-4", priority: 3}]
     },
     {
-        studentid: "student-07",
-        projectid: "project-1",
-        prefList: [{groupId: "group-1", preference: 3}, {groupId: "group-2", preference: 1}, {
+        studentId: "student-07",
+        projectId: "project-1",
+        choices: [{groupId: "group-1", priority: 3}, {groupId: "group-2", priority: 1}, {
             groupId: "group-3",
-            preference: 4
-        }, {groupId: "group-4", preference: 2}]
+            priority: 4
+        }, {groupId: "group-4", priority: 2}]
     },
     {
-        studentid: "student-08",
-        projectid: "project-1",
-        prefList: [{groupId: "group-1", preference: 1}, {groupId: "group-2", preference: 4}, {
+        studentId: "student-08",
+        projectId: "project-1",
+        choices: [{groupId: "group-1", priority: 1}, {groupId: "group-2", priority: 4}, {
             groupId: "group-3",
-            preference: 2
-        }, {groupId: "group-4", preference: 3}]
+            priority: 2
+        }, {groupId: "group-4", priority: 3}]
     },
     {
-        studentid: "student-09",
-        projectid: "project-1",
-        prefList: [{groupId: "group-1", preference: 3}, {groupId: "group-2", preference: 2}, {
+        studentId: "student-09",
+        projectId: "project-1",
+        choices: [{groupId: "group-1", priority: 3}, {groupId: "group-2", priority: 2}, {
             groupId: "group-3",
-            preference: 4
-        }, {groupId: "group-4", preference: 1}]
+            priority: 4
+        }, {groupId: "group-4", priority: 1}]
     },
     {
-        studentid: "student-10",
-        projectid: "project-1",
-        prefList: [{groupId: "group-1", preference: 4}, {groupId: "group-2", preference: 3}, {
+        studentId: "student-10",
+        projectId: "project-1",
+        choices: [{groupId: "group-1", priority: 4}, {groupId: "group-2", priority: 3}, {
             groupId: "group-3",
-            preference: 1
-        }, {groupId: "group-4", preference: 2}]
+            priority: 1
+        }, {groupId: "group-4", priority: 2}]
     },
     {
-        studentid: "student-11",
-        projectid: "project-1",
-        prefList: [{groupId: "group-1", preference: 1}, {groupId: "group-2", preference: 3}, {
+        studentId: "student-11",
+        projectId: "project-1",
+        choices: [{groupId: "group-1", priority: 1}, {groupId: "group-2", priority: 3}, {
             groupId: "group-3",
-            preference: 2
-        }, {groupId: "group-4", preference: 4}]
+            priority: 2
+        }, {groupId: "group-4", priority: 4}]
     },
     {
-        studentid: "student-12",
-        projectid: "project-1",
-        prefList: [{groupId: "group-1", preference: 2}, {groupId: "group-2", preference: 3}, {
+        studentId: "student-12",
+        projectId: "project-1",
+        choices: [{groupId: "group-1", priority: 2}, {groupId: "group-2", priority: 3}, {
             groupId: "group-3",
-            preference: 1
-        }, {groupId: "group-4", preference: 4}]
+            priority: 1
+        }, {groupId: "group-4", priority: 4}]
     },
     {
-        studentid: "student-13",
-        projectid: "project-1",
-        prefList: [{groupId: "group-1", preference: 2}, {groupId: "group-2", preference: 4}, {
+        studentId: "student-13",
+        projectId: "project-1",
+        choices: [{groupId: "group-1", priority: 2}, {groupId: "group-2", priority: 4}, {
             groupId: "group-3",
-            preference: 1
-        }, {groupId: "group-4", preference: 3}]
+            priority: 1
+        }, {groupId: "group-4", priority: 3}]
     },
     {
-        studentid: "student-14",
-        projectid: "project-1",
-        prefList: [{groupId: "group-1", preference: 1}, {groupId: "group-2", preference: 2}, {
+        studentId: "student-14",
+        projectId: "project-1",
+        choices: [{groupId: "group-1", priority: 1}, {groupId: "group-2", priority: 2}, {
             groupId: "group-3",
-            preference: 3
-        }, {groupId: "group-4", preference: 4}]
+            priority: 3
+        }, {groupId: "group-4", priority: 4}]
     },
     {
-        studentid: "student-15",
-        projectid: "project-1",
-        prefList: [{groupId: "group-1", preference: 3}, {groupId: "group-2", preference: 1}, {
+        studentId: "student-15",
+        projectId: "project-1",
+        choices: [{groupId: "group-1", priority: 3}, {groupId: "group-2", priority: 1}, {
             groupId: "group-3",
-            preference: 2
-        }, {groupId: "group-4", preference: 4}]
+            priority: 2
+        }, {groupId: "group-4", priority: 4}]
     },
     {
-        studentid: "student-16",
-        projectid: "project-1",
-        prefList: [{groupId: "group-1", preference: 2}, {groupId: "group-2", preference: 3}, {
+        studentId: "student-16",
+        projectId: "project-1",
+        choices: [{groupId: "group-1", priority: 2}, {groupId: "group-2", priority: 3}, {
             groupId: "group-3",
-            preference: 4
-        }, {groupId: "group-4", preference: 1}]
+            priority: 4
+        }, {groupId: "group-4", priority: 1}]
     },
     {
-        studentid: "student-17",
-        projectid: "project-1",
-        prefList: [{groupId: "group-1", preference: 2}, {groupId: "group-2", preference: 3}, {
+        studentId: "student-17",
+        projectId: "project-1",
+        choices: [{groupId: "group-1", priority: 2}, {groupId: "group-2", priority: 3}, {
             groupId: "group-3",
-            preference: 1
-        }, {groupId: "group-4", preference: 4}]
+            priority: 1
+        }, {groupId: "group-4", priority: 4}]
     },
     {
-        studentid: "student-18",
-        projectid: "project-1",
-        prefList: [{groupId: "group-1", preference: 4}, {groupId: "group-2", preference: 2}, {
+        studentId: "student-18",
+        projectId: "project-1",
+        choices: [{groupId: "group-1", priority: 4}, {groupId: "group-2", priority: 2}, {
             groupId: "group-3",
-            preference: 3
-        }, {groupId: "group-4", preference: 1}]
+            priority: 3
+        }, {groupId: "group-4", priority: 1}]
     },
     {
-        studentid: "student-19",
-        projectid: "project-1",
-        prefList: [{groupId: "group-1", preference: 3}, {groupId: "group-2", preference: 1}, {
+        studentId: "student-19",
+        projectId: "project-1",
+        choices: [{groupId: "group-1", priority: 3}, {groupId: "group-2", priority: 1}, {
             groupId: "group-3",
-            preference: 4
-        }, {groupId: "group-4", preference: 2}]
+            priority: 4
+        }, {groupId: "group-4", priority: 2}]
     },
     {
-        studentid: "student-20",
-        projectid: "project-1",
-        prefList: [{groupId: "group-1", preference: 3}, {groupId: "group-2", preference: 2}, {
+        studentId: "student-20",
+        projectId: "project-1",
+        choices: [{groupId: "group-1", priority: 3}, {groupId: "group-2", priority: 2}, {
             groupId: "group-3",
-            preference: 4
-        }, {groupId: "group-4", preference: 1}]
+            priority: 4
+        }, {groupId: "group-4", priority: 1}]
     },
 ];
 
-export const testData_R1: studentPreferenceList[] = [
-    {studentid: "student-01", projectid: "project-1", prefList: [{groupId: "group-1", preference: 1}, {groupId: "group-2", preference: 3}, {groupId: "group-3", preference: 2}, {groupId: "group-4", preference: 4}]},
-    {studentid: "student-02", projectid: "project-1", prefList: [{groupId: "group-1", preference: 1}, {groupId: "group-2", preference: 4}, {groupId: "group-3", preference: 2}, {groupId: "group-4", preference: 3}]},
-    {studentid: "student-03", projectid: "project-1", prefList: [{groupId: "group-1", preference: 1}, {groupId: "group-2", preference: 4}, {groupId: "group-3", preference: 2}, {groupId: "group-4", preference: 3}]},
-    {studentid: "student-04", projectid: "project-1", prefList: [{groupId: "group-1", preference: 1}, {groupId: "group-2", preference: 4}, {groupId: "group-3", preference: 2}, {groupId: "group-4", preference: 3}]},
-    {studentid: "student-05", projectid: "project-1", prefList: [{groupId: "group-1", preference: 1}, {groupId: "group-2", preference: 2}, {groupId: "group-3", preference: 4}, {groupId: "group-4", preference: 3}]},
-    {studentid: "student-06", projectid: "project-1", prefList: [{groupId: "group-1", preference: 3}, {groupId: "group-2", preference: 1}, {groupId: "group-3", preference: 2}, {groupId: "group-4", preference: 4}]},
-    {studentid: "student-07", projectid: "project-1", prefList: [{groupId: "group-1", preference: 2}, {groupId: "group-2", preference: 1}, {groupId: "group-3", preference: 3}, {groupId: "group-4", preference: 4}]},
-    {studentid: "student-08", projectid: "project-1", prefList: [{groupId: "group-1", preference: 4}, {groupId: "group-2", preference: 1}, {groupId: "group-3", preference: 2}, {groupId: "group-4", preference: 3}]},
-    {studentid: "student-09", projectid: "project-1", prefList: [{groupId: "group-1", preference: 4}, {groupId: "group-2", preference: 1}, {groupId: "group-3", preference: 2}, {groupId: "group-4", preference: 3}]},
-    {studentid: "student-10", projectid: "project-1", prefList: [{groupId: "group-1", preference: 2}, {groupId: "group-2", preference: 1}, {groupId: "group-3", preference: 4}, {groupId: "group-4", preference: 3}]},
-    {studentid: "student-11", projectid: "project-1", prefList: [{groupId: "group-1", preference: 4}, {groupId: "group-2", preference: 2}, {groupId: "group-3", preference: 1}, {groupId: "group-4", preference: 3}]},
-    {studentid: "student-12", projectid: "project-1", prefList: [{groupId: "group-1", preference: 3}, {groupId: "group-2", preference: 2}, {groupId: "group-3", preference: 1}, {groupId: "group-4", preference: 4}]},
-    {studentid: "student-13", projectid: "project-1", prefList: [{groupId: "group-1", preference: 4}, {groupId: "group-2", preference: 3}, {groupId: "group-3", preference: 1}, {groupId: "group-4", preference: 2}]},
-    {studentid: "student-14", projectid: "project-1", prefList: [{groupId: "group-1", preference: 2}, {groupId: "group-2", preference: 4}, {groupId: "group-3", preference: 1}, {groupId: "group-4", preference: 3}]},
-    {studentid: "student-15", projectid: "project-1", prefList: [{groupId: "group-1", preference: 2}, {groupId: "group-2", preference: 4}, {groupId: "group-3", preference: 1}, {groupId: "group-4", preference: 3}]},
-    {studentid: "student-16", projectid: "project-1", prefList: [{groupId: "group-1", preference: 4}, {groupId: "group-2", preference: 2}, {groupId: "group-3", preference: 3}, {groupId: "group-4", preference: 1}]},
-    {studentid: "student-17", projectid: "project-1", prefList: [{groupId: "group-1", preference: 4}, {groupId: "group-2", preference: 3}, {groupId: "group-3", preference: 2}, {groupId: "group-4", preference: 1}]},
-    {studentid: "student-18", projectid: "project-1", prefList: [{groupId: "group-1", preference: 3}, {groupId: "group-2", preference: 4}, {groupId: "group-3", preference: 2}, {groupId: "group-4", preference: 1}]},
-    {studentid: "student-19", projectid: "project-1", prefList: [{groupId: "group-1", preference: 3}, {groupId: "group-2", preference: 2}, {groupId: "group-3", preference: 4}, {groupId: "group-4", preference: 1}]},
-    {studentid: "student-20", projectid: "project-1", prefList: [{groupId: "group-1", preference: 4}, {groupId: "group-2", preference: 2}, {groupId: "group-3", preference: 3}, {groupId: "group-4", preference: 1}]},
+export const studentsR1: StudentChoices[] = [
+    {studentId: "student-01", projectId: "project-1", choices: [{groupId: "group-1", priority: 1}, {groupId: "group-2", priority: 3}, {groupId: "group-3", priority: 2}, {groupId: "group-4", priority: 4}]},
+    {studentId: "student-02", projectId: "project-1", choices: [{groupId: "group-1", priority: 1}, {groupId: "group-2", priority: 4}, {groupId: "group-3", priority: 2}, {groupId: "group-4", priority: 3}]},
+    {studentId: "student-03", projectId: "project-1", choices: [{groupId: "group-1", priority: 1}, {groupId: "group-2", priority: 4}, {groupId: "group-3", priority: 2}, {groupId: "group-4", priority: 3}]},
+    {studentId: "student-04", projectId: "project-1", choices: [{groupId: "group-1", priority: 1}, {groupId: "group-2", priority: 4}, {groupId: "group-3", priority: 2}, {groupId: "group-4", priority: 3}]},
+    {studentId: "student-05", projectId: "project-1", choices: [{groupId: "group-1", priority: 1}, {groupId: "group-2", priority: 2}, {groupId: "group-3", priority: 4}, {groupId: "group-4", priority: 3}]},
+    {studentId: "student-06", projectId: "project-1", choices: [{groupId: "group-1", priority: 3}, {groupId: "group-2", priority: 1}, {groupId: "group-3", priority: 2}, {groupId: "group-4", priority: 4}]},
+    {studentId: "student-07", projectId: "project-1", choices: [{groupId: "group-1", priority: 2}, {groupId: "group-2", priority: 1}, {groupId: "group-3", priority: 3}, {groupId: "group-4", priority: 4}]},
+    {studentId: "student-08", projectId: "project-1", choices: [{groupId: "group-1", priority: 4}, {groupId: "group-2", priority: 1}, {groupId: "group-3", priority: 2}, {groupId: "group-4", priority: 3}]},
+    {studentId: "student-09", projectId: "project-1", choices: [{groupId: "group-1", priority: 4}, {groupId: "group-2", priority: 1}, {groupId: "group-3", priority: 2}, {groupId: "group-4", priority: 3}]},
+    {studentId: "student-10", projectId: "project-1", choices: [{groupId: "group-1", priority: 2}, {groupId: "group-2", priority: 1}, {groupId: "group-3", priority: 4}, {groupId: "group-4", priority: 3}]},
+    {studentId: "student-11", projectId: "project-1", choices: [{groupId: "group-1", priority: 4}, {groupId: "group-2", priority: 2}, {groupId: "group-3", priority: 1}, {groupId: "group-4", priority: 3}]},
+    {studentId: "student-12", projectId: "project-1", choices: [{groupId: "group-1", priority: 3}, {groupId: "group-2", priority: 2}, {groupId: "group-3", priority: 1}, {groupId: "group-4", priority: 4}]},
+    {studentId: "student-13", projectId: "project-1", choices: [{groupId: "group-1", priority: 4}, {groupId: "group-2", priority: 3}, {groupId: "group-3", priority: 1}, {groupId: "group-4", priority: 2}]},
+    {studentId: "student-14", projectId: "project-1", choices: [{groupId: "group-1", priority: 2}, {groupId: "group-2", priority: 4}, {groupId: "group-3", priority: 1}, {groupId: "group-4", priority: 3}]},
+    {studentId: "student-15", projectId: "project-1", choices: [{groupId: "group-1", priority: 2}, {groupId: "group-2", priority: 4}, {groupId: "group-3", priority: 1}, {groupId: "group-4", priority: 3}]},
+    {studentId: "student-16", projectId: "project-1", choices: [{groupId: "group-1", priority: 4}, {groupId: "group-2", priority: 2}, {groupId: "group-3", priority: 3}, {groupId: "group-4", priority: 1}]},
+    {studentId: "student-17", projectId: "project-1", choices: [{groupId: "group-1", priority: 4}, {groupId: "group-2", priority: 3}, {groupId: "group-3", priority: 2}, {groupId: "group-4", priority: 1}]},
+    {studentId: "student-18", projectId: "project-1", choices: [{groupId: "group-1", priority: 3}, {groupId: "group-2", priority: 4}, {groupId: "group-3", priority: 2}, {groupId: "group-4", priority: 1}]},
+    {studentId: "student-19", projectId: "project-1", choices: [{groupId: "group-1", priority: 3}, {groupId: "group-2", priority: 2}, {groupId: "group-3", priority: 4}, {groupId: "group-4", priority: 1}]},
+    {studentId: "student-20", projectId: "project-1", choices: [{groupId: "group-1", priority: 4}, {groupId: "group-2", priority: 2}, {groupId: "group-3", priority: 3}, {groupId: "group-4", priority: 1}]},
 ];
-export const testData_R4: studentPreferenceList[] = [
-    {studentid: "student-01", projectid: "project-1", prefList: [{groupId: "group-1", preference: 4}, {groupId: "group-2", preference: 3}, {groupId: "group-3", preference: 2}, {groupId: "group-4", preference: 1}]},
-    {studentid: "student-02", projectid: "project-1", prefList: [{groupId: "group-1", preference: 4}, {groupId: "group-2", preference: 2}, {groupId: "group-3", preference: 3}, {groupId: "group-4", preference: 1}]},
-    {studentid: "student-03", projectid: "project-1", prefList: [{groupId: "group-1", preference: 4}, {groupId: "group-2", preference: 3}, {groupId: "group-3", preference: 1}, {groupId: "group-4", preference: 2}]},
-    {studentid: "student-04", projectid: "project-1", prefList: [{groupId: "group-1", preference: 4}, {groupId: "group-2", preference: 3}, {groupId: "group-3", preference: 2}, {groupId: "group-4", preference: 1}]},
-    {studentid: "student-05", projectid: "project-1", prefList: [{groupId: "group-1", preference: 4}, {groupId: "group-2", preference: 2}, {groupId: "group-3", preference: 1}, {groupId: "group-4", preference: 3}]},
-    {studentid: "student-06", projectid: "project-1", prefList: [{groupId: "group-1", preference: 4}, {groupId: "group-2", preference: 2}, {groupId: "group-3", preference: 1}, {groupId: "group-4", preference: 3}]},
-    {studentid: "student-07", projectid: "project-1", prefList: [{groupId: "group-1", preference: 4}, {groupId: "group-2", preference: 3}, {groupId: "group-3", preference: 2}, {groupId: "group-4", preference: 1}]},
-    {studentid: "student-08", projectid: "project-1", prefList: [{groupId: "group-1", preference: 4}, {groupId: "group-2", preference: 3}, {groupId: "group-3", preference: 2}, {groupId: "group-4", preference: 1}]},
-    {studentid: "student-09", projectid: "project-1", prefList: [{groupId: "group-1", preference: 4}, {groupId: "group-2", preference: 3}, {groupId: "group-3", preference: 2}, {groupId: "group-4", preference: 1}]},
-    {studentid: "student-10", projectid: "project-1", prefList: [{groupId: "group-1", preference: 4}, {groupId: "group-2", preference: 1}, {groupId: "group-3", preference: 2}, {groupId: "group-4", preference: 3}]},
-    {studentid: "student-11", projectid: "project-1", prefList: [{groupId: "group-1", preference: 4}, {groupId: "group-2", preference: 3}, {groupId: "group-3", preference: 1}, {groupId: "group-4", preference: 2}]},
-    {studentid: "student-12", projectid: "project-1", prefList: [{groupId: "group-1", preference: 4}, {groupId: "group-2", preference: 3}, {groupId: "group-3", preference: 2}, {groupId: "group-4", preference: 1}]},
-    {studentid: "student-13", projectid: "project-1", prefList: [{groupId: "group-1", preference: 4}, {groupId: "group-2", preference: 2}, {groupId: "group-3", preference: 3}, {groupId: "group-4", preference: 1}]},
-    {studentid: "student-14", projectid: "project-1", prefList: [{groupId: "group-1", preference: 4}, {groupId: "group-2", preference: 1}, {groupId: "group-3", preference: 2}, {groupId: "group-4", preference: 3}]},
-    {studentid: "student-15", projectid: "project-1", prefList: [{groupId: "group-1", preference: 4}, {groupId: "group-2", preference: 1}, {groupId: "group-3", preference: 3}, {groupId: "group-4", preference: 2}]},
-    {studentid: "student-16", projectid: "project-1", prefList: [{groupId: "group-1", preference: 4}, {groupId: "group-2", preference: 1}, {groupId: "group-3", preference: 3}, {groupId: "group-4", preference: 2}]},
-    {studentid: "student-17", projectid: "project-1", prefList: [{groupId: "group-1", preference: 4}, {groupId: "group-2", preference: 2}, {groupId: "group-3", preference: 1}, {groupId: "group-4", preference: 3}]},
-    {studentid: "student-18", projectid: "project-1", prefList: [{groupId: "group-1", preference: 2}, {groupId: "group-2", preference: 4}, {groupId: "group-3", preference: 3}, {groupId: "group-4", preference: 1}]},
-    {studentid: "student-19", projectid: "project-1", prefList: [{groupId: "group-1", preference: 2}, {groupId: "group-2", preference: 1}, {groupId: "group-3", preference: 3}, {groupId: "group-4", preference: 4}]},
-    {studentid: "student-20", projectid: "project-1", prefList: [{groupId: "group-1", preference: 4}, {groupId: "group-2", preference: 3}, {groupId: "group-3", preference: 1}, {groupId: "group-4", preference: 2}]},
+export const studentsR4: StudentChoices[] = [
+    {studentId: "student-01", projectId: "project-1", choices: [{groupId: "group-1", priority: 4}, {groupId: "group-2", priority: 3}, {groupId: "group-3", priority: 2}, {groupId: "group-4", priority: 1}]},
+    {studentId: "student-02", projectId: "project-1", choices: [{groupId: "group-1", priority: 4}, {groupId: "group-2", priority: 2}, {groupId: "group-3", priority: 3}, {groupId: "group-4", priority: 1}]},
+    {studentId: "student-03", projectId: "project-1", choices: [{groupId: "group-1", priority: 4}, {groupId: "group-2", priority: 3}, {groupId: "group-3", priority: 1}, {groupId: "group-4", priority: 2}]},
+    {studentId: "student-04", projectId: "project-1", choices: [{groupId: "group-1", priority: 4}, {groupId: "group-2", priority: 3}, {groupId: "group-3", priority: 2}, {groupId: "group-4", priority: 1}]},
+    {studentId: "student-05", projectId: "project-1", choices: [{groupId: "group-1", priority: 4}, {groupId: "group-2", priority: 2}, {groupId: "group-3", priority: 1}, {groupId: "group-4", priority: 3}]},
+    {studentId: "student-06", projectId: "project-1", choices: [{groupId: "group-1", priority: 4}, {groupId: "group-2", priority: 2}, {groupId: "group-3", priority: 1}, {groupId: "group-4", priority: 3}]},
+    {studentId: "student-07", projectId: "project-1", choices: [{groupId: "group-1", priority: 4}, {groupId: "group-2", priority: 3}, {groupId: "group-3", priority: 2}, {groupId: "group-4", priority: 1}]},
+    {studentId: "student-08", projectId: "project-1", choices: [{groupId: "group-1", priority: 4}, {groupId: "group-2", priority: 3}, {groupId: "group-3", priority: 2}, {groupId: "group-4", priority: 1}]},
+    {studentId: "student-09", projectId: "project-1", choices: [{groupId: "group-1", priority: 4}, {groupId: "group-2", priority: 3}, {groupId: "group-3", priority: 2}, {groupId: "group-4", priority: 1}]},
+    {studentId: "student-10", projectId: "project-1", choices: [{groupId: "group-1", priority: 4}, {groupId: "group-2", priority: 1}, {groupId: "group-3", priority: 2}, {groupId: "group-4", priority: 3}]},
+    {studentId: "student-11", projectId: "project-1", choices: [{groupId: "group-1", priority: 4}, {groupId: "group-2", priority: 3}, {groupId: "group-3", priority: 1}, {groupId: "group-4", priority: 2}]},
+    {studentId: "student-12", projectId: "project-1", choices: [{groupId: "group-1", priority: 4}, {groupId: "group-2", priority: 3}, {groupId: "group-3", priority: 2}, {groupId: "group-4", priority: 1}]},
+    {studentId: "student-13", projectId: "project-1", choices: [{groupId: "group-1", priority: 4}, {groupId: "group-2", priority: 2}, {groupId: "group-3", priority: 3}, {groupId: "group-4", priority: 1}]},
+    {studentId: "student-14", projectId: "project-1", choices: [{groupId: "group-1", priority: 4}, {groupId: "group-2", priority: 1}, {groupId: "group-3", priority: 2}, {groupId: "group-4", priority: 3}]},
+    {studentId: "student-15", projectId: "project-1", choices: [{groupId: "group-1", priority: 4}, {groupId: "group-2", priority: 1}, {groupId: "group-3", priority: 3}, {groupId: "group-4", priority: 2}]},
+    {studentId: "student-16", projectId: "project-1", choices: [{groupId: "group-1", priority: 4}, {groupId: "group-2", priority: 1}, {groupId: "group-3", priority: 3}, {groupId: "group-4", priority: 2}]},
+    {studentId: "student-17", projectId: "project-1", choices: [{groupId: "group-1", priority: 4}, {groupId: "group-2", priority: 2}, {groupId: "group-3", priority: 1}, {groupId: "group-4", priority: 3}]},
+    {studentId: "student-18", projectId: "project-1", choices: [{groupId: "group-1", priority: 2}, {groupId: "group-2", priority: 4}, {groupId: "group-3", priority: 3}, {groupId: "group-4", priority: 1}]},
+    {studentId: "student-19", projectId: "project-1", choices: [{groupId: "group-1", priority: 2}, {groupId: "group-2", priority: 1}, {groupId: "group-3", priority: 3}, {groupId: "group-4", priority: 4}]},
+    {studentId: "student-20", projectId: "project-1", choices: [{groupId: "group-1", priority: 4}, {groupId: "group-2", priority: 3}, {groupId: "group-3", priority: 1}, {groupId: "group-4", priority: 2}]},
 ];
-export const testData_R2: studentPreferenceList[] = [
-    {studentid: "student-01", projectid: "project-1", prefList: [{groupId: "group-1", preference: 3}, {groupId: "group-2", preference: 1}, {groupId: "group-3", preference: 4}, {groupId: "group-4", preference: 2}]},
-    {studentid: "student-02", projectid: "project-1", prefList: [{groupId: "group-1", preference: 3}, {groupId: "group-2", preference: 4}, {groupId: "group-3", preference: 2}, {groupId: "group-4", preference: 1}]},
-    {studentid: "student-03", projectid: "project-1", prefList: [{groupId: "group-1", preference: 1}, {groupId: "group-2", preference: 2}, {groupId: "group-3", preference: 3}, {groupId: "group-4", preference: 4}]},
-    {studentid: "student-04", projectid: "project-1", prefList: [{groupId: "group-1", preference: 4}, {groupId: "group-2", preference: 2}, {groupId: "group-3", preference: 1}, {groupId: "group-4", preference: 3}]},
-    {studentid: "student-05", projectid: "project-1", prefList: [{groupId: "group-1", preference: 4}, {groupId: "group-2", preference: 1}, {groupId: "group-3", preference: 3}, {groupId: "group-4", preference: 2}]},
-    {studentid: "student-06", projectid: "project-1", prefList: [{groupId: "group-1", preference: 2}, {groupId: "group-2", preference: 4}, {groupId: "group-3", preference: 1}, {groupId: "group-4", preference: 3}]},
-    {studentid: "student-07", projectid: "project-1", prefList: [{groupId: "group-1", preference: 3}, {groupId: "group-2", preference: 4}, {groupId: "group-3", preference: 1}, {groupId: "group-4", preference: 2}]},
-    {studentid: "student-08", projectid: "project-1", prefList: [{groupId: "group-1", preference: 1}, {groupId: "group-2", preference: 3}, {groupId: "group-3", preference: 4}, {groupId: "group-4", preference: 2}]},
-    {studentid: "student-09", projectid: "project-1", prefList: [{groupId: "group-1", preference: 3}, {groupId: "group-2", preference: 4}, {groupId: "group-3", preference: 1}, {groupId: "group-4", preference: 2}]},
-    {studentid: "student-10", projectid: "project-1", prefList: [{groupId: "group-1", preference: 2}, {groupId: "group-2", preference: 3}, {groupId: "group-3", preference: 4}, {groupId: "group-4", preference: 1}]},
-    {studentid: "student-11", projectid: "project-1", prefList: [{groupId: "group-1", preference: 3}, {groupId: "group-2", preference: 2}, {groupId: "group-3", preference: 4}, {groupId: "group-4", preference: 1}]},
-    {studentid: "student-12", projectid: "project-1", prefList: [{groupId: "group-1", preference: 1}, {groupId: "group-2", preference: 4}, {groupId: "group-3", preference: 2}, {groupId: "group-4", preference: 3}]},
-    {studentid: "student-13", projectid: "project-1", prefList: [{groupId: "group-1", preference: 4}, {groupId: "group-2", preference: 2}, {groupId: "group-3", preference: 3}, {groupId: "group-4", preference: 1}]},
-    {studentid: "student-14", projectid: "project-1", prefList: [{groupId: "group-1", preference: 2}, {groupId: "group-2", preference: 1}, {groupId: "group-3", preference: 4}, {groupId: "group-4", preference: 3}]},
-    {studentid: "student-15", projectid: "project-1", prefList: [{groupId: "group-1", preference: 4}, {groupId: "group-2", preference: 3}, {groupId: "group-3", preference: 1}, {groupId: "group-4", preference: 2}]},
-    {studentid: "student-16", projectid: "project-1", prefList: [{groupId: "group-1", preference: 2}, {groupId: "group-2", preference: 3}, {groupId: "group-3", preference: 4}, {groupId: "group-4", preference: 1}]},
-    {studentid: "student-17", projectid: "project-1", prefList: [{groupId: "group-1", preference: 1}, {groupId: "group-2", preference: 3}, {groupId: "group-3", preference: 2}, {groupId: "group-4", preference: 4}]},
-    {studentid: "student-18", projectid: "project-1", prefList: [{groupId: "group-1", preference: 3}, {groupId: "group-2", preference: 4}, {groupId: "group-3", preference: 2}, {groupId: "group-4", preference: 1}]},
-    {studentid: "student-19", projectid: "project-1", prefList: [{groupId: "group-1", preference: 3}, {groupId: "group-2", preference: 1}, {groupId: "group-3", preference: 2}, {groupId: "group-4", preference: 4}]},
-    {studentid: "student-20", projectid: "project-1", prefList: [{groupId: "group-1", preference: 2}, {groupId: "group-2", preference: 1}, {groupId: "group-3", preference: 4}, {groupId: "group-4", preference: 3}]},
+export const studentsR2: StudentChoices[] = [
+    {studentId: "student-01", projectId: "project-1", choices: [{groupId: "group-1", priority: 3}, {groupId: "group-2", priority: 1}, {groupId: "group-3", priority: 4}, {groupId: "group-4", priority: 2}]},
+    {studentId: "student-02", projectId: "project-1", choices: [{groupId: "group-1", priority: 3}, {groupId: "group-2", priority: 4}, {groupId: "group-3", priority: 2}, {groupId: "group-4", priority: 1}]},
+    {studentId: "student-03", projectId: "project-1", choices: [{groupId: "group-1", priority: 1}, {groupId: "group-2", priority: 2}, {groupId: "group-3", priority: 3}, {groupId: "group-4", priority: 4}]},
+    {studentId: "student-04", projectId: "project-1", choices: [{groupId: "group-1", priority: 4}, {groupId: "group-2", priority: 2}, {groupId: "group-3", priority: 1}, {groupId: "group-4", priority: 3}]},
+    {studentId: "student-05", projectId: "project-1", choices: [{groupId: "group-1", priority: 4}, {groupId: "group-2", priority: 1}, {groupId: "group-3", priority: 3}, {groupId: "group-4", priority: 2}]},
+    {studentId: "student-06", projectId: "project-1", choices: [{groupId: "group-1", priority: 2}, {groupId: "group-2", priority: 4}, {groupId: "group-3", priority: 1}, {groupId: "group-4", priority: 3}]},
+    {studentId: "student-07", projectId: "project-1", choices: [{groupId: "group-1", priority: 3}, {groupId: "group-2", priority: 4}, {groupId: "group-3", priority: 1}, {groupId: "group-4", priority: 2}]},
+    {studentId: "student-08", projectId: "project-1", choices: [{groupId: "group-1", priority: 1}, {groupId: "group-2", priority: 3}, {groupId: "group-3", priority: 4}, {groupId: "group-4", priority: 2}]},
+    {studentId: "student-09", projectId: "project-1", choices: [{groupId: "group-1", priority: 3}, {groupId: "group-2", priority: 4}, {groupId: "group-3", priority: 1}, {groupId: "group-4", priority: 2}]},
+    {studentId: "student-10", projectId: "project-1", choices: [{groupId: "group-1", priority: 2}, {groupId: "group-2", priority: 3}, {groupId: "group-3", priority: 4}, {groupId: "group-4", priority: 1}]},
+    {studentId: "student-11", projectId: "project-1", choices: [{groupId: "group-1", priority: 3}, {groupId: "group-2", priority: 2}, {groupId: "group-3", priority: 4}, {groupId: "group-4", priority: 1}]},
+    {studentId: "student-12", projectId: "project-1", choices: [{groupId: "group-1", priority: 1}, {groupId: "group-2", priority: 4}, {groupId: "group-3", priority: 2}, {groupId: "group-4", priority: 3}]},
+    {studentId: "student-13", projectId: "project-1", choices: [{groupId: "group-1", priority: 4}, {groupId: "group-2", priority: 2}, {groupId: "group-3", priority: 3}, {groupId: "group-4", priority: 1}]},
+    {studentId: "student-14", projectId: "project-1", choices: [{groupId: "group-1", priority: 2}, {groupId: "group-2", priority: 1}, {groupId: "group-3", priority: 4}, {groupId: "group-4", priority: 3}]},
+    {studentId: "student-15", projectId: "project-1", choices: [{groupId: "group-1", priority: 4}, {groupId: "group-2", priority: 3}, {groupId: "group-3", priority: 1}, {groupId: "group-4", priority: 2}]},
+    {studentId: "student-16", projectId: "project-1", choices: [{groupId: "group-1", priority: 2}, {groupId: "group-2", priority: 3}, {groupId: "group-3", priority: 4}, {groupId: "group-4", priority: 1}]},
+    {studentId: "student-17", projectId: "project-1", choices: [{groupId: "group-1", priority: 1}, {groupId: "group-2", priority: 3}, {groupId: "group-3", priority: 2}, {groupId: "group-4", priority: 4}]},
+    {studentId: "student-18", projectId: "project-1", choices: [{groupId: "group-1", priority: 3}, {groupId: "group-2", priority: 4}, {groupId: "group-3", priority: 2}, {groupId: "group-4", priority: 1}]},
+    {studentId: "student-19", projectId: "project-1", choices: [{groupId: "group-1", priority: 3}, {groupId: "group-2", priority: 1}, {groupId: "group-3", priority: 2}, {groupId: "group-4", priority: 4}]},
+    {studentId: "student-20", projectId: "project-1", choices: [{groupId: "group-1", priority: 2}, {groupId: "group-2", priority: 1}, {groupId: "group-3", priority: 4}, {groupId: "group-4", priority: 3}]},
 ];
-export const testData_R3: studentPreferenceList[] = [
-    {studentid: "student-01", projectid: "project-1", prefList: [{groupId: "group-1", preference: 1}, {groupId: "group-2", preference: 3}, {groupId: "group-3", preference: 4}, {groupId: "group-4", preference: 2}]},
-    {studentid: "student-02", projectid: "project-1", prefList: [{groupId: "group-1", preference: 1}, {groupId: "group-2", preference: 3}, {groupId: "group-3", preference: 4}, {groupId: "group-4", preference: 2}]},
-    {studentid: "student-03", projectid: "project-1", prefList: [{groupId: "group-1", preference: 1}, {groupId: "group-2", preference: 4}, {groupId: "group-3", preference: 3}, {groupId: "group-4", preference: 2}]},
-    {studentid: "student-04", projectid: "project-1", prefList: [{groupId: "group-1", preference: 1}, {groupId: "group-2", preference: 2}, {groupId: "group-3", preference: 3}, {groupId: "group-4", preference: 4}]},
-    {studentid: "student-05", projectid: "project-1", prefList: [{groupId: "group-1", preference: 3}, {groupId: "group-2", preference: 2}, {groupId: "group-3", preference: 1}, {groupId: "group-4", preference: 4}]},
-    {studentid: "student-06", projectid: "project-1", prefList: [{groupId: "group-1", preference: 3}, {groupId: "group-2", preference: 1}, {groupId: "group-3", preference: 4}, {groupId: "group-4", preference: 2}]},
-    {studentid: "student-07", projectid: "project-1", prefList: [{groupId: "group-1", preference: 1}, {groupId: "group-2", preference: 4}, {groupId: "group-3", preference: 3}, {groupId: "group-4", preference: 2}]},
-    {studentid: "student-08", projectid: "project-1", prefList: [{groupId: "group-1", preference: 4}, {groupId: "group-2", preference: 2}, {groupId: "group-3", preference: 3}, {groupId: "group-4", preference: 1}]},
-    {studentid: "student-09", projectid: "project-1", prefList: [{groupId: "group-1", preference: 1}, {groupId: "group-2", preference: 4}, {groupId: "group-3", preference: 3}, {groupId: "group-4", preference: 2}]},
-    {studentid: "student-10", projectid: "project-1", prefList: [{groupId: "group-1", preference: 2}, {groupId: "group-2", preference: 4}, {groupId: "group-3", preference: 1}, {groupId: "group-4", preference: 3}]},
-    {studentid: "student-11", projectid: "project-1", prefList: [{groupId: "group-1", preference: 3}, {groupId: "group-2", preference: 2}, {groupId: "group-3", preference: 4}, {groupId: "group-4", preference: 1}]},
-    {studentid: "student-12", projectid: "project-1", prefList: [{groupId: "group-1", preference: 3}, {groupId: "group-2", preference: 2}, {groupId: "group-3", preference: 4}, {groupId: "group-4", preference: 1}]},
-    {studentid: "student-13", projectid: "project-1", prefList: [{groupId: "group-1", preference: 3}, {groupId: "group-2", preference: 2}, {groupId: "group-3", preference: 1}, {groupId: "group-4", preference: 4}]},
-    {studentid: "student-14", projectid: "project-1", prefList: [{groupId: "group-1", preference: 4}, {groupId: "group-2", preference: 1}, {groupId: "group-3", preference: 2}, {groupId: "group-4", preference: 3}]},
-    {studentid: "student-15", projectid: "project-1", prefList: [{groupId: "group-1", preference: 3}, {groupId: "group-2", preference: 1}, {groupId: "group-3", preference: 4}, {groupId: "group-4", preference: 2}]},
-    {studentid: "student-16", projectid: "project-1", prefList: [{groupId: "group-1", preference: 1}, {groupId: "group-2", preference: 2}, {groupId: "group-3", preference: 4}, {groupId: "group-4", preference: 3}]},
-    {studentid: "student-17", projectid: "project-1", prefList: [{groupId: "group-1", preference: 3}, {groupId: "group-2", preference: 1}, {groupId: "group-3", preference: 4}, {groupId: "group-4", preference: 2}]},
-    {studentid: "student-18", projectid: "project-1", prefList: [{groupId: "group-1", preference: 1}, {groupId: "group-2", preference: 3}, {groupId: "group-3", preference: 4}, {groupId: "group-4", preference: 2}]},
-    {studentid: "student-19", projectid: "project-1", prefList: [{groupId: "group-1", preference: 1}, {groupId: "group-2", preference: 2}, {groupId: "group-3", preference: 3}, {groupId: "group-4", preference: 4}]},
-    {studentid: "student-20", projectid: "project-1", prefList: [{groupId: "group-1", preference: 3}, {groupId: "group-2", preference: 1}, {groupId: "group-3", preference: 4}, {groupId: "group-4", preference: 2}]},
+export const studentsR3: StudentChoices[] = [
+    {studentId: "student-01", projectId: "project-1", choices: [{groupId: "group-1", priority: 1}, {groupId: "group-2", priority: 3}, {groupId: "group-3", priority: 4}, {groupId: "group-4", priority: 2}]},
+    {studentId: "student-02", projectId: "project-1", choices: [{groupId: "group-1", priority: 1}, {groupId: "group-2", priority: 3}, {groupId: "group-3", priority: 4}, {groupId: "group-4", priority: 2}]},
+    {studentId: "student-03", projectId: "project-1", choices: [{groupId: "group-1", priority: 1}, {groupId: "group-2", priority: 4}, {groupId: "group-3", priority: 3}, {groupId: "group-4", priority: 2}]},
+    {studentId: "student-04", projectId: "project-1", choices: [{groupId: "group-1", priority: 1}, {groupId: "group-2", priority: 2}, {groupId: "group-3", priority: 3}, {groupId: "group-4", priority: 4}]},
+    {studentId: "student-05", projectId: "project-1", choices: [{groupId: "group-1", priority: 3}, {groupId: "group-2", priority: 2}, {groupId: "group-3", priority: 1}, {groupId: "group-4", priority: 4}]},
+    {studentId: "student-06", projectId: "project-1", choices: [{groupId: "group-1", priority: 3}, {groupId: "group-2", priority: 1}, {groupId: "group-3", priority: 4}, {groupId: "group-4", priority: 2}]},
+    {studentId: "student-07", projectId: "project-1", choices: [{groupId: "group-1", priority: 1}, {groupId: "group-2", priority: 4}, {groupId: "group-3", priority: 3}, {groupId: "group-4", priority: 2}]},
+    {studentId: "student-08", projectId: "project-1", choices: [{groupId: "group-1", priority: 4}, {groupId: "group-2", priority: 2}, {groupId: "group-3", priority: 3}, {groupId: "group-4", priority: 1}]},
+    {studentId: "student-09", projectId: "project-1", choices: [{groupId: "group-1", priority: 1}, {groupId: "group-2", priority: 4}, {groupId: "group-3", priority: 3}, {groupId: "group-4", priority: 2}]},
+    {studentId: "student-10", projectId: "project-1", choices: [{groupId: "group-1", priority: 2}, {groupId: "group-2", priority: 4}, {groupId: "group-3", priority: 1}, {groupId: "group-4", priority: 3}]},
+    {studentId: "student-11", projectId: "project-1", choices: [{groupId: "group-1", priority: 3}, {groupId: "group-2", priority: 2}, {groupId: "group-3", priority: 4}, {groupId: "group-4", priority: 1}]},
+    {studentId: "student-12", projectId: "project-1", choices: [{groupId: "group-1", priority: 3}, {groupId: "group-2", priority: 2}, {groupId: "group-3", priority: 4}, {groupId: "group-4", priority: 1}]},
+    {studentId: "student-13", projectId: "project-1", choices: [{groupId: "group-1", priority: 3}, {groupId: "group-2", priority: 2}, {groupId: "group-3", priority: 1}, {groupId: "group-4", priority: 4}]},
+    {studentId: "student-14", projectId: "project-1", choices: [{groupId: "group-1", priority: 4}, {groupId: "group-2", priority: 1}, {groupId: "group-3", priority: 2}, {groupId: "group-4", priority: 3}]},
+    {studentId: "student-15", projectId: "project-1", choices: [{groupId: "group-1", priority: 3}, {groupId: "group-2", priority: 1}, {groupId: "group-3", priority: 4}, {groupId: "group-4", priority: 2}]},
+    {studentId: "student-16", projectId: "project-1", choices: [{groupId: "group-1", priority: 1}, {groupId: "group-2", priority: 2}, {groupId: "group-3", priority: 4}, {groupId: "group-4", priority: 3}]},
+    {studentId: "student-17", projectId: "project-1", choices: [{groupId: "group-1", priority: 3}, {groupId: "group-2", priority: 1}, {groupId: "group-3", priority: 4}, {groupId: "group-4", priority: 2}]},
+    {studentId: "student-18", projectId: "project-1", choices: [{groupId: "group-1", priority: 1}, {groupId: "group-2", priority: 3}, {groupId: "group-3", priority: 4}, {groupId: "group-4", priority: 2}]},
+    {studentId: "student-19", projectId: "project-1", choices: [{groupId: "group-1", priority: 1}, {groupId: "group-2", priority: 2}, {groupId: "group-3", priority: 3}, {groupId: "group-4", priority: 4}]},
+    {studentId: "student-20", projectId: "project-1", choices: [{groupId: "group-1", priority: 3}, {groupId: "group-2", priority: 1}, {groupId: "group-3", priority: 4}, {groupId: "group-4", priority: 2}]},
 ];
-export const testData_R3_small: studentPreferenceList[] = [
-    {studentid: "student-01", projectid: "project-1", prefList: [{groupId: "group-1", preference: 3}, {groupId: "group-2", preference: 2}, {groupId: "group-3", preference: 1}]},
-    {studentid: "student-02", projectid: "project-1", prefList: [{groupId: "group-1", preference: 3}, {groupId: "group-2", preference: 1}, {groupId: "group-3", preference: 2}]},
-    {studentid: "student-03", projectid: "project-1", prefList: [{groupId: "group-1", preference: 1}, {groupId: "group-2", preference: 3}, {groupId: "group-3", preference: 2}]},
-    {studentid: "student-04", projectid: "project-1", prefList: [{groupId: "group-1", preference: 3}, {groupId: "group-2", preference: 1}, {groupId: "group-3", preference: 2}]},
-    {studentid: "student-05", projectid: "project-1", prefList: [{groupId: "group-1", preference: 3}, {groupId: "group-2", preference: 2}, {groupId: "group-3", preference: 1}]},
-    {studentid: "student-06", projectid: "project-1", prefList: [{groupId: "group-1", preference: 3}, {groupId: "group-2", preference: 1}, {groupId: "group-3", preference: 2}]},
-    {studentid: "student-07", projectid: "project-1", prefList: [{groupId: "group-1", preference: 3}, {groupId: "group-2", preference: 1}, {groupId: "group-3", preference: 2}]},
-    {studentid: "student-08", projectid: "project-1", prefList: [{groupId: "group-1", preference: 3}, {groupId: "group-2", preference: 1}, {groupId: "group-3", preference: 2}]},
-    {studentid: "student-09", projectid: "project-1", prefList: [{groupId: "group-1", preference: 3}, {groupId: "group-2", preference: 2}, {groupId: "group-3", preference: 1}]},
-    {studentid: "student-10", projectid: "project-1", prefList: [{groupId: "group-1", preference: 1}, {groupId: "group-2", preference: 2}, {groupId: "group-3", preference: 3}]},
-    {studentid: "student-11", projectid: "project-1", prefList: [{groupId: "group-1", preference: 1}, {groupId: "group-2", preference: 2}, {groupId: "group-3", preference: 3}]},
-    {studentid: "student-12", projectid: "project-1", prefList: [{groupId: "group-1", preference: 3}, {groupId: "group-2", preference: 1}, {groupId: "group-3", preference: 2}]},
+export const studentsR3Small: StudentChoices[] = [
+    {studentId: "student-01", projectId: "project-1", choices: [{groupId: "group-1", priority: 3}, {groupId: "group-2", priority: 2}, {groupId: "group-3", priority: 1}]},
+    {studentId: "student-02", projectId: "project-1", choices: [{groupId: "group-1", priority: 3}, {groupId: "group-2", priority: 1}, {groupId: "group-3", priority: 2}]},
+    {studentId: "student-03", projectId: "project-1", choices: [{groupId: "group-1", priority: 1}, {groupId: "group-2", priority: 3}, {groupId: "group-3", priority: 2}]},
+    {studentId: "student-04", projectId: "project-1", choices: [{groupId: "group-1", priority: 3}, {groupId: "group-2", priority: 1}, {groupId: "group-3", priority: 2}]},
+    {studentId: "student-05", projectId: "project-1", choices: [{groupId: "group-1", priority: 3}, {groupId: "group-2", priority: 2}, {groupId: "group-3", priority: 1}]},
+    {studentId: "student-06", projectId: "project-1", choices: [{groupId: "group-1", priority: 3}, {groupId: "group-2", priority: 1}, {groupId: "group-3", priority: 2}]},
+    {studentId: "student-07", projectId: "project-1", choices: [{groupId: "group-1", priority: 3}, {groupId: "group-2", priority: 1}, {groupId: "group-3", priority: 2}]},
+    {studentId: "student-08", projectId: "project-1", choices: [{groupId: "group-1", priority: 3}, {groupId: "group-2", priority: 1}, {groupId: "group-3", priority: 2}]},
+    {studentId: "student-09", projectId: "project-1", choices: [{groupId: "group-1", priority: 3}, {groupId: "group-2", priority: 2}, {groupId: "group-3", priority: 1}]},
+    {studentId: "student-10", projectId: "project-1", choices: [{groupId: "group-1", priority: 1}, {groupId: "group-2", priority: 2}, {groupId: "group-3", priority: 3}]},
+    {studentId: "student-11", projectId: "project-1", choices: [{groupId: "group-1", priority: 1}, {groupId: "group-2", priority: 2}, {groupId: "group-3", priority: 3}]},
+    {studentId: "student-12", projectId: "project-1", choices: [{groupId: "group-1", priority: 3}, {groupId: "group-2", priority: 1}, {groupId: "group-3", priority: 2}]},
 ];
 
 /** Erzeugt `count` leere Gruppen ("group-1" … "group-n") mit gleicher Kapazität. */
-export function createGroups(count: number, capacity: number): groups[] {
+export function createGroups(count: number, capacity: number): RegistrationGroup[] {
     return Array.from({length: count}, (_, i) => ({
         groupId: `group-${i + 1}`,
         full: false,
         capacity,
-        students: [],
+        members: [],
     }));
 }
