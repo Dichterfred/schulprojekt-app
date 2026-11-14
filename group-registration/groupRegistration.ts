@@ -47,7 +47,7 @@ export function registrationAlgorithm(studentPreferenceLists: studentPreferenceL
     }
     shuffle(studentPreferenceLists)
 
-    let maxPrio = findMaxPrioR(studentPreferenceLists, groupList)
+    const {maxPrio} = findMaxPrioR(studentPreferenceLists, groupList)
 
     console.log(maxPrio)
 
@@ -142,12 +142,29 @@ export function assignWithinR(studentPreferenceLists: studentPreferenceList[], g
     return {groups: ctx.groups, unassigned}
 }
 
-export function findMaxPrioR(studentPreferenceLists: studentPreferenceList[] , groupList : groups[]) : number {
-    //search for maximal prefernece where all students get a place
-    for (let currentMaxPrioR = 1; currentMaxPrioR <= groupList.length; currentMaxPrioR++) {
-        if (assignWithinR(studentPreferenceLists, groupList, currentMaxPrioR).unassigned.length === 0) {
-            return currentMaxPrioR
-        }
+export interface MaxPrioResult {
+    maxPrio: number,
+    unassigned: string[],
+}
+
+/**
+ * Sucht das kleinste R (schlechteste zugeteilte Priorität), bei dem bereits so viele Schüler
+ * unterkommen wie überhaupt möglich – im Normalfall alle.
+ * @return maxPrio und die studentIds, die selbst dann nicht untergebracht werden können
+ */
+export function findMaxPrioR(studentPreferenceLists: studentPreferenceList[], groupList: groups[]): MaxPrioResult {
+    const highestPreference = Math.max(0, ...studentPreferenceLists.flatMap(s => s.prefList.map(p => p.preference)))
+    let best: MaxPrioResult = {
+        maxPrio: 1,
+        unassigned: studentPreferenceLists.filter(s => s.prefList.length === 0).map(s => s.studentid),
     }
-    return 1;
+
+    for (let currentMaxPrioR = 1; currentMaxPrioR <= highestPreference; currentMaxPrioR++) {
+        const {unassigned} = assignWithinR(studentPreferenceLists, groupList, currentMaxPrioR)
+        if (currentMaxPrioR === 1 || unassigned.length < best.unassigned.length) {
+            best = {maxPrio: currentMaxPrioR, unassigned}
+        }
+        if (unassigned.length === 0) break
+    }
+    return best
 }
