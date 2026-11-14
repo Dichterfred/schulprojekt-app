@@ -182,6 +182,16 @@ describe("assignWithinR", () => {
         expect(r.groups[0].students).toEqual([{studentId: "fest", preference: 1}]);
     });
 
+    it("rechnet 'full' selbst aus, statt einem veralteten Flag zu vertrauen", () => {
+        const groups = createGroups(2, 1);
+        groups[0].students = [{studentId: "fest", preference: 1}]; // full bleibt fälschlich false
+        groups[1].capacity = 0;
+        const r = assignWithinR([s("s1", [["group-1", 1], ["group-2", 2]])], groups, 2);
+        expect(r.unassigned).toEqual(["s1"]);
+        expect(r.groups[0].students).toHaveLength(1);
+        expect(r.groups[1].students).toHaveLength(0);
+    });
+
     it("arbeitet unsortierte prefLists nach Priorität ab", () => {
         const r = assignWithinR([s("s1", [["group-2", 3], ["group-1", 1]])], createGroups(2, 1), 3);
         expect(r.groups[0].students[0]).toEqual({studentId: "s1", preference: 1});

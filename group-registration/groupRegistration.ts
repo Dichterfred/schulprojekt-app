@@ -119,7 +119,10 @@ function tryReAssign(group: groups, seen: Set<string>, newStudent: students, ctx
  * @return befüllte Kopie der Gruppen und die studentIds, die nicht untergebracht werden konnten
  */
 export function assignWithinR(studentPreferenceLists: studentPreferenceList[], groupList: groups[], maxPrio: number): AssignmentResult {
-    const ctx: AssignmentContext = {studentPreferenceLists, groups: structuredClone(groupList), maxPrio}
+    const groupsClone = structuredClone(groupList)
+    // full aus den Daten ableiten, nicht dem übergebenen Flag vertrauen (z. B. vorbelegte Gruppen der Nachwahl)
+    for (const group of groupsClone) group.full = group.students.length >= group.capacity
+    const ctx: AssignmentContext = {studentPreferenceLists, groups: groupsClone, maxPrio}
     const unassigned: string[] = []
 
     students: for (const student of studentPreferenceLists) {
