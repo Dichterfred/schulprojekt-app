@@ -1,4 +1,4 @@
-import {groups, registrationAlgorithm, studentPreferenceList} from "./groupRegistration";
+import {groups, studentPreferenceList} from "../../group-registration/groupRegistration";
 
 export const groupPreferenceListsTestData: studentPreferenceList[] = [
     {
@@ -266,32 +266,12 @@ export const testData_R3_small: studentPreferenceList[] = [
     {studentid: "student-12", projectid: "project-1", prefList: [{groupId: "group-1", preference: 3}, {groupId: "group-2", preference: 1}, {groupId: "group-3", preference: 2}]},
 ];
 
-
-var groups : groups[] = [
-    {
-        groupId : "group-1",
+/** Erzeugt `count` leere Gruppen ("group-1" … "group-n") mit gleicher Kapazität. */
+export function createGroups(count: number, capacity: number): groups[] {
+    return Array.from({length: count}, (_, i) => ({
+        groupId: `group-${i + 1}`,
         full: false,
-        capacity : 5,
-        students : []
-    },
-    {
-        groupId : "group-2",
-        full: false,
-        capacity : 5,
-        students : []
-    },
-    {
-        groupId : "group-3",
-        full: false,
-        capacity : 5,
-        students : []
-    },
-    {
-        groupId : "group-4",
-        full: false,
-        capacity : 5,
-        students : []
-    },
-]
-
-registrationAlgorithm(testData_R2, groups)
+        capacity,
+        students: [],
+    }));
+}

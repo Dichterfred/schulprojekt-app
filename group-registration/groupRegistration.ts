@@ -1,4 +1,3 @@
-import * as string_decoder from "node:string_decoder";
 
 interface groupPreferences {
     groupId: string;
@@ -55,91 +54,100 @@ export function registrationAlgorithm(studentPreferenceLists: studentPreferenceL
     return true;
 }
 
-function findMaxPrioR(studentPreferenceLists: studentPreferenceList[] , groupList : groups[]) : number {
-    let maxPrio = 1
-    //search for maximal prefernece where all students get a place
-    let currentMaxPrioR = 1
-    while (currentMaxPrioR <= groupList.length) {
-        let groupsClone = structuredClone(groupList)
+export interface AssignmentResult {
+    groups: groups[],
+    unassigned: string[],
+}
 
-        let studentsregistered = 0
-        students : for (let student = 0; student < studentPreferenceLists.length; student++) {
-            loopPrefernece : for (let loopPreference = 0; loopPreference < groupsClone.length; loopPreference++) {
+interface AssignmentContext {
+    studentPreferenceLists: studentPreferenceList[],
+    groups: groups[],
+    maxPrio: number,
+}
 
-                let preference = studentPreferenceLists[student].prefList.find(pref => pref.preference === loopPreference + 1)
-                if (preference === undefined) continue
-                if (preference?.preference <= currentMaxPrioR) {
+/** Prioritäten eines Schülers bis maxPrio, aufsteigend sortiert (Eingabe bleibt unverändert). */
+function candidatePreferences(student: studentPreferenceList, maxPrio: number): groupPreferences[] {
+    return [...student.prefList]
+        .filter(pref => pref.preference <= maxPrio)
+        .sort((a, b) => a.preference - b.preference)
+}
 
-                    let foundGroup = groupsClone.find(groupsClone => groupsClone.groupId === preference?.groupId)
-                    if (foundGroup) {
-                        if (!foundGroup.full) {
-                            foundGroup.students.push({studentId : studentPreferenceLists[student].studentid, preference : preference.preference})
-                            if (foundGroup.students.length === foundGroup.capacity) {
-                                foundGroup.full = true
-                            }
-                            studentsregistered++
-                            continue students
-                        } else {
-                            const tryReAssign = (
-                                group: groups,
-                                seen: Set<string>,
-                                newStudent: students
-                            ): boolean => {
-                                seen.add(group.groupId)
+function placeStudent(group: groups, student: students) {
+    group.students.push(student)
+    if (group.students.length >= group.capacity) group.full = true
+}
 
-                                for (let slot = 0; slot < group.students.length; slot++) {
-                                    const member = group.students[slot]
-                                    const stud = studentPreferenceLists.find(s => s.studentid === member.studentId)
-                                    if (!stud) continue
+/**
+ * Versucht in einer vollen Gruppe Platz für newStudent zu schaffen, indem ein Mitglied
+ * in eine andere seiner Wunschgruppen (≤ maxPrio) umzieht – notfalls rekursiv über eine Kette.
+ * Mitglieder, die nicht in der Schülerliste stehen, werden nie verschoben.
+ */
+function tryReAssign(group: groups, seen: Set<string>, newStudent: students, ctx: AssignmentContext): boolean {
+    seen.add(group.groupId)
 
-                                    const options = [...stud.prefList]
-                                        .filter(p => p.preference <= currentMaxPrioR)
-                                        .sort((a, b) => a.preference - b.preference)
+    for (let slot = 0; slot < group.students.length; slot++) {
+        const member = group.students[slot]
+        const stud = ctx.studentPreferenceLists.find(s => s.studentid === member.studentId)
+        if (!stud) continue
 
-                                    for (const pref of options) {
-                                        const target = groupsClone.find(g => g.groupId === pref.groupId)
-                                        if (!target || seen.has(target.groupId)) continue
+        for (const pref of candidatePreferences(stud, ctx.maxPrio)) {
+            const target = ctx.groups.find(g => g.groupId === pref.groupId)
+            if (!target || seen.has(target.groupId)) continue
 
-                                        const movedMember: students = { studentId: member.studentId, preference: pref.preference }
+            const movedMember: students = {studentId: member.studentId, preference: pref.preference}
 
-                                        if (!target.full) {
-                                            // Platz frei: Besitzer zieht um
-                                            target.students.push(movedMember)
-                                            if (target.students.length === target.capacity) target.full = true
-                                            group.students[slot] = newStudent
-                                            return true
-                                        }
+            if (!target.full) {
+                // Platz frei: Mitglied zieht um
+                placeStudent(target, movedMember)
+                group.students[slot] = newStudent
+                return true
+            }
 
-                                        // Ziel voll: rekursiv versuchen, dort jemanden zu verdrängen
-                                        if (tryReAssign(target, seen, movedMember)) {
-                                            group.students[slot] = newStudent
-                                            return true
-                                        }
-                                    }
-                                }
-                                return false
-                            }
-
-                            if (tryReAssign(
-                                foundGroup,
-                                new Set<string>(),
-                                { studentId: studentPreferenceLists[student].studentid, preference: preference.preference }
-                            )) {
-                                studentsregistered++
-                                continue students
-                            }
-                        }
-                    }
-
-                }
+            // Ziel voll: rekursiv versuchen, dort jemanden zu verdrängen
+            if (tryReAssign(target, seen, movedMember, ctx)) {
+                group.students[slot] = newStudent
+                return true
             }
         }
-        if (studentsregistered === studentPreferenceLists.length) {
-            maxPrio = currentMaxPrioR
-            break
-        }
-
-        currentMaxPrioR++
     }
-    return maxPrio;
+    return false
+}
+
+/**
+ * Teilt alle Schüler Gruppen zu, wobei niemand eine schlechtere Priorität als maxPrio bekommt.
+ * Nicht gewählte Gruppen sind ausgeschlossen. Bringt so viele Schüler unter wie möglich.
+ * @return befüllte Kopie der Gruppen und die studentIds, die nicht untergebracht werden konnten
+ */
+export function assignWithinR(studentPreferenceLists: studentPreferenceList[], groupList: groups[], maxPrio: number): AssignmentResult {
+    const ctx: AssignmentContext = {studentPreferenceLists, groups: structuredClone(groupList), maxPrio}
+    const unassigned: string[] = []
+
+    students: for (const student of studentPreferenceLists) {
+        for (const preference of candidatePreferences(student, maxPrio)) {
+            const foundGroup = ctx.groups.find(g => g.groupId === preference.groupId)
+            if (!foundGroup) continue
+
+            const newStudent: students = {studentId: student.studentid, preference: preference.preference}
+            if (!foundGroup.full) {
+                placeStudent(foundGroup, newStudent)
+                continue students
+            }
+            if (tryReAssign(foundGroup, new Set<string>(), newStudent, ctx)) {
+                continue students
+            }
+        }
+        unassigned.push(student.studentid)
+    }
+
+    return {groups: ctx.groups, unassigned}
+}
+
+export function findMaxPrioR(studentPreferenceLists: studentPreferenceList[] , groupList : groups[]) : number {
+    //search for maximal prefernece where all students get a place
+    for (let currentMaxPrioR = 1; currentMaxPrioR <= groupList.length; currentMaxPrioR++) {
+        if (assignWithinR(studentPreferenceLists, groupList, currentMaxPrioR).unassigned.length === 0) {
+            return currentMaxPrioR
+        }
+    }
+    return 1;
 }
