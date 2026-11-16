@@ -20,6 +20,10 @@ function toCount(value: string): number {
   return Number.isFinite(n) && n > 0 ? n : 0;
 }
 
+function percent(part: number, total: number): string {
+  return `${total > 0 ? ((part / total) * 100).toFixed(1) : "0.0"} %`;
+}
+
 export default function AlgorithmPlayground() {
   const [groupCount, setGroupCount] = useState(5);
   const [studentCount, setStudentCount] = useState(100);
@@ -41,6 +45,8 @@ export default function AlgorithmPlayground() {
 
   function updateGroup(index: number, change: Partial<SimGroup>) {
     setGroups(groups.map((g, i) => (i === index ? { ...g, ...change } : g)));
+    setResult(null); // altes Ergebnis passt nicht mehr zu den geänderten Gruppen
+    setComparison([]);
   }
 
   function simulate() {
@@ -142,13 +148,13 @@ export default function AlgorithmPlayground() {
                 <tr key={i}>
                   <td style={cell}>{i + 1}</td>
                   <td style={cell}>{count}</td>
-                  <td style={cell}>{studentCount > 0 ? ((count / studentCount) * 100).toFixed(1) : "0.0"} %</td>
+                  <td style={cell}>{percent(count, result.studentCount)}</td>
                 </tr>
               ))}
               <tr>
                 <td style={cell}>nicht zugeteilt</td>
                 <td style={cell}>{result.unassignedCount}</td>
-                <td style={cell}>{studentCount > 0 ? ((result.unassignedCount / studentCount) * 100).toFixed(1) : "0.0"} %</td>
+                <td style={cell}>{percent(result.unassignedCount, result.studentCount)}</td>
               </tr>
             </tbody>
           </table>

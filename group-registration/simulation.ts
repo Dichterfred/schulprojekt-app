@@ -82,6 +82,8 @@ export interface SimulationResult {
     priorityCounts: number[],
     assignedCount: number,
     unassignedCount: number,
+    /** Anzahl simulierter Schüler – Basis für Prozentangaben. */
+    studentCount: number,
     /** Höchste vergebene Priorität, null wenn niemand zugeteilt wurde. */
     worstPriority: number | null,
 }
@@ -113,7 +115,7 @@ export function runSimulation(rankings: StudentRanking[], groups: SimGroup[], k:
             worstPriority = Math.max(worstPriority ?? 0, member.priority)
         }
     }
-    return {assignment, durationMs, priorityCounts, assignedCount, unassignedCount: assignment.unassigned.length, worstPriority}
+    return {assignment, durationMs, priorityCounts, assignedCount, unassignedCount: assignment.unassigned.length, studentCount: rankings.length, worstPriority}
 }
 
 /** Führt die Simulation mit denselben Ranglisten für k = 1 … Gruppenanzahl aus. */

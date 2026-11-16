@@ -98,6 +98,9 @@ describe("runSimulation", () => {
         expect(r.worstPriority).toBe(2)
         expect(r.durationMs).toBeGreaterThanOrEqual(0)
     })
+    it("merkt sich die simulierte Schülerzahl für die Prozentangaben", () => {
+        expect(runSimulation(rankings, groups, 2, false).studentCount).toBe(3)
+    })
     it("läuft mit 0 Schülern und mit 0 Gruppen ohne Fehler", () => {
         expect(runSimulation([], groups, 1, false).assignedCount).toBe(0)
         const noGroups = runSimulation(rankings.map(r => ({...r, ranking: []})), [], 1, false)
