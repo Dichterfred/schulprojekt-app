@@ -4,11 +4,12 @@ import Providers from "./providers";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import Sidebar from "@/components/Sidebar";
+import DbStatusBanner from "@/components/DbStatusBanner";
 import Link from "next/link";
 
 export const metadata = {
   title: "Schulprojekt Verwaltung",
-  description: "Projekte und Gruppen verwalten",
+  description: "Projekttage und Projekte verwalten",
 };
 
 function LegalFooter() {
@@ -48,6 +49,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       </head>
       <body style={{ overflow: "hidden" }}>
         <Providers>
+          <DbStatusBanner />
           {showSidebar ? (
             <div style={{ display: "flex", height: "100dvh", overflow: "hidden" }}>
               {/* Sidebar renders its own mobile toggle + drawer */}

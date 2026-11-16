@@ -12,14 +12,14 @@ export default function DatenschutzPage() {
       <h3>2. Welche Daten werden verarbeitet?</h3>
       <p>
         Im Rahmen der Nutzung dieser Anwendung werden folgende Daten verarbeitet: Benutzername
-        und Passwort (Lehrer und Super User), Vorname und Nachname sowie die Zuordnung zu einem
-        Projekt (Schüler), sowie die von Schülern vergebenen Gruppen-Prioritäten.
+        und Passwort (Lehrer und Super User), Vorname, Nachname, Klasse, Anmeldename und Passwort
+        (Schüler) sowie die von Schülern vergebenen Projekt-Prioritäten.
       </p>
 
       <h3>3. Zweck der Verarbeitung</h3>
       <p>
-        Die Daten werden ausschließlich zur Organisation von Schulprojekten, Gruppen und der
-        Gruppen-Einschreibung von Schülern verwendet.
+        Die Daten werden ausschließlich zur Organisation von Projekttagen, Projekten und der
+        Projekt-Einschreibung von Schülern verwendet.
       </p>
 
       <h3>4. Speicherdauer</h3>

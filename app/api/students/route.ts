@@ -1,59 +1,56 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { ApiError, handle, parseBody, requireRole } from "@/lib/api";
+import { studentCreateSchema } from "@/lib/validation";
+import { createStudentCredentials } from "@/lib/studentPassword";
+import { assignUsernames } from "@/lib/username";
+import { assertSchoolClassesExist } from "@/lib/schoolClasses";
+import {
+  NO_STORE,
+  requirePasswordKey,
+  requireUsernameBase,
+  studentListSelect,
+  studentOrderBy,
+  takenUsernames,
+} from "@/lib/students";
 
-export async function GET() {
-  const session = await getServerSession(authOptions);
-  if (!session || session.user.role !== "SUPERUSER") {
-    return NextResponse.json({ error: "Nicht autorisiert" }, { status: 401 });
-  }
-  const students = await prisma.user.findMany({
-    where: { role: "STUDENT" },
-    select: {
-      id: true, firstName: true, lastName: true, createdAt: true,
-      enrolledProjectId: true,
-      enrolledProject: { select: { id: true, name: true, code: true } },
-    },
-    orderBy: { createdAt: "desc" },
+/** Schülerliste (ohne Passwortfelder), optional `?classId=`. */
+export const GET = handle(async (req) => {
+  await requireRole("SUPERUSER");
+  const classId = new URL(req.url).searchParams.get("classId");
+  const students = await prisma.student.findMany({
+    where: classId ? { schoolClassId: classId } : undefined,
+    select: studentListSelect,
+    orderBy: studentOrderBy,
   });
   return NextResponse.json(students);
-}
+});
 
-export async function POST(req: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session || session.user.role !== "SUPERUSER") {
-    return NextResponse.json({ error: "Nicht autorisiert" }, { status: 401 });
-  }
+/** Legt einen Schüler an; das Passwort steht nur in dieser Antwort im Klartext. */
+export const POST = handle(async (req) => {
+  await requireRole("SUPERUSER");
+  const data = await parseBody(req, studentCreateSchema);
+  const base = requireUsernameBase(data.firstName, data.lastName);
+  await assertSchoolClassesExist(prisma, [data.schoolClassId]);
 
-  const body = await req.json();
-  const { firstName, lastName, projectId } = body;
-
-  if (!firstName || !lastName || !projectId) {
-    return NextResponse.json({ error: "Vorname, Nachname und Projekt sind erforderlich." }, { status: 400 });
-  }
-
-  const project = await prisma.project.findUnique({ where: { id: projectId } });
-  if (!project) return NextResponse.json({ error: "Projekt nicht gefunden." }, { status: 404 });
-
-  const existing = await prisma.user.findFirst({
+  const duplicate = await prisma.student.findFirst({
     where: {
-      role: "STUDENT", enrolledProjectId: projectId,
-      firstName: { equals: firstName.trim() }, lastName: { equals: lastName.trim() },
+      schoolClassId: data.schoolClassId,
+      firstName: { equals: data.firstName, mode: "insensitive" },
+      lastName: { equals: data.lastName, mode: "insensitive" },
     },
+    select: { id: true },
   });
-  if (existing) {
-    return NextResponse.json({ error: "Ein Schüler mit diesem Namen ist bereits in diesem Projekt angemeldet." }, { status: 400 });
-  }
+  if (duplicate) throw new ApiError(409, "Ein Schüler mit diesem Namen existiert in dieser Klasse bereits.");
 
-  const student = await prisma.user.create({
-    data: { firstName: firstName.trim(), lastName: lastName.trim(), role: "STUDENT", enrolledProjectId: projectId },
-    select: {
-      id: true, firstName: true, lastName: true, createdAt: true,
-      enrolledProjectId: true,
-      enrolledProject: { select: { id: true, name: true, code: true } },
-    },
+  const { password, passwordHash, passwordEncrypted } = await createStudentCredentials(requirePasswordKey());
+
+  const student = await prisma.$transaction(async (tx) => {
+    const [{ username }] = assignUsernames([data], await takenUsernames(tx, base));
+    return tx.student.create({
+      data: { ...data, username, passwordHash, passwordEncrypted },
+      select: studentListSelect,
+    });
   });
-
-  return NextResponse.json(student, { status: 201 });
-}
+  return NextResponse.json({ ...student, password }, { status: 201, headers: NO_STORE });
+});

@@ -3,9 +3,18 @@
 import { signOut } from "next-auth/react";
 
 export default function LogoutButton({ callbackUrl }: { callbackUrl?: string }) {
+  // Relativ weiterleiten statt über NEXTAUTH_URL (siehe Sidebar-Logout).
+  async function handleLogout() {
+    try {
+      await signOut({ redirect: false });
+    } finally {
+      window.location.href = callbackUrl || "/";
+    }
+  }
+
   return (
     <button
-      onClick={() => signOut({ callbackUrl: callbackUrl || "/" })}
+      onClick={handleLogout}
       style={{
         background: "rgba(255,255,255,0.75)",
         backdropFilter: "blur(12px)",

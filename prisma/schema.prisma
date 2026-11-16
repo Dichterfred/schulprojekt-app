@@ -10,94 +10,144 @@ datasource db {
 enum Role {
   SUPERUSER
   TEACHER
-  STUDENT
 }
 
+/// Lehrer und Superuser (Schüler sind eigene Tabelle `Student`).
 model User {
-  id           String  @id @default(cuid())
-  username     String? @unique
-  passwordHash String?
+  id           String   @id @default(cuid())
+  username     String   @unique
+  passwordHash String
   role         Role
+  createdAt    DateTime @default(now())
 
-  firstName String?
-  lastName  String?
-
-  createdAt DateTime @default(now())
-
-  ownedProjects Project[] @relation("OwnedProjects")
-
-  enrolledProjectId String?
-  enrolledProject    Project? @relation("Enrollment", fields: [enrolledProjectId], references: [id], onDelete: Cascade)
-
-  groupPriorities GroupPriority[]
+  ownedProjects Project[]
 }
 
 model SchoolClass {
-  id        String    @id @default(cuid())
-  name      String    @unique
-  sortOrder Int       @unique
-  projects  Project[] @relation("ProjectSchoolClasses")
+  id        String @id @default(cuid())
+  name      String @unique
+  sortOrder Int    @unique
+
+  students     Student[]
+  projectDays  ProjectDay[] @relation("ProjectDayClasses")
+  excludedFrom Project[]    @relation("ProjectExcludedClasses")
 }
 
-model Project {
-  id           String   @id @default(cuid())
-  name         String
-  description  String
-  studentCount Int
-  code         String   @unique
+model Student {
+  id                String   @id @default(cuid())
+  firstName         String
+  lastName          String
+  createdAt         DateTime @default(now())
+  /// Eindeutiger Anmeldename, z. B. "anna-maria.von-berg", ggf. mit Ziffer.
+  username          String   @unique
+  /// bcrypt-Hash für den Login.
+  passwordHash      String
+  /// AES-256-GCM ("iv:authTag:ciphertext"), nur für PDF-Export.
+  passwordEncrypted String
+  /// Wird bei neuem Passwort oder Klassenwechsel hochgezählt (macht alte Sessions ungültig).
+  sessionVersion    Int      @default(0)
 
-  // Optional: Pfad zum Banner-Bild (z.B. "/uploads/projects/abc123.jpg")
-  bannerImage  String?
+  schoolClassId String
+  schoolClass   SchoolClass @relation(fields: [schoolClassId], references: [id], onDelete: Restrict)
 
+  preferences Preference[]
+  assignments Assignment[]
+
+  @@index([schoolClassId])
+}
+
+/// Projekttag (vormals Projekt): Rahmen mit Klassen, Zeitraum und Frist.
+model ProjectDay {
+  id                 String   @id @default(cuid())
+  name               String
+  description        String
+  /// Wird beim Anlegen aus dem Namen erzeugt und danach nicht mehr verändert.
+  code               String   @unique
   startDate          DateTime
   endDate            DateTime
   enrollmentDeadline DateTime
+  createdAt          DateTime @default(now())
 
-  ownerId String?
-  owner   User?   @relation("OwnedProjects", fields: [ownerId], references: [id], onDelete: SetNull)
+  imageId String? @unique
+  image   Image?  @relation("ProjectDayImage", fields: [imageId], references: [id], onDelete: SetNull)
 
-  schoolClasses SchoolClass[] @relation("ProjectSchoolClasses")
-
-  groups          Group[]
-  students        User[]          @relation("Enrollment")
-  groupPriorities GroupPriority[]
-
-  createdAt DateTime @default(now())
+  schoolClasses SchoolClass[] @relation("ProjectDayClasses")
+  projects      Project[]
+  preferences   Preference[]
+  assignments   Assignment[]
 }
 
-model Group {
+/// Projekt (vormals Gruppe) innerhalb eines Projekttags.
+model Project {
   id          String   @id @default(cuid())
   name        String
   description String
   maxStudents Int
+  createdAt   DateTime @default(now())
 
-  // Optional: Pfad zum Banner-Bild (z.B. "/uploads/groups/abc123.jpg")
-  bannerImage String?
+  imageId String? @unique
+  image   Image?  @relation("ProjectImage", fields: [imageId], references: [id], onDelete: SetNull)
 
-  projectId String
-  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
+  projectDayId String
+  projectDay   ProjectDay @relation(fields: [projectDayId], references: [id], onDelete: Cascade)
 
-  groupPriorities GroupPriority[]
+  ownerId String?
+  owner   User?   @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+
+  excludedClasses SchoolClass[] @relation("ProjectExcludedClasses")
+  preferences     Preference[]
+  assignments     Assignment[]
+
+  @@index([projectDayId])
+  @@index([ownerId])
 }
 
-model GroupPriority {
-  id        String @id @default(cuid())
+/// Priorität eines Schülers für ein Projekt (Eingabe für den Einteilungsalgorithmus).
+model Preference {
+  id        String   @id @default(cuid())
+  rank      Int
+  updatedAt DateTime @updatedAt
 
   studentId String
-  student   User   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  projectDayId String
+  projectDay   ProjectDay @relation(fields: [projectDayId], references: [id], onDelete: Cascade)
 
   projectId String
   project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-  groupId String
-  group   Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  @@unique([studentId, projectId])
+  @@unique([studentId, projectDayId, rank])
+  @@index([projectId])
+  @@index([projectDayId])
+}
 
-  priority Int
-
+/// Ergebnis der Einteilung: ein Schüler landet pro Projekttag in genau einem Projekt.
+model Assignment {
+  id        String   @id @default(cuid())
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 
-  @@unique([studentId, groupId])
-  @@unique([studentId, priority])
+  projectDayId String
+  projectDay   ProjectDay @relation(fields: [projectDayId], references: [id], onDelete: Cascade)
+
+  studentId String
+  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectDayId, studentId])
+  @@index([projectId])
+}
+
+/// Bannerbilder, getrennt von Projekttag/Projekt gespeichert, damit Listen keine Bilddaten laden.
+model Image {
+  id        String   @id @default(cuid())
+  mimeType  String
+  data      Bytes
+  createdAt DateTime @default(now())
+
+  projectDay ProjectDay? @relation("ProjectDayImage")
+  project    Project?    @relation("ProjectImage")
 }

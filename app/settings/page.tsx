@@ -3,11 +3,6 @@
 import { useEffect, useState, FormEvent } from "react";
 
 type Teacher = { id: string; username: string; createdAt: string };
-type Project = { id: string; name: string; code: string };
-type Student = {
-  id: string; firstName: string; lastName: string; createdAt: string;
-  enrolledProject: { id: string; name: string; code: string } | null;
-};
 
 export default function SettingsPage() {
   const [teachers, setTeachers] = useState<Teacher[]>([]);
@@ -20,31 +15,12 @@ export default function SettingsPage() {
   const [pwError, setPwError] = useState("");
   const [pwSuccess, setPwSuccess] = useState("");
 
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [students, setStudents] = useState<Student[]>([]);
-  const [sFirstName, setSFirstName] = useState("");
-  const [sLastName, setSLastName] = useState("");
-  const [sProjectId, setSProjectId] = useState("");
-  const [sError, setSError] = useState("");
-
   async function loadTeachers() {
     const res = await fetch("/api/teachers");
     if (res.ok) setTeachers(await res.json());
   }
-  async function loadProjects() {
-    const res = await fetch("/api/projects");
-    if (res.ok) {
-      const data = await res.json();
-      setProjects(data);
-      if (!sProjectId && data.length > 0) setSProjectId(data[0].id);
-    }
-  }
-  async function loadStudents() {
-    const res = await fetch("/api/students");
-    if (res.ok) setStudents(await res.json());
-  }
 
-  useEffect(() => { loadTeachers(); loadProjects(); loadStudents(); }, []);
+  useEffect(() => { loadTeachers(); }, []);
 
   async function handleTeacherSubmit(e: FormEvent) {
     e.preventDefault();
@@ -82,26 +58,6 @@ export default function SettingsPage() {
     setTimeout(() => { closePwEdit(); }, 1200);
   }
 
-  async function handleStudentSubmit(e: FormEvent) {
-    e.preventDefault();
-    setSError("");
-    if (!sProjectId) { setSError("Bitte ein Projekt auswählen."); return; }
-    const res = await fetch("/api/students", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ firstName: sFirstName, lastName: sLastName, projectId: sProjectId }),
-    });
-    if (!res.ok) { const data = await res.json(); setSError(data.error || "Fehler beim Anlegen des Schülers."); return; }
-    setSFirstName(""); setSLastName("");
-    loadStudents();
-  }
-
-  async function handleStudentDelete(id: string) {
-    if (!confirm("Diesen Schüler wirklich löschen?")) return;
-    await fetch(`/api/students/${id}`, { method: "DELETE" });
-    loadStudents();
-  }
-
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
 
@@ -109,7 +65,7 @@ export default function SettingsPage() {
       <div className="top-bar">
         <h1>Einstellungen</h1>
         <span className="top-bar-divider" />
-        <span className="top-bar-subtitle">Lehrer &amp; Schüler verwalten</span>
+        <span className="top-bar-subtitle">Lehrer verwalten</span>
       </div>
 
       {/* ===== Scrollable Content ===== */}
@@ -201,69 +157,6 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        <div className="section-divider" />
-
-        {/* ── Schüler ── */}
-        <h2 style={{ marginBottom: "var(--space-3)" }}>Schüler</h2>
-
-        <div className="settings-grid">
-          <div className="card" style={{ margin: 0 }}>
-            <div style={{ fontSize: "var(--text-xs)", fontWeight: 700, color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: "var(--space-4)" }}>
-              Neuen Schüler anlegen
-            </div>
-            <form onSubmit={handleStudentSubmit}>
-              <div style={{ marginBottom: "var(--space-3)" }}>
-                <label style={{ marginTop: 0 }}>Projekt</label>
-                <select value={sProjectId} onChange={(e) => setSProjectId(e.target.value)}>
-                  <option value="">-- Projekt wählen --</option>
-                  {projects.map((p) => (
-                    <option key={p.id} value={p.id}>{p.name} (Code: {p.code})</option>
-                  ))}
-                </select>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-3)", marginBottom: "var(--space-4)" }}>
-                <div>
-                  <label>Vorname</label>
-                  <input value={sFirstName} onChange={(e) => setSFirstName(e.target.value)} required />
-                </div>
-                <div>
-                  <label>Nachname</label>
-                  <input value={sLastName} onChange={(e) => setSLastName(e.target.value)} required />
-                </div>
-              </div>
-              {sError && <p className="error-text">{sError}</p>}
-              <button type="submit">Schüler anlegen</button>
-            </form>
-          </div>
-
-          <div>
-            {students.length === 0 ? (
-              <p style={{ color: "var(--color-text-faint)", fontSize: "var(--text-sm)", paddingTop: "var(--space-2)" }}>Noch keine Schüler angelegt.</p>
-            ) : (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "var(--space-2)" }}>
-                {students.map((s) => (
-                  <div key={s.id} className="item-card">
-                    <div className="item-card-row">
-                      <div style={{ minWidth: 0 }}>
-                        <div style={{ fontWeight: 600, marginBottom: "var(--space-1)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                          {s.firstName} {s.lastName}
-                        </div>
-                        <div style={{ fontSize: "var(--text-xs)", color: "var(--color-text-muted)", display: "flex", gap: "var(--space-2)", alignItems: "center" }}>
-                          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.enrolledProject?.name || "—"}</span>
-                          {s.enrolledProject && <span className="code-badge">{s.enrolledProject.code}</span>}
-                        </div>
-                        <div style={{ fontSize: "var(--text-xs)", color: "var(--color-text-faint)", marginTop: "var(--space-1)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                          {s.enrolledProject?.code} / {s.firstName?.toLowerCase()}.{s.lastName?.toLowerCase()}
-                        </div>
-                      </div>
-                      <button className="danger btn-sm" style={{ flexShrink: 0 }} onClick={() => handleStudentDelete(s.id)}>Löschen</button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
 
       </div>
     </div>
