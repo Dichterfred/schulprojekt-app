@@ -3,3 +3,6 @@ node_modules
 dev.db
 .env.local
 .env
+/docs/
+.DS_STORE
+tsconfig.tsbuildinfo
