@@ -1,4 +1,4 @@
-import {RegistrationGroup, StudentChoices} from "./groupRegistration";
+import {AssignmentResult, registrationAlgorithm, RegistrationGroup, StudentChoices} from "./groupRegistration";
 
 /** Zufallsquelle im Bereich [0, 1). */
 export type Random = () => number
@@ -71,4 +71,55 @@ export function toStudentChoices(rankings: StudentRanking[], k: number, randomCo
 /** Wandelt Testgruppen in leere Gruppen für den Algorithmus um. */
 export function toRegistrationGroups(groups: SimGroup[]): RegistrationGroup[] {
     return groups.map(({groupId, capacity}) => ({groupId, capacity, members: [], full: false}))
+}
+
+/** Ergebnis eines Simulationslaufs mit Auswertung. */
+export interface SimulationResult {
+    assignment: AssignmentResult,
+    /** Laufzeit nur von registrationAlgorithm. */
+    durationMs: number,
+    /** Index i = Anzahl Schüler mit Priorität i + 1; Länge = k. */
+    priorityCounts: number[],
+    assignedCount: number,
+    unassignedCount: number,
+    /** Höchste vergebene Priorität, null wenn niemand zugeteilt wurde. */
+    worstPriority: number | null,
+}
+
+/** Eine Zeile des Vergleichs über verschiedene erlaubte Prioritäten k. */
+export interface KComparisonRow {
+    k: number,
+    unassignedCount: number,
+    worstPriority: number | null,
+    durationMs: number,
+}
+
+/** Lässt den Algorithmus mit den ersten k Plätzen der Ranglisten laufen und wertet das Ergebnis aus. */
+export function runSimulation(rankings: StudentRanking[], groups: SimGroup[], k: number, randomCount: boolean): SimulationResult {
+    const students = toStudentChoices(rankings, k, randomCount)
+    const registrationGroups = toRegistrationGroups(groups)
+
+    const start = performance.now()
+    const assignment = registrationAlgorithm(students, registrationGroups)
+    const durationMs = performance.now() - start
+
+    const priorityCounts = new Array<number>(Math.max(k, 0)).fill(0)
+    let assignedCount = 0
+    let worstPriority: number | null = null
+    for (const group of assignment.groups) {
+        for (const member of group.members) {
+            priorityCounts[member.priority - 1]++
+            assignedCount++
+            worstPriority = Math.max(worstPriority ?? 0, member.priority)
+        }
+    }
+    return {assignment, durationMs, priorityCounts, assignedCount, unassignedCount: assignment.unassigned.length, worstPriority}
+}
+
+/** Führt die Simulation mit denselben Ranglisten für k = 1 … Gruppenanzahl aus. */
+export function compareK(rankings: StudentRanking[], groups: SimGroup[], randomCount: boolean): KComparisonRow[] {
+    return groups.map((_, index) => {
+        const {unassignedCount, worstPriority, durationMs} = runSimulation(rankings, groups, index + 1, randomCount)
+        return {k: index + 1, unassignedCount, worstPriority, durationMs}
+    })
 }

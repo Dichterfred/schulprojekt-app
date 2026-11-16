@@ -1,8 +1,11 @@
 import {describe, expect, it} from "vitest";
 import {
     clampPopularity,
+    compareK,
     generateGroups,
     generateRankings,
+    runSimulation,
+    SimGroup,
     StudentRanking,
     toRegistrationGroups,
     toStudentChoices,
@@ -73,5 +76,49 @@ describe("toRegistrationGroups", () => {
     it("übernimmt ID und Kapazität, leere Mitglieder, full=false", () => {
         expect(toRegistrationGroups([{groupId: "a", name: "X", capacity: 2, popularity: 5}]))
             .toEqual([{groupId: "a", capacity: 2, members: [], full: false}])
+    })
+})
+
+describe("runSimulation", () => {
+    const groups: SimGroup[] = [
+        {groupId: "a", name: "A", capacity: 1, popularity: 5},
+        {groupId: "b", name: "B", capacity: 1, popularity: 5},
+    ]
+    const rankings: StudentRanking[] = [
+        {studentId: "Schüler 1", ranking: ["a", "b"], countFraction: 1},
+        {studentId: "Schüler 2", ranking: ["a", "b"], countFraction: 1},
+        {studentId: "Schüler 3", ranking: ["a", "b"], countFraction: 1},
+    ]
+    it("zählt Prioritäten, Übriggebliebene und misst die Zeit", () => {
+        const r = runSimulation(rankings, groups, 2, false)
+        expect(r.priorityCounts).toEqual([1, 1])
+        expect(r.assignedCount).toBe(2)
+        expect(r.unassignedCount).toBe(1)
+        expect(r.assignment.unassigned).toHaveLength(1)
+        expect(r.worstPriority).toBe(2)
+        expect(r.durationMs).toBeGreaterThanOrEqual(0)
+    })
+    it("läuft mit 0 Schülern und mit 0 Gruppen ohne Fehler", () => {
+        expect(runSimulation([], groups, 1, false).assignedCount).toBe(0)
+        const noGroups = runSimulation(rankings.map(r => ({...r, ranking: []})), [], 1, false)
+        expect(noGroups.unassignedCount).toBe(3)
+        expect(noGroups.worstPriority).toBeNull()
+    })
+})
+
+describe("compareK", () => {
+    it("eine Zeile pro k = 1 … Gruppenanzahl, mehr Prioritäten → nicht mehr Übriggebliebene", () => {
+        const groups: SimGroup[] = [
+            {groupId: "a", name: "A", capacity: 1, popularity: 5},
+            {groupId: "b", name: "B", capacity: 1, popularity: 5},
+        ]
+        const rankings: StudentRanking[] = [
+            {studentId: "Schüler 1", ranking: ["a", "b"], countFraction: 1},
+            {studentId: "Schüler 2", ranking: ["a", "b"], countFraction: 1},
+        ]
+        const rows = compareK(rankings, groups, false)
+        expect(rows.map(r => r.k)).toEqual([1, 2])
+        expect(rows.map(r => r.unassignedCount)).toEqual([1, 0])
+        expect(rows.map(r => r.worstPriority)).toEqual([1, 2])
     })
 })
