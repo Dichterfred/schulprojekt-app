@@ -42,22 +42,21 @@ export function shuffle<T>(array: T[]): T[] {
  * @name registrationAlgorithm
  * @param students
  * @param groups
- * @return boolean
+ * @return befüllte Kopie der Gruppen und die studentIds, die keinen Platz bekommen
  * @description
  * This Algorithm is seperated in 2 parts.
- * First: Shuffle the students to minimize bias in registration
- * Second:
+ * First: Shuffle the students to minimize bias in registration, then find the smallest
+ * maximum priority R at which as many students as possible get a place.
+ * Second: Optimize that assignment so the sum of squared priorities is minimal (nobody worse than R).
  */
-
-export function registrationAlgorithm(students: StudentChoices[], groups: RegistrationGroup[]) : boolean {
+export function registrationAlgorithm(students: StudentChoices[], groups: RegistrationGroup[]): AssignmentResult {
     //shuffle the students for maximal randomness (acts as a lottery for who stays unassigned)
     const shuffledStudents = shuffle(students)
 
     const {maxPrio} = findMaxPrioR(shuffledStudents, groups)
+    const {groups: assigned, unassigned} = assignWithinR(shuffledStudents, groups, maxPrio)
 
-    console.log(maxPrio)
-
-    return true;
+    return {groups: optimizeAssignment(shuffledStudents, assigned, maxPrio), unassigned}
 }
 
 export interface AssignmentResult {
@@ -176,4 +175,108 @@ export function findMaxPrioR(students: StudentChoices[], groups: RegistrationGro
         if (unassigned.length === 0) break
     }
     return best
+}
+
+/** Umzug eines Schülers von Gruppe from nach Gruppe to (Indizes; FREI = groups.length). */
+interface MoveEdge {
+    from: number,
+    to: number,
+    weight: number,
+    studentId?: string,
+    priority?: number,
+}
+
+/**
+ * Baut den Umzugsgraphen: Knoten sind die Gruppen plus FREI.
+ * X → Y: ein Schüler aus X könnte nach Y (Gewicht = Änderung der Quadratsumme, der günstigste je Paar).
+ * Y → FREI: Y hat einen freien Platz. FREI → X: X darf einen Schüler abgeben.
+ */
+function buildMoveGraph(students: StudentChoices[], groups: RegistrationGroup[], maxPrio: number): MoveEdge[] {
+    const free = groups.length
+    const best = new Map<string, MoveEdge>()
+
+    groups.forEach((group, from) => {
+        for (const member of group.members) {
+            const student = students.find(s => s.studentId === member.studentId)
+            if (!student) continue // vorab eingetragene Schüler bleiben, wo sie sind
+            for (const choice of allowedChoices(student, maxPrio)) {
+                const to = groups.findIndex(g => g.groupId === choice.groupId)
+                if (to === -1 || to === from) continue
+                const weight = choice.priority ** 2 - member.priority ** 2
+                const key = `${from}-${to}`
+                if (!best.has(key) || weight < best.get(key)!.weight) {
+                    best.set(key, {from, to, weight, studentId: member.studentId, priority: choice.priority})
+                }
+            }
+        }
+    })
+
+    const edges = [...best.values()]
+    groups.forEach((group, index) => {
+        if (group.members.length < group.capacity) edges.push({from: index, to: free, weight: 0})
+        edges.push({from: free, to: index, weight: 0})
+    })
+    return edges
+}
+
+/** Bellman-Ford: liefert die Kanten eines Kreises mit negativer Summe oder null. */
+function findNegativeCycle(edges: MoveEdge[], nodeCount: number): MoveEdge[] | null {
+    const dist = new Array<number>(nodeCount).fill(0) // wie eine unsichtbare Quelle zu allen Knoten
+    const pred = new Array<MoveEdge | null>(nodeCount).fill(null)
+    let relaxed = -1
+
+    for (let round = 0; round < nodeCount; round++) {
+        relaxed = -1
+        for (const edge of edges) {
+            if (dist[edge.from] + edge.weight < dist[edge.to]) {
+                dist[edge.to] = dist[edge.from] + edge.weight
+                pred[edge.to] = edge
+                relaxed = edge.to
+            }
+        }
+        if (relaxed === -1) return null // nichts mehr verbessert → kein negativer Kreis
+    }
+
+    // in der letzten Runde noch verbessert → negativer Kreis; nodeCount Schritte zurück landen sicher darin
+    let node = relaxed
+    for (let i = 0; i < nodeCount; i++) node = pred[node]!.from
+
+    const cycle: MoveEdge[] = []
+    let current = node
+    do {
+        const edge = pred[current]!
+        cycle.push(edge)
+        current = edge.from
+    } while (current !== node)
+    return cycle
+}
+
+/** Führt alle Umzüge eines Kreises aus; Kanten über FREI bewegen niemanden. */
+function applyCycle(groups: RegistrationGroup[], cycle: MoveEdge[]) {
+    const moves = cycle.filter(edge => edge.studentId !== undefined)
+    for (const move of moves) {
+        const source = groups[move.from]
+        source.members.splice(source.members.findIndex(m => m.studentId === move.studentId), 1)
+    }
+    for (const move of moves) {
+        groups[move.to].members.push({studentId: move.studentId!, priority: move.priority!})
+    }
+}
+
+/**
+ * Verbessert eine fertige Zuteilung: minimiert die Summe der quadrierten Prioritäten,
+ * ohne dass jemand eine schlechtere Priorität als maxPrio bekommt. Wer zugeteilt ist, bleibt zugeteilt.
+ * Solange der Umzugsgraph einen Kreis mit negativer Summe hat, wird dieser ausgeführt –
+ * gibt es keinen mehr, ist die Zuteilung optimal.
+ * @return verbesserte Kopie der Gruppen
+ */
+export function optimizeAssignment(students: StudentChoices[], groups: RegistrationGroup[], maxPrio: number): RegistrationGroup[] {
+    const groupsClone = structuredClone(groups)
+    for (;;) {
+        const cycle = findNegativeCycle(buildMoveGraph(students, groupsClone, maxPrio), groupsClone.length + 1)
+        if (!cycle) break
+        applyCycle(groupsClone, cycle)
+    }
+    for (const group of groupsClone) group.full = group.members.length >= group.capacity
+    return groupsClone
 }
