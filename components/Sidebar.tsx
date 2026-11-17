@@ -5,6 +5,16 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { formatDateOnly } from "@/lib/dateHelpers";
+import {
+  Bars3Icon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  Cog6ToothIcon,
+  FolderIcon,
+  PowerIcon,
+  UsersIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/outline";
 
 type ProjectDaySummary = { id: string; name: string; startDate: string; endDate: string };
 
@@ -13,28 +23,28 @@ const SVG_RESET: React.CSSProperties = {
 };
 
 function IconFolder() {
-  return <span style={SVG_RESET}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={{ display: "block" }}><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /></svg></span>;
+  return <span style={SVG_RESET}><FolderIcon width={20} height={20} style={{ display: "block" }} aria-hidden="true" /></span>;
 }
 function IconPeople() {
-  return <span style={SVG_RESET}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={{ display: "block" }}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg></span>;
+  return <span style={SVG_RESET}><UsersIcon width={20} height={20} style={{ display: "block" }} aria-hidden="true" /></span>;
 }
 function IconSettings() {
-  return <span style={SVG_RESET}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={{ display: "block" }}><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg></span>;
+  return <span style={SVG_RESET}><Cog6ToothIcon width={20} height={20} style={{ display: "block" }} aria-hidden="true" /></span>;
 }
 function IconChevronLeft() {
-  return <span style={SVG_RESET}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ display: "block" }}><polyline points="15 18 9 12 15 6" /></svg></span>;
+  return <span style={SVG_RESET}><ChevronLeftIcon width={16} height={16} style={{ display: "block" }} aria-hidden="true" /></span>;
 }
 function IconChevronRight() {
-  return <span style={SVG_RESET}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ display: "block" }}><polyline points="9 18 15 12 9 6" /></svg></span>;
+  return <span style={SVG_RESET}><ChevronRightIcon width={16} height={16} style={{ display: "block" }} aria-hidden="true" /></span>;
 }
 function IconPower() {
-  return <span style={SVG_RESET}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ display: "block" }}><path d="M18.36 6.64a9 9 0 1 1-12.73 0" /><line x1="12" y1="2" x2="12" y2="12" /></svg></span>;
+  return <span style={SVG_RESET}><PowerIcon width={16} height={16} style={{ display: "block" }} aria-hidden="true" /></span>;
 }
 function IconMenu() {
-  return <span style={SVG_RESET}><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: "block" }}><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg></span>;
+  return <span style={SVG_RESET}><Bars3Icon width={22} height={22} style={{ display: "block" }} aria-hidden="true" /></span>;
 }
 function IconX() {
-  return <span style={SVG_RESET}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ display: "block" }}><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></span>;
+  return <span style={SVG_RESET}><XMarkIcon width={20} height={20} style={{ display: "block" }} aria-hidden="true" /></span>;
 }
 
 function Tooltip({ label, children }: { label: string; children: React.ReactNode }) {

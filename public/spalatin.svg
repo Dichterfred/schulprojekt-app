@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="Georg Spalatin">
+    <defs><clipPath id="c"><circle cx="16" cy="16" r="13"/></clipPath></defs>
+    <circle cx="16" cy="16" r="15" fill="#fff"/>
+    <circle cx="16" cy="16" r="14" fill="none" stroke="#000" stroke-width="1.5"/>
+    <g clip-path="url(#c)" fill="#000">
+        <!-- Barett -->
+        <path d="M7.5 12.5C6.5 7 12 4.5 17 5c5 .5 7 4 5.200 7.500Z"/>
+        <!-- Kopf, Hals, Schultern -->
+        <path d="M10 14.200L21 14.200L22 16L24 18L22.500 19L23 20.500L21.500 21L21.500 22.500L19 23.500L19 25C24 26 26 27 27 29L5 29C6 26 10 25 13 25L13 23C10 22 9 18 10 14.200Z"/>
+    </g>
+    <!-- Auge -->
+    <circle cx="19.500" cy="16.800" r=".8" fill="#fff"/>
+</svg>

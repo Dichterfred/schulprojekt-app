@@ -6,3 +6,4 @@ dev.db
 /docs/
 .DS_STORE
 tsconfig.tsbuildinfo
+/docs/

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, FormEvent } from "react";
+import { KeyIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
 type Teacher = { id: string; username: string; createdAt: string };
 
@@ -102,7 +103,7 @@ export default function SettingsPage() {
             {teachers.length === 0 ? (
               <p style={{ color: "var(--color-text-faint)", fontSize: "var(--text-sm)", paddingTop: "var(--space-2)" }}>Noch keine Lehrer angelegt.</p>
             ) : (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: "var(--space-2)" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "var(--space-2)" }}>
                 {teachers.map((t) => (
                   <div key={t.id} className="item-card">
                     <div className="item-card-row">
@@ -122,7 +123,9 @@ export default function SettingsPage() {
                           className="secondary btn-sm"
                           onClick={() => pwEditId === t.id ? closePwEdit() : openPwEdit(t.id)}
                         >
-                          {pwEditId === t.id ? "✕" : "🔑 PW"}
+                          {pwEditId === t.id
+                            ? <XMarkIcon width={14} height={14} style={{ display: "inline-block", verticalAlign: "-2px" }} aria-label="Schließen" />
+                            : <><KeyIcon width={14} height={14} style={{ display: "inline-block", verticalAlign: "-2px" }} aria-hidden="true" /> PW</>}
                         </button>
                         <button className="danger btn-sm" onClick={() => handleTeacherDelete(t.id)}>Löschen</button>
                       </div>
@@ -154,6 +157,9 @@ export default function SettingsPage() {
                 ))}
               </div>
             )}
+          </div>
+          <div>
+            <h2 style={{ marginBottom: "var(--space-3)", marginTop: "var(--space-3)"}}>Algorithmus Durchlauf</h2>
           </div>
         </div>
 

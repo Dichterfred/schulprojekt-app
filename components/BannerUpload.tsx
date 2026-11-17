@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { PlusIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
 interface Props {
   folder: "projects" | "groups"; // wird für die Upload-API nicht mehr gebraucht, bleibt für Abwärtskompatibilität
@@ -56,7 +57,7 @@ export default function BannerUpload({ currentUrl, onUploaded, onRemove }: Props
               cursor: "pointer", fontSize: "0.8rem",
             }}
           >
-            ✕ Entfernen
+            <XMarkIcon width={12} height={12} style={{ display: "inline-block", verticalAlign: "-2px" }} aria-hidden="true" /> Entfernen
           </button>
         </div>
       ) : (
@@ -69,7 +70,7 @@ export default function BannerUpload({ currentUrl, onUploaded, onRemove }: Props
             fontSize: "0.9rem", marginBottom: "0.5rem",
           }}
         >
-          {uploading ? "Wird hochgeladen …" : "+ Bild auswählen (JPEG / PNG / WebP, max. 5 MB)"}
+          {uploading ? "Wird hochgeladen …" : <><PlusIcon width={16} height={16} style={{ display: "inline-block", verticalAlign: "-2px" }} aria-hidden="true" /> Bild auswählen (JPEG / PNG / WebP, max. 5 MB)</>}
         </div>
       )}
 
