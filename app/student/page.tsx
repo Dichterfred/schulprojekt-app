@@ -6,6 +6,7 @@ import { apiError } from "@/lib/apiTypes";
 import LogoutButton from "@/components/LogoutButton";
 import { formatDateTime } from "@/lib/dateHelpers";
 import DescriptionRenderer from "@/components/DescriptionRenderer";
+import { CheckIcon, ClockIcon, DocumentIcon, UsersIcon } from "@heroicons/react/24/outline";
 
 type Project = {
   id: string; name: string; description: string;
@@ -104,10 +105,7 @@ export default function StudentPage() {
           border: "1px solid oklch(from var(--color-text) l c h / 0.07)",
         }}>
           <div className="empty-state-icon" style={{ margin: "0 auto var(--space-4)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-              <polyline points="14 2 14 8 20 8"/>
-            </svg>
+            <DocumentIcon width={40} height={40} aria-hidden="true" />
           </div>
           <h2 style={{ marginBottom: "var(--space-2)" }}>Projekttag nicht verfügbar</h2>
           <p style={{ color: "var(--color-text-muted)", marginBottom: "var(--space-6)", fontSize: "var(--text-sm)" }}>
@@ -177,9 +175,7 @@ export default function StudentPage() {
             borderRadius: "var(--radius-lg)",
             border: `1px solid oklch(from ${deadlinePassed ? "var(--color-error)" : "var(--color-primary)"} l c h / 0.2)`,
           }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={deadlinePassed ? "var(--color-error)" : "var(--color-primary)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-            </svg>
+            <ClockIcon width={14} height={14} style={{ flexShrink: 0, color: deadlinePassed ? "var(--color-error)" : "var(--color-primary)" }} aria-hidden="true" />
             <div>
               <div style={{ fontSize: "var(--text-xs)", fontWeight: 700, color: deadlinePassed ? "var(--color-error)" : "var(--color-primary)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
                 {deadlinePassed ? "Frist abgelaufen" : "Einschreibefrist"}
@@ -242,10 +238,7 @@ export default function StudentPage() {
         {projects.length === 0 && (
           <div className="empty-state">
             <div className="empty-state-icon" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-              </svg>
+              <UsersIcon width={40} height={40} aria-hidden="true" />
             </div>
             <p>Für diesen Projekttag gibt es noch keine Projekte.</p>
           </div>
@@ -327,7 +320,7 @@ export default function StudentPage() {
                   </div>
                 )}
                 {savedId === p.id && (
-                  <span className="saved-badge" style={{ marginTop: "var(--space-2)", display: "inline-block" }}>✓ Gespeichert</span>
+                  <span className="saved-badge" style={{ marginTop: "var(--space-2)", display: "inline-block" }}><CheckIcon width={12} height={12} style={{ display: "inline-block", verticalAlign: "-1px" }} aria-hidden="true" /> Gespeichert</span>
                 )}
               </div>
             </div>

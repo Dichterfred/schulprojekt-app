@@ -10,6 +10,15 @@ import Link from "next/link";
 export const metadata = {
   title: "Schulprojekt Verwaltung",
   description: "Projekttage und Projekte verwalten",
+    icons: {
+        icon : [
+            {
+                media : "(prefers-color-scheme: light)",
+                url : "/images/spalatin-schwarzweiss.png",
+                href : "/images/spalatin-schwarzweiss.png"
+            },
+        ]
+    },
 };
 
 function LegalFooter() {

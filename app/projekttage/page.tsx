@@ -6,6 +6,7 @@ import { formatDateOnly, formatDateTime } from "@/lib/dateHelpers";
 import DescriptionRenderer from "@/components/DescriptionRenderer";
 import { useMe } from "@/components/useMe";
 import type { ProjectDay } from "@/lib/apiTypes";
+import { CalendarDaysIcon, ClockIcon, PlusIcon } from "@heroicons/react/24/outline";
 
 export default function ProjectDaysPage() {
   const me = useMe();
@@ -24,7 +25,7 @@ export default function ProjectDaysPage() {
         <h1>Projekttage</h1>
         {isSuperuser && (
           <div className="top-bar-actions">
-            <Link href="/projekttage/new"><button>+ Projekttag anlegen</button></Link>
+            <Link href="/projekttage/new"><button><PlusIcon width={16} height={16} style={{ display: "inline-block", verticalAlign: "-2px" }} aria-hidden="true" /> Projekttag anlegen</button></Link>
           </div>
         )}
       </div>
@@ -34,7 +35,7 @@ export default function ProjectDaysPage() {
 
         {days?.length === 0 && (
           <div className="empty-state">
-            <div className="empty-state-icon">📅</div>
+            <div className="empty-state-icon"><CalendarDaysIcon width={48} height={48} aria-hidden="true" /></div>
             <p>Noch keine Projekttage vorhanden.</p>
             {isSuperuser && <Link href="/projekttage/new"><button>Ersten Projekttag anlegen</button></Link>}
           </div>
@@ -58,8 +59,8 @@ export default function ProjectDaysPage() {
                   <DescriptionRenderer text={d.description} />
                 </div>
                 <div style={{ display: "flex", gap: "var(--space-3)", fontSize: "var(--text-xs)", color: "var(--color-text-faint)", marginBottom: "var(--space-2)", flexWrap: "wrap" }}>
-                  <span title="Zeitraum">📅 {formatDateOnly(d.startDate)} – {formatDateOnly(d.endDate)}</span>
-                  <span title="Einschreibefrist">⏰ Frist: {formatDateTime(d.enrollmentDeadline)}</span>
+                  <span title="Zeitraum"><CalendarDaysIcon width={14} height={14} style={{ display: "inline-block", verticalAlign: "-2px" }} aria-hidden="true" /> {formatDateOnly(d.startDate)} – {formatDateOnly(d.endDate)}</span>
+                  <span title="Einschreibefrist"><ClockIcon width={14} height={14} style={{ display: "inline-block", verticalAlign: "-2px" }} aria-hidden="true" /> Frist: {formatDateTime(d.enrollmentDeadline)}</span>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "var(--space-2)" }}>
                   <span className="code-badge" title="Projekttag-Code für die Schüler-Anmeldung">{d.code}</span>

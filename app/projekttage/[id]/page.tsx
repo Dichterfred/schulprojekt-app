@@ -8,6 +8,7 @@ import DescriptionRenderer from "@/components/DescriptionRenderer";
 import { useMe } from "@/components/useMe";
 import { excludedClassesLabel } from "@/lib/forms";
 import { apiError, type Project, type ProjectDay } from "@/lib/apiTypes";
+import { CalendarDaysIcon, ClockIcon, PlusIcon, UsersIcon } from "@heroicons/react/24/outline";
 
 export default function ProjectDayDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -80,8 +81,8 @@ export default function ProjectDayDetailPage() {
                 <DescriptionRenderer text={day.description} />
               </div>
               <div style={{ display: "flex", gap: "var(--space-4)", fontSize: "var(--text-xs)", color: "var(--color-text-faint)", flexWrap: "wrap", alignItems: "center" }}>
-                <span>📅 {formatDateOnly(day.startDate)} – {formatDateOnly(day.endDate)}</span>
-                <span>⏰ Frist: {formatDateTime(day.enrollmentDeadline)}</span>
+                <span><CalendarDaysIcon width={14} height={14} style={{ display: "inline-block", verticalAlign: "-2px" }} aria-hidden="true" /> {formatDateOnly(day.startDate)} – {formatDateOnly(day.endDate)}</span>
+                <span><ClockIcon width={14} height={14} style={{ display: "inline-block", verticalAlign: "-2px" }} aria-hidden="true" /> Frist: {formatDateTime(day.enrollmentDeadline)}</span>
                 <span>Code: <span className="code-badge">{day.code}</span></span>
               </div>
             </div>
@@ -92,12 +93,12 @@ export default function ProjectDayDetailPage() {
           <>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-3)", gap: "var(--space-3)", flexWrap: "wrap" }}>
               <h2 style={{ margin: 0, fontSize: "var(--text-lg)" }}>{isSuperuser ? "Alle Projekte" : "Meine Projekte"}</h2>
-              <Link href={`/projekttage/${id}/projekte/new`}><button>+ Projekt anlegen</button></Link>
+              <Link href={`/projekttage/${id}/projekte/new`}><button><PlusIcon width={16} height={16} style={{ display: "inline-block", verticalAlign: "-2px" }} aria-hidden="true" /> Projekt anlegen</button></Link>
             </div>
 
             {projects?.length === 0 && (
               <div className="empty-state">
-                <div className="empty-state-icon">👥</div>
+                <div className="empty-state-icon"><UsersIcon width={48} height={48} aria-hidden="true" /></div>
                 <p>Noch keine Projekte vorhanden.</p>
               </div>
             )}

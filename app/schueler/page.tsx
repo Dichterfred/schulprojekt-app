@@ -4,6 +4,7 @@ import { useState, FormEvent } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { AcademicCapIcon, ArrowRightIcon, ExclamationCircleIcon } from "@heroicons/react/24/outline";
 
 export default function SchuelerLoginPage() {
   const router = useRouter();
@@ -55,10 +56,7 @@ export default function SchuelerLoginPage() {
             justifyContent: "center",
             marginBottom: "var(--space-4)",
           }}>
-            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-inverse)" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
-              <path d="M6 12v5c3 3 9 3 12 0v-5"/>
-            </svg>
+            <AcademicCapIcon width={30} height={30} style={{ color: "var(--color-text-inverse)" }} aria-hidden="true" />
           </div>
           <h1 style={{ fontSize: "var(--text-xl)", fontWeight: 700, letterSpacing: "-0.035em", marginBottom: "var(--space-1)" }}>Willkommen</h1>
           <p style={{ color: "var(--color-text-muted)", fontSize: "var(--text-sm)", margin: 0 }}>
@@ -119,9 +117,7 @@ export default function SchuelerLoginPage() {
 
             {error && (
               <div className="error-banner">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}>
-                  <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-                </svg>
+                <ExclamationCircleIcon width={16} height={16} style={{ flexShrink: 0, marginTop: 1 }} aria-hidden="true" />
                 {error}
               </div>
             )}
@@ -145,7 +141,7 @@ export default function SchuelerLoginPage() {
         <p style={{ textAlign: "center", marginTop: "var(--space-5)", fontSize: "var(--text-sm)", color: "var(--color-text-muted)" }}>
           Du bist Lehrer?{" "}
           <Link href="/lehrer" style={{ color: "var(--color-primary)", textDecoration: "none", fontWeight: 600 }}>
-            Hier anmelden →
+            Hier anmelden <ArrowRightIcon width={14} height={14} style={{ display: "inline-block", verticalAlign: "-2px" }} aria-hidden="true" />
           </Link>
         </p>
       </div>
